@@ -2,11 +2,10 @@
 <html>
 <head>
 <title>HRRR forecasted Air and Dewpoint Temperatures</title>
-<script src="https://pyscript.net/dist/pyscript.js"></script>
 </head>
 <body>
 <h1>HRRR forecasted Air and Dewpoint Temperatures</h1>
-<py-script>
+<script>
 from datetime import datetime, timedelta
 
 import matplotlib.pyplot as plt
@@ -94,6 +93,7 @@ plt.xticks(rotation = 45)
 #ax.xaxis.set_major_locator(mdates.HourLocator(interval=1))
 #ax.xaxis.set_major_formatter(mdates.DateFormatter('%H'))
 plt.title('HRRR forecasted Air and Dewpoint Temperatures')
-</py-script>
+plt.show()
+</script>
 </body>
 </html>
