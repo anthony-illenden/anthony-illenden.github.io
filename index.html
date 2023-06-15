@@ -21,8 +21,13 @@
         fetch('/data')
             .then(response => response.json())
             .then(data => {
-                // Update the image source with the received plot data
-                document.getElementById('plot-image').src = 'data:image/png;base64,' + data.plot_data;
+                // Create a new image element
+                const image = new Image();
+                image.src = 'data:image/png;base64,' + data.plot_data;
+
+                // Append the image to the plot container
+                const plotContainer = document.getElementById('plot-container');
+                plotContainer.appendChild(image);
             });
     </script>
 </body>
