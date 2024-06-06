@@ -248,16 +248,13 @@
                 }
             }
 
-            function updateOutlookImage() {
-                const day = daySelect.value;
-                const type = outlookType.value;
-                let imageUrl = '';
-                if (type === 'cat') {
-                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}.png`;
-                } else {
-                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_${type}.png`;
+            function updateUpperAirImage() {
+                const level = upperAirLevel.value;
+                const datetime = dateTimeSelect.value;
+                if (level && datetime) {
+                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
+                    upperAirImage.src = imageUrl;
                 }
-                outlookImage.src = imageUrl;
             }
 
             function updateMesoImage() {
