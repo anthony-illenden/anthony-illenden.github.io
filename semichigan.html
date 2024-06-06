@@ -14,6 +14,20 @@
             margin: auto;
             margin-top: 40px;
         }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls select {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .image-container {
+            margin-top: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
     </style>
 </head>
 <body>
@@ -21,5 +35,55 @@
         <h1>SE Michigan</h1>
         <p>Forecast and Warning...</p>
     </div>
+
+    <div class="container">
+        <h1>SPC Convective Outlooks</h1>
+        <div class="controls">
+            <label for="daySelect">Select Day:</label>
+            <select id="daySelect">
+                <option value="1">Day 1 (Current)</option>
+                <option value="2">Day 2 (Tomorrow)</option>
+            </select>
+
+            <label for="outlookType">Select Outlook Type:</label>
+            <select id="outlookType">
+                <option value="cat">Category</option>
+                <option value="TORN">Tornado</option>
+                <option value="HAIL">Hail</option>
+                <option value="WIND">Wind</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="outlookImage" src="" alt="SPC Convective Outlook">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const daySelect = document.getElementById('daySelect');
+            const outlookType = document.getElementById('outlookType');
+            const outlookImage = document.getElementById('outlookImage');
+
+            function updateOutlookImage() {
+                const day = daySelect.value;
+                const type = outlookType.value;
+                let imageUrl = '';
+                if (type === 'cat') {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}.png`;
+                } else {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_${type}.png`;
+                }
+                outlookImage.src = imageUrl;
+            }
+
+            // Set initial image src
+            updateOutlookImage();
+
+            // Event listeners
+            daySelect.addEventListener('change', updateOutlookImage);
+            outlookType.addEventListener('change', updateOutlookImage);
+        });
+    </script>
 </body>
 </html>
