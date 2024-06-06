@@ -139,21 +139,7 @@
             <img id="upperAirImage" src="" alt="Observed Upper Air Map">
         </div>
     </div>
-    <div class="container">
-        <h1>Weather Forecast</h1>
-        <div class="controls">
-            <label for="weatherDaySelect">Select Day:</label>
-            <select id="weatherDaySelect">
-                <option value="tomorrow">1200 UTC Tomorrow</option>
-                <option value="day-after-tomorrow">12 UTC Day After Tomorrow</option>
-                <option value="day-3">Day 3</option>
-                <option value="day-4">Day 4</option>
-            </select>
-        </div>
-        <div class="image-container" id="weatherForecastContainer">
-        </div>
-    </div>
-    
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Function to display current UTC time
@@ -301,57 +287,11 @@
                     upperAirImage.src = imageUrl;
                 }
             }
-    <script>
-        document.addEventListener("DOMContentLoaded", function() {
-            var weatherDaySelect = document.getElementById("weatherDaySelect");
-            var weatherForecastContainer = document.getElementById("weatherForecastContainer");
 
-            function formatDate(date) {
-                var year = date.getFullYear();
-                var month = String(date.getMonth() + 1).padStart(2, '0');
-                var day = String(date.getDate()).padStart(2, '0');
-                return year + month + day;
-            }
-
-            function showForecast() {
-                var selectedDay = weatherDaySelect.value;
-                var imageUrl = "";
-
-                switch (selectedDay) {
-                    case "tomorrow":
-                        var tomorrow = new Date(Date.now() + 24 * 60 * 60 * 1000);
-                        imageUrl = `https://origin.wpc.ncep.noaa.gov/basicwx/94fndfd_init_${formatDate(tomorrow)}12.gif`;
-                        break;
-                    case "day-after-tomorrow":
-                        var dayAfterTomorrow = new Date(Date.now() + 2 * 24 * 60 * 60 * 1000);
-                        imageUrl = `https://origin.wpc.ncep.noaa.gov/basicwx/94fndfd_init_${formatDate(dayAfterTomorrow)}12.gif`;
-                        break;
-                    case "day-3":
-                        imageUrl = "https://origin.wpc.ncep.noaa.gov/medr/display/wpcwx+frontsf072.gif";
-                        break;
-                    case "day-4":
-                        imageUrl = "https://origin.wpc.ncep.noaa.gov/medr/display/wpcwx+frontsf096.gif";
-                        break;
-                    default:
-                        imageUrl = "";
-                        break;
-                }
-
-                weatherForecastContainer.innerHTML = imageUrl ? `<img src="${imageUrl}" alt="${selectedDay} Forecast">` : "No forecast available for the selected day.";
-            }
-
-            // Show forecast when the page loads
-
-
-            // Update forecast when the user selects a different day
-            weatherDaySelect.addEventListener("change", showForecast);
-        });
-    </script>
             // Set initial images
             updateOutlookImage();
             updateMesoImage();
             updateUpperAirImage();
-            showForecast();
         });
     </script>
 </body>
