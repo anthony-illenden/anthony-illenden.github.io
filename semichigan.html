@@ -14,76 +14,60 @@
             margin: auto;
             margin-top: 40px;
         }
-        .controls {
+        .image-container {
+            text-align: center;
             margin-bottom: 20px;
         }
-        .controls select {
-            padding: 5px;
-            margin-right: 10px;
-        }
-        .image-container {
+        .forecast-text {
             margin-top: 20px;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
         }
     </style>
 </head>
 <body>
     <div class="container">
         <h1>SE Michigan</h1>
-        <p>Forecast and Warning...</p>
-    </div>
-
-    <div class="container">
-        <h1>SPC Convective Outlooks</h1>
-        <div class="controls">
-            <label for="daySelect">Select Day:</label>
-            <select id="daySelect">
-                <option value="1">Day 1 (Current)</option>
-                <option value="2">Day 2 (Tomorrow)</option>
-            </select>
-
-            <label for="outlookType">Select Outlook Type:</label>
-            <select id="outlookType">
-                <option value="cat">Category</option>
-                <option value="TORN">Tornado</option>
-                <option value="HAIL">Hail</option>
-                <option value="WIND">Wind</option>
-            </select>
-        </div>
-
         <div class="image-container">
-            <img id="outlookImage" src="" alt="SPC Convective Outlook">
+            <h2>Category</h2>
+            <img src="https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody1.png" alt="Category Outlook">
+        </div>
+        <div class="image-container">
+            <h2>Tornado</h2>
+            <img src="https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody1_TORN.png" alt="Tornado Outlook">
+        </div>
+        <div class="image-container">
+            <h2>Hail</h2>
+            <img src="https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody1_HAIL.png" alt="Hail Outlook">
+        </div>
+        <div class="image-container">
+            <h2>Wind</h2>
+            <img src="https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody1_WIND.png" alt="Wind Outlook">
+        </div>
+        <div class="forecast-text" id="forecast-text">
+            <h2>NWS Detroit Area Forecast Discussion</h2>
+            <p>Loading forecast...</p>
         </div>
     </div>
 
     <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const daySelect = document.getElementById('daySelect');
-            const outlookType = document.getElementById('outlookType');
-            const outlookImage = document.getElementById('outlookImage');
+        async function fetchForecast() {
+            try {
+                const response = await fetch('https://forecast.weather.gov/product.php?site=DTX&issuedby=DTX&product=AFD&format=CI&version=1&glossary=1');
+                const text = await response.text();
+                
+                // Extract the forecast discussion text
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(text, 'text/html');
+                const forecastText = doc.querySelector('pre').innerText;
 
-            function updateOutlookImage() {
-                const day = daySelect.value;
-                const type = outlookType.value;
-                let imageUrl = '';
-                if (type === 'cat') {
-                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}.png`;
-                } else {
-                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_${type}.png`;
-                }
-                outlookImage.src = imageUrl;
+                // Display the forecast text
+                document.getElementById('forecast-text').innerHTML = `<h2>Area Forecast Discussion</h2><pre>${forecastText}</pre>`;
+            } catch (error) {
+                console.error('Error fetching the forecast:', error);
+                document.getElementById('forecast-text').innerHTML = '<h2>Area Forecast Discussion</h2><p>Unable to load forecast.</p>';
             }
+        }
 
-            // Set initial image src
-            updateOutlookImage();
-
-            // Event listeners
-            daySelect.addEventListener('change', updateOutlookImage);
-            outlookType.addEventListener('change', updateOutlookImage);
-        });
+        fetchForecast();
     </script>
 </body>
 </html>
