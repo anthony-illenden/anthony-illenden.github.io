@@ -273,7 +273,7 @@
                             imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/925mb/925mb_sf.gif';
                             break;
                     }
-                } else {
+                } else if (thermoParam) {
                     // Handle thermodynamic images
                     switch (thermoParam) {
                         case 'lllr':
