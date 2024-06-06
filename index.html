@@ -228,7 +228,13 @@
                 const level = upperAirLevel.value;
                 const datetime = dateTimeSelect.value;
                 if (level && datetime) {
-                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
+                    // Splitting the datetime value into date and time
+                    const [date, time] = datetime.split('_');
+            
+                    // Constructing the URL with the correct format
+                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${date}_${time}.gif`;
+            
+                    // Updating the src attribute of upperAirImage
                     upperAirImage.src = imageUrl;
                 }
             }
