@@ -44,53 +44,34 @@
         <a href="projects.html">Projects</a>
         <a href="about.html">About</a>
     </nav>
+        <div class="container">
+            <h1>SPC Convective Outlooks</h1>
+            <div class="controls">
+                <label for="daySelect">Select Day:</label>
+                <select id="daySelect">
+                    <option value="1">Day 1 (Current)</option>
+                    <option value="2">Day 2 (Tomorrow)</option>
+                </select>
 
+                <label for="outlookType">Select Outlook Type:</label>
+                <select id="outlookType">
+                    <option value="cat">Category</option>
+                    <option value="TORN">Tornado</option>
+                    <option value="HAIL">Hail</option>
+                    <option value="WIND">Wind</option>
+                </select>
+            </div>
+
+            <div class="image-container">
+                <img id="outlookImage" src="" alt="SPC Convective Outlook">
+            </div>
+        </div>
     <div class="container">
-        <h1>Forecast Model Data</h1>
-        <div class="controls">
-            <label for="weatherType">Select Weather Type:</label>
-            <select id="weatherType">
-                <option value="tf">Air Temperature</option>
-                <option value="td">Dewpoint Temperature</option>
-                <option value="qpf_accum">Quantitative Precipitation Forecast (QPF)</option>
-            </select>
-
-            <label for="stationInput">Enter Station Code:</label>
-            <input type="text" id="stationInput" placeholder="e.g., KVLL">
-        </div>
-
-        <div class="image-container">
-            <img id="weatherImage" src="" alt="Weather Information">
-        </div>
-    </div>
-
-    <div class="container">
-        <h1>SPC Convective Outlooks</h1>
-        <div class="controls">
-            <label for="daySelect">Select Day:</label>
-            <select id="daySelect">
-                <option value="1">Day 1 (Current)</option>
-                <option value="2">Day 2 (Tomorrow)</option>
-            </select>
-
-            <label for="outlookType">Select Outlook Type:</label>
-            <select id="outlookType">
-                <option value="cat">Category</option>
-                <option value="TORN">Tornado</option>
-                <option value="HAIL">Hail</option>
-                <option value="WIND">Wind</option>
-            </select>
-        </div>
-
-        <div class="image-container">
-            <img id="outlookImage" src="" alt="SPC Convective Outlook">
-        </div>
-    </div>
-
-    <div class="container">
-        <h1>NWS Detroit Area Forecast Discussion</h1>
-        <div class="forecast-text" id="forecast-text">
-            <p>Loading forecast...</p>
+        <div class="container">
+            <h1>NWS Detroit Area Forecast Discussion</h1>
+            <div class="forecast-text" id="forecast-text">
+                <p>Loading forecast...</p>
+            </div>
         </div>
         <div class="twitter-container">
             <a class="twitter-timeline" href="https://twitter.com/tonesweatherbot?ref_src=twsrc%5Etfw">Tweets by tonesweatherbot</a> 
@@ -103,9 +84,6 @@
             const daySelect = document.getElementById('daySelect');
             const outlookType = document.getElementById('outlookType');
             const outlookImage = document.getElementById('outlookImage');
-            const weatherType = document.getElementById('weatherType');
-            const weatherImage = document.getElementById('weatherImage');
-            const stationInput = document.getElementById('stationInput');
 
             function updateOutlookImage() {
                 const day = daySelect.value;
@@ -119,22 +97,33 @@
                 outlookImage.src = imageUrl;
             }
 
-            function updateWeatherImage() {
-                const type = weatherType.value;
-                const station = stationInput.value;
-                let imageUrl = `https://meteor.geol.iastate.edu/~ckarsten/bufkit/images/plotter.php?site=${station}&var=${type}&nam=1&namm=1&nam4km=1&gfs=1&gfsm=1&rap=1&nam_mos=1&gfs_mos=1&gfsm_mos=1&nws=1&obs=1&con=1`;
-                weatherImage.src = imageUrl;
-            }
-
             // Set initial image src
             updateOutlookImage();
-            updateWeatherImage();
 
             // Event listeners
             daySelect.addEventListener('change', updateOutlookImage);
             outlookType.addEventListener('change', updateOutlookImage);
-            weatherType.addEventListener('change', updateWeatherImage);
-            stationInput.addEventListener('input', updateWeatherImage);
+
+            // Fetch forecast text
+            async function fetchForecast() {
+                try {
+                    const response = await fetch('https://forecast.weather.gov/product.php?site=DTX&issuedby=DTX&product=AFD&format=CI&version=1&glossary=1');
+                    const text = await response.text();
+                    
+                    // Extract the forecast discussion text
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const forecastText = doc.querySelector('pre').innerText;
+
+                    // Display the forecast text
+                    document.getElementById('forecast-text').innerHTML = `<h2>Area Forecast Discussion</h2><pre>${forecastText}</pre>`;
+                } catch (error) {
+                    console.error('Error fetching the forecast:', error);
+                    document.getElementById('forecast-text').innerHTML = '<h2>Area Forecast Discussion</h2><p>Unable to load forecast.</p>';
+                }
+            }
+
+            fetchForecast();
         });
     </script>
 </body>
