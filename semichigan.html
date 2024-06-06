@@ -44,35 +44,41 @@
         <a href="projects.html">Projects</a>
         <a href="about.html">About</a>
     </nav>
-        <div class="container">
-            <h1>SPC Convective Outlooks</h1>
-            <div class="controls">
-                <label for="daySelect">Select Day:</label>
-                <select id="daySelect">
-                    <option value="1">Day 1 (Current)</option>
-                    <option value="2">Day 2 (Tomorrow)</option>
-                </select>
 
-                <label for="outlookType">Select Outlook Type:</label>
-                <select id="outlookType">
-                    <option value="cat">Category</option>
-                    <option value="TORN">Tornado</option>
-                    <option value="HAIL">Hail</option>
-                    <option value="WIND">Wind</option>
-                </select>
-            </div>
-
-            <div class="image-container">
-                <img id="outlookImage" src="" alt="SPC Convective Outlook">
-            </div>
-        </div>
     <div class="container">
-        <div class="container">
-            <h1>SE Michigan</h1>
-            <div class="forecast-text" id="forecast-text">
-                <h2>NWS Detroit Area Forecast Discussion</h2>
-                <p>Loading forecast...</p>
-            </div>
+        <h1>Satellite Image Loop</h1>
+        <div class="image-container">
+            <img id="satellite-image" src="" alt="Satellite Image">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>SPC Convective Outlooks</h1>
+        <div class="controls">
+            <label for="daySelect">Select Day:</label>
+            <select id="daySelect">
+                <option value="1">Day 1 (Current)</option>
+                <option value="2">Day 2 (Tomorrow)</option>
+            </select>
+
+            <label for="outlookType">Select Outlook Type:</label>
+            <select id="outlookType">
+                <option value="cat">Category</option>
+                <option value="TORN">Tornado</option>
+                <option value="HAIL">Hail</option>
+                <option value="WIND">Wind</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="outlookImage" src="" alt="SPC Convective Outlook">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>NWS Detroit Area Forecast Discussion</h1>
+        <div class="forecast-text" id="forecast-text">
+            <p>Loading forecast...</p>
         </div>
         <div class="twitter-container">
             <a class="twitter-timeline" href="https://twitter.com/tonesweatherbot?ref_src=twsrc%5Etfw">Tweets by tonesweatherbot</a> 
@@ -81,6 +87,37 @@
     </div>
 
     <script>
+        // Function to generate the URL for each time interval
+        function generateUrls() {
+            const urls = [];
+            const currentTime = new Date();
+            currentTime.setUTCMinutes(Math.floor(currentTime.getUTCMinutes() / 10) * 10); // Round to the nearest 10 minutes
+            currentTime.setUTCSeconds(0);
+            currentTime.setUTCMilliseconds(0);
+
+            for (let i = 0; i < 12; i++) { // 12 intervals for 2 hours
+                const year = currentTime.getUTCFullYear();
+                const month = String(currentTime.getUTCMonth() + 1).padStart(2, '0');
+                const day = String(currentTime.getUTCDate()).padStart(2, '0');
+                const hours = String(currentTime.getUTCHours()).padStart(2, '0');
+                const minutes = String(currentTime.getUTCMinutes()).padStart(2, '0');
+                const url = `https://cdn.star.nesdis.noaa.gov/WFO/dtx/GEOCOLOR/${year}${month}${day}${hours}${minutes}_GOES16-ABI-dtx-GEOCOLOR-600x600.jpg`;
+                urls.unshift(url); // Add to the beginning to get chronological order
+                currentTime.setUTCMinutes(currentTime.getUTCMinutes() - 10); // Go back 10 minutes
+            }
+            return urls;
+        }
+
+        // Function to loop through the images
+        function loopImages(urls) {
+            let index = 0;
+            const imgElement = document.getElementById('satellite-image');
+            setInterval(() => {
+                imgElement.src = urls[index];
+                index = (index + 1) % urls.length;
+            }, 1000); // Change image every 1 second
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const daySelect = document.getElementById('daySelect');
             const outlookType = document.getElementById('outlookType');
@@ -125,6 +162,10 @@
             }
 
             fetchForecast();
+
+            // Initialize the satellite image loop
+            const urls = generateUrls();
+            loopImages(urls);
         });
     </script>
 </body>
