@@ -1,0 +1,297 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Wall</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        .container {
+            max-width: 800px;
+            margin: auto;
+            margin-top: 40px; /* Add some space between sections */
+        }
+        .controls {
+            margin-bottom: 20px;
+        }
+        .controls select,
+        .controls input {
+            padding: 5px;
+            margin-right: 10px;
+        }
+        .error {
+            color: red;
+            font-weight: bold;
+        }
+        .image-container {
+            margin-top: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="projects.html">Projects</a>
+        <a href="about.html">About</a>
+    </nav>
+    
+    <div class="container">
+        <h1>Current UTC Time: <span id="currentTime"></span></h1> <!-- Current UTC Time section -->
+    </div>
+
+    <div class="container">
+        <h1>SPC Soundings</h1>
+        <p>This page displays the latest SPC sounding plots.</p>
+        <div class="controls">
+            <label for="datetime">Select DateTime:</label>
+            <select id="datetime"></select>
+
+            <label for="station">Enter Station Code:</label>
+            <input type="text" id="station" placeholder="e.g., OUN">
+        </div>
+
+        <h2>Sounding Plot</h2>
+        <img id="soundingPlot" src="" alt="Sounding Plot">
+        <p id="error" class="error" style="display:none;">Image not available for the selected DateTime and Station.</p>
+    </div>
+
+    <div class="container">
+        <h1>College of DuPage Surface Analysis</h1>
+        <p>This section displays the latest surface analysis from the College of DuPage.</p>
+        <div class="image-container">
+            <img id="surfaceAnalysis" src="https://climate.cod.edu/data/surface/US_zoom/contour/current/USZOOM.fronts.gif" alt="Surface Analysis">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>SPC Convective Outlooks</h1>
+        <div class="controls">
+            <label for="daySelect">Select Day:</label>
+            <select id="daySelect">
+                <option value="1">Day 1 (Current)</option>
+                <option value="2">Day 2 (Tomorrow)</option>
+            </select>
+
+            <label for="outlookType">Select Outlook Type:</label>
+            <select id="outlookType">
+                <option value="cat">Category</option>
+                <option value="TORN">Tornado</option>
+                <option value="HAIL">Hail</option>
+                <option value="WIND">Wind</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="outlookImage" src="" alt="SPC Convective Outlook">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Mesoscale Analysis</h1>
+        <div class="controls">
+            <label for="upperAir">Select Upper Air Level:</label>
+            <select id="upperAir">
+                <option value="300mb">300 mb</option>
+                <option value="500mb">500 mb</option>
+                <option value="700mb">700 mb</option>
+                <option value="850mb">850 mb</option>
+            </select>
+
+            <label for="thermo">Select Thermodynamic Parameter:</label>
+            <select id="thermo">
+                <option value="lllr">Low-Level Lapse Rates</option>
+                <option value="laps">Mid-Level Lapse Rates</option>
+                <option value="mlcp">MLCAPE</option>
+                <option value="sbcp">SBCAPE</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="mesoImage" src="" alt="Mesoscale Analysis">
+        </div>
+    </div>
+
+    <div class="container">
+        <h1>Observed Upper Air Maps</h1>
+        <div class="controls">
+            <label for="upperAirLevel">Select Upper Air Level:</label>
+            <select id="upperAirLevel">
+                <option value="300">300 mb</option>
+                <option value="500">500 mb</option>
+                <option value="700">700 mb</option>
+                <option value="850">850 mb</option>
+                <option value="925">925 mb</option>
+            </select>
+
+            <label for="dateTime">Select DateTime:</label>
+            <select id="dateTime"></select>
+        </div>
+
+        <div class="image-container">
+            <img id="upperAirImage" src="" alt="Observed Upper Air Map">
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Function to display current UTC time
+            function updateCurrentTime() {
+                const now = new Date();
+                const utcString = now.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
+                document.getElementById('currentTime').textContent = utcString;
+            }
+            
+            // Update current time initially
+            updateCurrentTime();
+            // Update current time every second
+            setInterval(updateCurrentTime, 1000);
+            
+            const datetimeSelect = document.getElementById('datetime');
+            const stationInput = document.getElementById('station');
+            const soundingPlot = document.getElementById('soundingPlot');
+            const error = document.getElementById('error');
+            const daySelect = document.getElementById('daySelect');
+            const outlookType = document.getElementById('outlookType');
+            const outlookImage = document.getElementById('outlookImage');
+            const upperAir = document.getElementById('upperAir');
+            const thermo = document.getElementById('thermo');
+            const mesoImage = document.getElementById('mesoImage');
+            const upperAirLevel = document.getElementById('upperAirLevel');
+            const upperAirImage = document.getElementById('upperAirImage');
+            const dateTimeSelect = document.getElementById('dateTime');
+
+            // Function to generate the last several days' datetimes in yymmdd_hh format
+            function generateDatetimes() {
+                const now = new Date();
+                const datetimes = [];
+                const datetimesUpperAir = [];
+                for (let i = 0; i < 10; i++) {  // Adjust number of days as needed
+                    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                    const yy = date.getUTCFullYear().toString().slice(2);
+                    const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+                    const dd = date.getUTCDate().toString().padStart(2, '0');
+                    datetimes.push(`${yy}${mm}${dd}12`);
+                    datetimes.push(`${yy}${mm}${dd}00`);
+
+                    const upperAirDateTimes = `${yy}${mm}${dd}_12`;
+                    const upperAirDateTimes_00 = `${yy}${mm}${dd}_00`;
+
+                    datetimesUpperAir.push(upperAirDateTimes);
+                    datetimesUpperAir.push(upperAirDateTimes_00);
+                }
+                return { datetimes, datetimesUpperAir };
+}
+
+            // Populate datetime dropdowns
+            const { datetimes, datetimesUpperAir } = generateDatetimes();
+            datetimes.forEach(datetime => {
+                const option = document.createElement('option');
+                option.value = datetime;
+                option.textContent = datetime;
+                datetimeSelect.appendChild(option);
+            });
+
+            datetimesUpperAir.forEach(datetime => {
+                const dateTimeOption = document.createElement('option');
+                dateTimeOption.value = datetime;
+                dateTimeOption.textContent = datetime;
+                dateTimeSelect.appendChild(dateTimeOption);
+            });
+
+            // Set initial image src
+            updateImage();
+
+            // Event listeners
+            datetimeSelect.addEventListener('change', updateImage);
+            stationInput.addEventListener('input', updateImage);
+            daySelect.addEventListener('change', updateOutlookImage);
+            outlookType.addEventListener('change', updateOutlookImage);
+            upperAir.addEventListener('change', updateMesoImage);
+            thermo.addEventListener('change', updateMesoImage);
+            upperAirLevel.addEventListener('change', updateUpperAirImage);
+            dateTimeSelect.addEventListener('change', updateUpperAirImage);
+
+            // Update image function for SPC Soundings
+            function updateImage() {
+                const datetime = datetimeSelect.value;
+                const station = stationInput.value.trim().toUpperCase();
+                if (station) {
+                    const imageUrl = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
+                    soundingPlot.src = imageUrl;
+                    soundingPlot.onerror = function() {
+                        error.style.display = 'block';
+                        soundingPlot.style.display = 'none';
+                    };
+                    soundingPlot.onload = function() {
+                        error.style.display = 'none';
+                        soundingPlot.style.display = 'block';
+                    };
+                }
+            }
+
+            function updateOutlookImage() {
+                const day = daySelect.value;
+                const type = outlookType.value;
+                let imageUrl = '';
+                if (type === 'cat') {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}.png`;
+                } else {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_${type}.png`;
+                }
+                outlookImage.src = imageUrl;
+            }
+
+            function updateMesoImage() {
+                const upperAirLevel = upperAir.value;
+                const thermoParam = thermo.value;
+                let imageUrl = '';
+
+                // Handle upper air images
+                if (upperAirLevel) {
+                    imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/${upperAirLevel}/${upperAirLevel}_sf.gif`;
+                }
+
+                // Handle thermodynamic images
+                switch (thermoParam) {
+                    case 'lllr':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
+                        break;
+                    case 'laps':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
+                        break;
+                    case 'mlcp':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
+                        break;
+                    case 'sbcp':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
+                        break;
+                }
+
+                mesoImage.src = imageUrl;
+            }
+
+            // Update image function for Observed Upper Air Maps
+            function updateUpperAirImage() {
+                const level = upperAirLevel.value;
+                const datetime = dateTimeSelect.value;
+                if (level && datetime) {
+                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
+                    upperAirImage.src = imageUrl;
+                }
+            }
+
+            // Set initial images
+            updateOutlookImage();
+            updateMesoImage();
+            updateUpperAirImage();
+        });
+    </script>
+</body>
+</html>
