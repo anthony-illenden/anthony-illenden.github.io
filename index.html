@@ -42,6 +42,34 @@
         <a href="projects.html">Projects</a>
         <a href="about.html">About</a>
     </nav>
+    
+    <div class="container">
+        <h1>Current UTC Time: <span id="currentTime"></span></h1> <!-- Current UTC Time section -->
+    </div>
+
+    <div class="container">
+        <h1>SPC Soundings</h1>
+        <p>This page displays the latest SPC sounding plots.</p>
+        <div class="controls">
+            <label for="datetime">Select DateTime:</label>
+            <select id="datetime"></select>
+
+            <label for="station">Enter Station Code:</label>
+            <input type="text" id="station" placeholder="e.g., OUN">
+        </div>
+
+        <h2>Sounding Plot</h2>
+        <img id="soundingPlot" src="" alt="Sounding Plot">
+        <p id="error" class="error" style="display:none;">Image not available for the selected DateTime and Station.</p>
+    </div>
+
+    <div class="container">
+        <h1>College of DuPage Surface Analysis</h1>
+        <p>This section displays the latest surface analysis from the College of DuPage.</p>
+        <div class="image-container">
+            <img id="surfaceAnalysis" src="https://climate.cod.edu/data/surface/US_zoom/contour/current/USZOOM.fronts.gif" alt="Surface Analysis">
+        </div>
+    </div>
 
     <div class="container">
         <h1>SPC Convective Outlooks</h1>
@@ -65,23 +93,7 @@
             <img id="outlookImage" src="" alt="SPC Convective Outlook">
         </div>
     </div>
-
-    <div class="container">
-        <h1>SPC Soundings</h1>
-        <p>This page displays the latest SPC sounding plots.</p>
-        <div class="controls">
-            <label for="datetime">Select DateTime:</label>
-            <select id="datetime"></select>
-
-            <label for="station">Enter Station Code:</label>
-            <input type="text" id="station" placeholder="e.g., OUN">
-        </div>
-
-        <h2>Sounding Plot</h2>
-        <img id="soundingPlot" src="" alt="Sounding Plot">
-        <p id="error" class="error" style="display:none;">Image not available for the selected DateTime and Station.</p>
-    </div>
-
+    
     <div class="container">
         <h1>Observed Upper Air Maps</h1>
         <div class="controls">
@@ -103,14 +115,6 @@
         </div>
     </div>
 
-    <div class="container">
-        <h1>College of DuPage Surface Analysis</h1>
-        <p>This section displays the latest surface analysis from the College of DuPage.</p>
-        <div class="image-container">
-            <img id="surfaceAnalysis" src="https://climate.cod.edu/data/surface/US_zoom/contour/current/USZOOM.fronts.gif" alt="Surface Analysis">
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Function to display current UTC time
@@ -125,16 +129,19 @@
             // Update current time every second
             setInterval(updateCurrentTime, 1000);
             
-            const daySelect = document.getElementById('daySelect');
-            const outlookType = document.getElementById('outlookType');
-            const outlookImage = document.getElementById('outlookImage');
             const datetimeSelect = document.getElementById('datetime');
             const stationInput = document.getElementById('station');
             const soundingPlot = document.getElementById('soundingPlot');
             const error = document.getElementById('error');
+            const daySelect = document.getElementById('daySelect');
+            const outlookType = document.getElementById('outlookType');
+            const outlookImage = document.getElementById('outlookImage');
+            const upperAir = document.getElementById('upperAir');
+            const thermo = document.getElementById('thermo');
+            const mesoImage = document.getElementById('mesoImage');
             const upperAirLevel = document.getElementById('upperAirLevel');
-            const dateTimeSelect = document.getElementById('dateTime');
             const upperAirImage = document.getElementById('upperAirImage');
+            const dateTimeSelect = document.getElementById('dateTime');
 
             // Function to generate the last several days' datetimes in yymmdd_hh format
             function generateDatetimes() {
@@ -156,7 +163,7 @@
                     datetimesUpperAir.push(upperAirDateTimes_00);
                 }
                 return { datetimes, datetimesUpperAir };
-            }
+}
 
             // Populate datetime dropdowns
             const { datetimes, datetimesUpperAir } = generateDatetimes();
@@ -175,20 +182,20 @@
             });
 
             // Set initial image src
-            updateOutlookImage();
-            updateSoundingPlot();
-            updateUpperAirImage();
+            updateImage();
 
             // Event listeners
-            daySelect.addEventListener('change', updateOutlookImage);            
+            datetimeSelect.addEventListener('change', updateImage);
+            stationInput.addEventListener('input', updateImage);
+            daySelect.addEventListener('change', updateOutlookImage);
             outlookType.addEventListener('change', updateOutlookImage);
-            datetimeSelect.addEventListener('change', updateSoundingPlot);
-            stationInput.addEventListener('input', updateSoundingPlot);
+            upperAir.addEventListener('change', updateMesoImage);
+            thermo.addEventListener('change', updateMesoImage);
             upperAirLevel.addEventListener('change', updateUpperAirImage);
             dateTimeSelect.addEventListener('change', updateUpperAirImage);
 
             // Update image function for SPC Soundings
-            function updateSoundingPlot() {
+            function updateImage() {
                 const datetime = datetimeSelect.value;
                 const station = stationInput.value.trim().toUpperCase();
                 if (station) {
@@ -226,8 +233,11 @@
                     upperAirImage.src = imageUrl;
                 }
             }
+
+            // Set initial images
+            updateOutlookImage();
+            updateUpperAirImage();
         });
     </script>
 </body>
 </html>
-
