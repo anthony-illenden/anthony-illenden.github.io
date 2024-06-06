@@ -46,13 +46,6 @@
     </nav>
 
     <div class="container">
-        <h1>Satellite Image Loop</h1>
-        <div class="image-container">
-            <img id="satellite-image" src="" alt="Satellite Image">
-        </div>
-    </div>
-
-    <div class="container">
         <h1>SPC Convective Outlooks</h1>
         <div class="controls">
             <label for="daySelect">Select Day:</label>
@@ -88,39 +81,6 @@
     </div>
 
     <script>
-        // Function to generate the URL for each time interval
-        function generateUrls() {
-            const urls = [];
-            const currentDate = new Date();
-            const daysSince2023 = Math.floor((currentDate - new Date(2023, 0, 1)) / (1000 * 60 * 60 * 24));
-            const currentTime = new Date();
-            currentTime.setUTCMinutes(Math.floor(currentTime.getUTCMinutes() / 10) * 10); // Round to the nearest 10 minutes
-            currentTime.setUTCSeconds(0);
-            currentTime.setUTCMilliseconds(0);
-
-            for (let i = 0; i < 12; i++) { // 12 intervals for 2 hours
-                const year = currentTime.getUTCFullYear();
-                const month = String(currentTime.getUTCMonth() + 1).padStart(2, '0');
-                const day = String(daysSince2023).padStart(3, '0'); // Days since 2023
-                const hours = String(currentTime.getUTCHours()).padStart(2, '0');
-                const minutes = String(currentTime.getUTCMinutes()).padStart(2, '0');
-                const url = `https://cdn.star.nesdis.noaa.gov/WFO/dtx/GEOCOLOR/${year}${day}${hours}${minutes}_GOES16-ABI-dtx-GEOCOLOR-600x600.jpg`;
-                urls.unshift(url); // Add to the beginning to get chronological order
-                currentTime.setUTCMinutes(currentTime.getUTCMinutes() - 10); // Go back 10 minutes
-            }
-            return urls;
-        }
-
-        // Function to loop through the images
-        function loopImages(urls) {
-            let index = 0;
-            const imgElement = document.getElementById('satellite-image');
-            setInterval(() => {
-                imgElement.src = urls[index];
-                index = (index + 1) % urls.length;
-            }, 1000); // Change image every 1 second
-        }
-
         document.addEventListener('DOMContentLoaded', function() {
             const daySelect = document.getElementById('daySelect');
             const outlookType = document.getElementById('outlookType');
@@ -165,10 +125,6 @@
             }
 
             fetchForecast();
-
-            // Initialize the satellite image loop
-            const urls = generateUrls();
-            loopImages(urls);
         });
     </script>
 </body>
