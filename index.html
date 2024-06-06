@@ -42,9 +42,28 @@
         <a href="projects.html">Projects</a>
         <a href="about.html">About</a>
     </nav>
-    
+
     <div class="container">
-        <h1>Current UTC Time: <span id="currentTime"></span></h1> <!-- Current UTC Time section -->
+        <h1>SPC Convective Outlooks</h1>
+        <div class="controls">
+            <label for="daySelect">Select Day:</label>
+            <select id="daySelect">
+                <option value="1">Day 1 (Current)</option>
+                <option value="2">Day 2 (Tomorrow)</option>
+            </select>
+
+            <label for="outlookType">Select Outlook Type:</label>
+            <select id="outlookType">
+                <option value="cat">Category</option>
+                <option value="TORN">Tornado</option>
+                <option value="HAIL">Hail</option>
+                <option value="WIND">Wind</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="outlookImage" src="" alt="SPC Convective Outlook">
+        </div>
     </div>
 
     <div class="container">
@@ -92,55 +111,6 @@
         </div>
     </div>
 
-    <div class="container">
-        <h1>SPC Convective Outlooks</h1>
-        <div class="controls">
-            <label for="daySelect">Select Day:</label>
-            <select id="daySelect">
-                <option value="1">Day 1 (Current)</option>
-                <option value="2">Day 2 (Tomorrow)</option>
-            </select>
-
-            <label for="outlookType">Select Outlook Type:</label>
-            <select id="outlookType">
-                <option value="cat">Category</option>
-                <option value="TORN">Tornado</option>
-                <option value="HAIL">Hail</option>
-                <option value="WIND">Wind</option>
-            </select>
-        </div>
-
-        <div class="image-container">
-            <img id="outlookImage" src="" alt="SPC Convective Outlook">
-        </div>
-    </div>
-
-    <div class="container">
-        <h1>Mesoscale Analysis</h1>
-        <div class="controls">
-            <label for="parameter">Select Parameter:</label>
-            <select id="parameter">
-                <optgroup label="Upper Air Levels">
-                    <option value="300">300 mb</option>
-                    <option value="500">500 mb</option>
-                    <option value="700">700 mb</option>
-                    <option value="850">850 mb</option>
-                    <option value="925">925 mb</option>
-                </optgroup>
-                <optgroup label="Thermodynamic Parameters">
-                    <option value="lllr">Low-Level Lapse Rates</option>
-                    <option value="laps">Mid-Level Lapse Rates</option>
-                    <option value="mlcp">MLCAPE</option>
-                    <option value="sbcp">SBCAPE</option>
-                </optgroup>
-            </select>
-        </div>
-    
-        <div class="image-container">
-            <img id="mesoImage" src="" alt="Mesoscale Analysis">
-        </div>
-    </div>
-    
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Function to display current UTC time
@@ -155,19 +125,16 @@
             // Update current time every second
             setInterval(updateCurrentTime, 1000);
             
+            const daySelect = document.getElementById('daySelect');
+            const outlookType = document.getElementById('outlookType');
+            const outlookImage = document.getElementById('outlookImage');
             const datetimeSelect = document.getElementById('datetime');
             const stationInput = document.getElementById('station');
             const soundingPlot = document.getElementById('soundingPlot');
             const error = document.getElementById('error');
-            const daySelect = document.getElementById('daySelect');
-            const outlookType = document.getElementById('outlookType');
-            const outlookImage = document.getElementById('outlookImage');
-            const upperAir = document.getElementById('upperAir');
-            const thermo = document.getElementById('thermo');
-            const mesoImage = document.getElementById('mesoImage');
             const upperAirLevel = document.getElementById('upperAirLevel');
-            const upperAirImage = document.getElementById('upperAirImage');
             const dateTimeSelect = document.getElementById('dateTime');
+            const upperAirImage = document.getElementById('upperAirImage');
 
             // Function to generate the last several days' datetimes in yymmdd_hh format
             function generateDatetimes() {
@@ -189,7 +156,7 @@
                     datetimesUpperAir.push(upperAirDateTimes_00);
                 }
                 return { datetimes, datetimesUpperAir };
-}
+            }
 
             // Populate datetime dropdowns
             const { datetimes, datetimesUpperAir } = generateDatetimes();
@@ -208,20 +175,20 @@
             });
 
             // Set initial image src
-            updateImage();
+            updateOutlookImage();
+            updateSoundingPlot();
+            updateUpperAirImage();
 
             // Event listeners
-            datetimeSelect.addEventListener('change', updateImage);
-            stationInput.addEventListener('input', updateImage);
-            daySelect.addEventListener('change', updateOutlookImage);
+            daySelect.addEventListener('change', updateOutlookImage);            
             outlookType.addEventListener('change', updateOutlookImage);
-            upperAir.addEventListener('change', updateMesoImage);
-            thermo.addEventListener('change', updateMesoImage);
+            datetimeSelect.addEventListener('change', updateSoundingPlot);
+            stationInput.addEventListener('input', updateSoundingPlot);
             upperAirLevel.addEventListener('change', updateUpperAirImage);
             dateTimeSelect.addEventListener('change', updateUpperAirImage);
 
             // Update image function for SPC Soundings
-            function updateImage() {
+            function updateSoundingPlot() {
                 const datetime = datetimeSelect.value;
                 const station = stationInput.value.trim().toUpperCase();
                 if (station) {
@@ -238,6 +205,18 @@
                 }
             }
 
+            function updateOutlookImage() {
+                const day = daySelect.value;
+                const type = outlookType.value;
+                let imageUrl = '';
+                if (type === 'cat') {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}.png`;
+                } else {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_${type}.png`;
+                }
+                outlookImage.src = imageUrl;
+            }
+
             // Update image function for Observed Upper Air Maps
             function updateUpperAirImage() {
                 const level = upperAirLevel.value;
@@ -247,59 +226,8 @@
                     upperAirImage.src = imageUrl;
                 }
             }
-
-            function updateUpperAirImage() {
-                const level = upperAirLevel.value;
-                const datetime = dateTimeSelect.value;
-                if (level && datetime) {
-                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
-                    upperAirImage.src = imageUrl;
-                }
-            }
-
-            function updateMesoImage() {
-                const parameter = document.getElementById('parameter').value;
-                let imageUrl = '';
-            
-                // Handle upper air levels
-                switch (parameter) {
-                    case '300':
-                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/300mb/300mb_sf.gif';
-                        break;
-                    case '500':
-                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/500mb/500mb_sf.gif';
-                        break;
-                    case '700':
-                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/700mb/700mb_sf.gif';
-                        break;
-                    case '850':
-                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/850mb2/850mb2_sf.gif';
-                        break;
-                    case '925':
-                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/925mb/925mb_sf.gif';
-                        break;
-                    case 'lllr':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
-                        break;
-                    case 'laps':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
-                        break;
-                    case 'mlcp':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
-                        break;
-                    case 'sbcp':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
-                        break;
-                }
-            
-                mesoImage.src = imageUrl;
-            }
-
-            // Set initial images
-            updateOutlookImage();
-            updateMesoImage();
-            updateUpperAirImage();
         });
     </script>
 </body>
 </html>
+
