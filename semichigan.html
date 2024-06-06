@@ -46,14 +46,6 @@
     </nav>
 
     <div class="container">
-        <h1>Station Selection</h1>
-        <div class="controls">
-            <label for="stationInput">Enter Station:</label>
-            <input type="text" id="stationInput" placeholder="Enter station code">
-        </div>
-    </div>
-
-    <div class="container">
         <h1>Forecast Model Data</h1>
         <div class="controls">
             <label for="weatherType">Select Weather Type:</label>
@@ -62,6 +54,9 @@
                 <option value="td">Dewpoint Temperature</option>
                 <option value="qpf_accum">Quantitative Precipitation Forecast (QPF)</option>
             </select>
+
+            <label for="stationInput">Enter Station Code:</label>
+            <input type="text" id="stationInput" placeholder="e.g., KVLL">
         </div>
 
         <div class="image-container">
@@ -127,7 +122,7 @@
             function updateWeatherImage() {
                 const type = weatherType.value;
                 const station = stationInput.value;
-                let imageUrl = `https://meteor.geol.iastate.edu/~ckarsten/bufkit/images/plotter.php?site=${station}&var=${type}&nam=1&namm=1&nam4km=1&gfs=1&gfsm=1&rap=1&nam_mos=1&gfs_mos=1&gfsm_mos=1&nws=1&obs=1&con=1`;
+                let imageUrl = `https://meteor.geol.iastate.edu/~ckarsten/bufkit/images/plotter.php?STATION=${station}&var=${type}&nam=1&namm=1&nam4km=1&gfs=1&gfsm=1&rap=1&nam_mos=1&gfs_mos=1&gfsm_mos=1&nws=1&obs=1&con=1`;
                 weatherImage.src = imageUrl;
             }
 
