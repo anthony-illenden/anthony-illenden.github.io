@@ -76,8 +76,9 @@
     </div>
 
     <div class="container">
-        <h1>NWS Detroit Area Forecast Discussion</h1>
+        <h1>SE Michigan</h1>
         <div class="forecast-text" id="forecast-text">
+            <h2>NWS Detroit Area Forecast Discussion</h2>
             <p>Loading forecast...</p>
         </div>
         <div class="twitter-container">
@@ -90,6 +91,8 @@
         // Function to generate the URL for each time interval
         function generateUrls() {
             const urls = [];
+            const currentDate = new Date();
+            const daysSince2023 = Math.floor((currentDate - new Date(2023, 0, 1)) / (1000 * 60 * 60 * 24));
             const currentTime = new Date();
             currentTime.setUTCMinutes(Math.floor(currentTime.getUTCMinutes() / 10) * 10); // Round to the nearest 10 minutes
             currentTime.setUTCSeconds(0);
@@ -98,10 +101,10 @@
             for (let i = 0; i < 12; i++) { // 12 intervals for 2 hours
                 const year = currentTime.getUTCFullYear();
                 const month = String(currentTime.getUTCMonth() + 1).padStart(2, '0');
-                const day = String(currentTime.getUTCDate()).padStart(2, '0');
+                const day = String(daysSince2023).padStart(3, '0'); // Days since 2023
                 const hours = String(currentTime.getUTCHours()).padStart(2, '0');
                 const minutes = String(currentTime.getUTCMinutes()).padStart(2, '0');
-                const url = `https://cdn.star.nesdis.noaa.gov/WFO/dtx/GEOCOLOR/${year}${month}${day}${hours}${minutes}_GOES16-ABI-dtx-GEOCOLOR-600x600.jpg`;
+                const url = `https://cdn.star.nesdis.noaa.gov/WFO/dtx/GEOCOLOR/${year}${day}${hours}${minutes}_GOES16-ABI-dtx-GEOCOLOR-600x600.jpg`;
                 urls.unshift(url); // Add to the beginning to get chronological order
                 currentTime.setUTCMinutes(currentTime.getUTCMinutes() - 10); // Go back 10 minutes
             }
