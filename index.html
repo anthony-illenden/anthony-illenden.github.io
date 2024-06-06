@@ -253,28 +253,44 @@
                 const upperAirLevel = upperAir.value;
                 const thermoParam = thermo.value;
                 let imageUrl = '';
-
+            
                 // Handle upper air images
                 if (upperAirLevel) {
-                    imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/${upperAirLevel}/${upperAirLevel}_sf.gif`;
+                    switch (upperAirLevel) {
+                        case '300':
+                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/300mb/300mb_sf.gif';
+                            break;
+                        case '500':
+                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/500mb/500mb_sf.gif';
+                            break;
+                        case '700':
+                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/700mb/700mb_sf.gif';
+                            break;
+                        case '850':
+                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/850mb2/850mb2_sf.gif';
+                            break;
+                        case '925':
+                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/925mb/925mb_sf.gif';
+                            break;
+                    }
+                } else {
+                    // Handle thermodynamic images
+                    switch (thermoParam) {
+                        case 'lllr':
+                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
+                            break;
+                        case 'laps':
+                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
+                            break;
+                        case 'mlcp':
+                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
+                            break;
+                        case 'sbcp':
+                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
+                            break;
+                    }
                 }
-
-                // Handle thermodynamic images
-                switch (thermoParam) {
-                    case 'lllr':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
-                        break;
-                    case 'laps':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
-                        break;
-                    case 'mlcp':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
-                        break;
-                    case 'sbcp':
-                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
-                        break;
-                }
-
+            
                 mesoImage.src = imageUrl;
             }
 
