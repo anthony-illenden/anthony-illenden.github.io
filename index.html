@@ -97,21 +97,21 @@
     <div class="container">
         <h1>Mesoscale Analysis</h1>
         <div class="controls">
-            <label for="upperAir">Select Upper Air Level:</label>
-            <select id="upperAir">
-                <option value="300">300 mb</option>
-                <option value="500">500 mb</option>
-                <option value="700">700 mb</option>
-                <option value="850">850 mb</option>
-                <option value="925">925 mb</option>
-            </select>
-    
-            <label for="thermo">Select Thermodynamic Parameter:</label>
-            <select id="thermo">
-                <option value="lllr">Low-Level Lapse Rates</option>
-                <option value="laps">Mid-Level Lapse Rates</option>
-                <option value="mlcp">MLCAPE</option>
-                <option value="sbcp">SBCAPE</option>
+            <label for="parameter">Select Parameter:</label>
+            <select id="parameter">
+                <optgroup label="Upper Air Levels">
+                    <option value="300">300 mb</option>
+                    <option value="500">500 mb</option>
+                    <option value="700">700 mb</option>
+                    <option value="850">850 mb</option>
+                    <option value="925">925 mb</option>
+                </optgroup>
+                <optgroup label="Thermodynamic Parameters">
+                    <option value="lllr">Low-Level Lapse Rates</option>
+                    <option value="laps">Mid-Level Lapse Rates</option>
+                    <option value="mlcp">MLCAPE</option>
+                    <option value="sbcp">SBCAPE</option>
+                </optgroup>
             </select>
         </div>
     
@@ -119,7 +119,7 @@
             <img id="mesoImage" src="" alt="Mesoscale Analysis">
         </div>
     </div>
-
+    
     <div class="container">
         <h1>Observed Upper Air Maps</h1>
         <div class="controls">
@@ -251,45 +251,38 @@
             }
 
             function updateMesoImage() {
-                const upperAirLevel = upperAir.value;
-                const thermoParam = thermo.value;
+                const parameter = document.getElementById('parameter').value;
                 let imageUrl = '';
             
-                // Handle upper air images
-                if (upperAirLevel) {
-                    switch (upperAirLevel) {
-                        case '300':
-                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/300mb/300mb_sf.gif';
-                            break;
-                        case '500':
-                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/500mb/500mb_sf.gif';
-                            break;
-                        case '700':
-                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/700mb/700mb_sf.gif';
-                            break;
-                        case '850':
-                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/850mb2/850mb2_sf.gif';
-                            break;
-                        case '925':
-                            imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/925mb/925mb_sf.gif';
-                            break;
-                    }
-                } else if (thermoParam) {
-                    // Handle thermodynamic images
-                    switch (thermoParam) {
-                        case 'lllr':
-                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
-                            break;
-                        case 'laps':
-                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
-                            break;
-                        case 'mlcp':
-                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
-                            break;
-                        case 'sbcp':
-                            imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
-                            break;
-                    }
+                // Handle upper air levels
+                switch (parameter) {
+                    case '300':
+                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/300mb/300mb_sf.gif';
+                        break;
+                    case '500':
+                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/500mb/500mb_sf.gif';
+                        break;
+                    case '700':
+                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/700mb/700mb_sf.gif';
+                        break;
+                    case '850':
+                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/850mb2/850mb2_sf.gif';
+                        break;
+                    case '925':
+                        imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/925mb/925mb_sf.gif';
+                        break;
+                    case 'lllr':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/lllr/lllr_sf.gif`;
+                        break;
+                    case 'laps':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/laps/laps_sf.gif`;
+                        break;
+                    case 'mlcp':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif`;
+                        break;
+                    case 'sbcp':
+                        imageUrl = `https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif`;
+                        break;
                 }
             
                 mesoImage.src = imageUrl;
