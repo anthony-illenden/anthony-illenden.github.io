@@ -64,6 +64,27 @@
     </div>
 
     <div class="container">
+        <h1>Observed Upper Air Maps</h1>
+        <div class="controls">
+            <label for="upperAirLevel">Select Upper Air Level:</label>
+            <select id="upperAirLevel">
+                <option value="300">300 mb</option>
+                <option value="500">500 mb</option>
+                <option value="700">700 mb</option>
+                <option value="850">850 mb</option>
+                <option value="925">925 mb</option>
+            </select>
+
+            <label for="dateTime">Select DateTime:</label>
+            <select id="dateTime"></select>
+        </div>
+
+        <div class="image-container">
+            <img id="upperAirImage" src="" alt="Observed Upper Air Map">
+        </div>
+    </div>
+
+    <div class="container">
         <h1>College of DuPage Surface Analysis</h1>
         <p>This section displays the latest surface analysis from the College of DuPage.</p>
         <div class="image-container">
@@ -120,27 +141,6 @@
         </div>
     </div>
     
-    <div class="container">
-        <h1>Observed Upper Air Maps</h1>
-        <div class="controls">
-            <label for="upperAirLevel">Select Upper Air Level:</label>
-            <select id="upperAirLevel">
-                <option value="300">300 mb</option>
-                <option value="500">500 mb</option>
-                <option value="700">700 mb</option>
-                <option value="850">850 mb</option>
-                <option value="925">925 mb</option>
-            </select>
-
-            <label for="dateTime">Select DateTime:</label>
-            <select id="dateTime"></select>
-        </div>
-
-        <div class="image-container">
-            <img id="upperAirImage" src="" alt="Observed Upper Air Map">
-        </div>
-    </div>
-
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             // Function to display current UTC time
@@ -238,6 +238,16 @@
                 }
             }
 
+            // Update image function for Observed Upper Air Maps
+            function updateUpperAirImage() {
+                const level = upperAirLevel.value;
+                const datetime = dateTimeSelect.value;
+                if (level && datetime) {
+                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
+                    upperAirImage.src = imageUrl;
+                }
+            }
+
             function updateOutlookImage() {
                 const day = daySelect.value;
                 const type = outlookType.value;
@@ -286,16 +296,6 @@
                 }
             
                 mesoImage.src = imageUrl;
-            }
-
-            // Update image function for Observed Upper Air Maps
-            function updateUpperAirImage() {
-                const level = upperAirLevel.value;
-                const datetime = dateTimeSelect.value;
-                if (level && datetime) {
-                    const imageUrl = `https://www.spc.noaa.gov/obswx/maps/${level}_${datetime}.gif`;
-                    upperAirImage.src = imageUrl;
-                }
             }
 
             // Set initial images
