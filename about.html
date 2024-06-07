@@ -36,10 +36,12 @@
             position: relative;
             text-align: center;
             color: white;
+            height: 200px; /* Set the height of the header */
         }
         .header img {
             width: 100%;
-            height: auto;
+            height: 100%; /* Make the image cover the header */
+            object-fit: cover; /* Ensure the image covers the area without distortion */
         }
         .header .text {
             position: absolute;
@@ -47,11 +49,15 @@
             left: 50%;
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
+            padding: 10px 20px;
         }
         .header .text h1 {
             margin: 0;
-            font-size: 2.5em;
+            font-size: 1.5em; /* Adjust font size */
+        }
+        .header .text p {
+            margin: 0;
+            font-size: 1em; /* Adjust font size */
         }
     </style>
 </head>
@@ -65,8 +71,7 @@
     <div class="header">
         <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
         <div class="text">
-            <h1>THE FORECASTERS</h1>
-            <p>Unveiling Weather's Secrets, Empowering Tomorrow's Forecasts</p>
+            <h1>ABOUT</h1>
         </div>
     </div>
     <div class="container">
