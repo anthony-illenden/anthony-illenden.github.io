@@ -90,33 +90,39 @@
     </py-config>
 
     <script type="py">
-        import matplotlib.pyplot as plt
-        import numpy as np
-        from pyscript import Element
+                import matplotlib.pyplot as plt
+                import matplotlib.tri as tri
+                import numpy as np
 
-        def create_plot():
-            # Generate random data
-            x = np.linspace(0, 10, 100)
-            y = np.random.rand(100)
+                    # First create the x and y coordinates of the points.
+                n_angles = 36
+                n_radii = 8
+                min_radius = 0.25
+                radii = np.linspace(min_radius, 0.95, n_radii)
 
-            # Create the plot
-            plt.figure()
-            plt.plot(x, y, label='Random Data')
-            plt.xlabel('X-axis')
-            plt.ylabel('Y-axis')
-            plt.title('Random Data Plot')
-            plt.legend()
+                angles = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
+                angles = np.repeat(angles[..., np.newaxis], n_radii, axis=1)
+                angles[:, 1::2] += np.pi / n_angles
 
-            # Save the plot to a file
-            plt.savefig("/mnt/data/plot.png")
+                x = (radii * np.cos(angles)).flatten()
+                y = (radii * np.sin(angles)).flatten()
+                z = (np.cos(radii) * np.cos(3 * angles)).flatten()
 
-            # Display the plot
-            output_div = Element('output')
-            output_div.clear()
-            output_div.write('<img src="/mnt/data/plot.png" alt="Random Data Plot">')
+                # Create the Triangulation; no triangles so Delaunay triangulation created.
+                triang = tri.Triangulation(x, y)
 
-        # Automatically create and display the plot on page load
-        create_plot()
+                # Mask off unwanted triangles.
+                triang.set_mask(np.hypot(x[triang.triangles].mean(axis=1),
+                y[triang.triangles].mean(axis=1))
+                < min_radius)
+
+                fig1, ax1 = plt.subplots()
+                ax1.set_aspect('equal')
+                tpc = ax1.tripcolor(triang, z, shading='flat')
+                fig1.colorbar(tpc)
+                ax1.set_title('tripcolor of Delaunay triangulation, flat shading')
+
+                display(fig1, target="mpl")
     </script>
 </body>
 </html>
