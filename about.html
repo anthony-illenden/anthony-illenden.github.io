@@ -79,7 +79,6 @@
         <h1>About Me</h1>
         <p>This is some information about me...</p>
 
-        <button id="update-button">Generate Plot</button>
         <div id="output"></div>
     </div>
 
@@ -111,14 +110,13 @@
             # Save the plot to a file
             plt.savefig("/mnt/data/plot.png")
 
-        def update_content(*args, **kwargs):
-            create_plot()
+            # Display the plot
             output_div = Element('output')
             output_div.clear()
             output_div.write('<img src="/mnt/data/plot.png" alt="Random Data Plot">')
 
-        button = Element('update-button')
-        button.element.addEventListener('click', update_content)
+        # Automatically create and display the plot on page load
+        create_plot()
     </script>
 </body>
 </html>
