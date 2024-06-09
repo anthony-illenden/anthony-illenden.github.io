@@ -58,9 +58,17 @@
             margin: 0;
             font-size: 1.5em; /* Adjust font size */
         }
+        .gallery {
+            overflow-x: auto;
+            white-space: nowrap;
+            margin-top: 20px;
+        }
+        .gallery img {
+            width: 200px;
+            height: 200px;
+            margin-right: 10px;
+        }
     </style>
-    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
-    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
     <nav>
@@ -78,37 +86,11 @@
     <div class="container">
         <h1>About Me</h1>
         <p>This is some information about me...</p>
-
-        <div id="output"></div>
     </div>
-
-    <py-config>
-        packages = [
-            "matplotlib",
-            "numpy"
-        ]
-    </py-config>
-
-    <script type="py">
-        import numpy as np
-        import matplotlib.pyplot as plt
-        
-        # Generate random sample data using NumPy
-        np.random.seed(0)  # For reproducibility
-        x = np.arange(1, 11)  # Array from 1 to 10
-        y = np.random.randint(1, 20, size=10)  # Array of 10 random integers between 1 and 20
-        
-        # Create the plot and define it as a figure object
-        fig, ax = plt.subplots(figsize=(8, 5))  # Create a figure and an axes
-        
-        # Plot the data
-        ax.plot(x, y, marker='o')
-        
-        # Add title and labels
-        ax.set_title("Basic Line Graph with Random Numbers")
-        ax.set_xlabel("X-axis Label")
-        ax.set_ylabel("Y-axis Label")
-        display(fig, target="mpl")
-    </script>
+    <div class="gallery">
+        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
+        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
+        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
+    </div>
 </body>
 </html>
