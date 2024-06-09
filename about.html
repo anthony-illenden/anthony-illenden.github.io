@@ -83,12 +83,14 @@
         <div id="output"></div>
     </div>
 
-    <py-env>
-        - matplotlib
-        - numpy
-    </py-env>
+    <py-config>
+        packages = [
+            "matplotlib",
+            "numpy"
+        ]
+    </py-config>
 
-    <py-script>
+    <script type="py">
         import matplotlib.pyplot as plt
         import numpy as np
         from pyscript import Element
@@ -117,6 +119,6 @@
 
         button = Element('update-button')
         button.element.addEventListener('click', update_content)
-    </py-script>
+    </script>
 </body>
 </html>
