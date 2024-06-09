@@ -59,6 +59,8 @@
             font-size: 1.5em; /* Adjust font size */
         }
     </style>
+    <link rel="stylesheet" href="https://pyscript.net/latest/pyscript.css" />
+    <script defer src="https://pyscript.net/latest/pyscript.js"></script>
 </head>
 <body>
     <nav>
@@ -76,6 +78,23 @@
     <div class="container">
         <h1>About Me</h1>
         <p>This is some information about me...</p>
+
+        <button id="update-button">Generate Plot</button>
+        <div id="output"></div>
     </div>
+
+    <py-env>
+        - path: ./script.py
+        - matplotlib
+        - numpy
+    </py-env>
+
+    <py-script>
+        from script import update_content
+        from pyscript import Element
+
+        button = Element('update-button')
+        button.element.addEventListener('click', update_content)
+    </py-script>
 </body>
 </html>
