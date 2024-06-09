@@ -58,17 +58,38 @@
             margin: 0;
             font-size: 1.5em; /* Adjust font size */
         }
-        .scroll-container {
-            background-color: #333;
-            overflow: auto;
-            white-space: nowrap;
-            padding: 10px;
+        .slideshow-container {
+            max-width: 800px;
+            position: relative;
+            margin: auto;
             margin-top: 20px;
+            overflow: hidden;
         }
-        .scroll-container img {
-            padding: 10px;
-            display: inline-block;
-            max-height: 300px; /* Adjust the maximum height of the images */
+        .slideshow-container img {
+            display: none;
+            width: 100%;
+            height: auto;
+        }
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: auto;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
@@ -89,14 +110,36 @@
         <h1>About Me</h1>
         <p>This is some information about me...</p>
     </div>
-    <div class="scroll-container">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx.jpg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/post_svrops.jpg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx2.jpeg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/measurements.jpg" alt="">
+    <div class="slideshow-container">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx.jpg" alt="">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/post_svrops.jpg" alt="">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx2.jpeg" alt="">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/measurements.jpg" alt="">
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
     </div>
+
+    <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+
+        function plusSlides(n) {
+            showSlides(slideIndex += n);
+        }
+
+        function showSlides(n) {
+            var i;
+            var slides = document.getElementsByClassName("mySlides");
+            if (n > slides.length) {slideIndex = 1}
+            if (n < 1) {slideIndex = slides.length}
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slides[slideIndex-1].style.display = "block";
+        }
+    </script>
 </body>
 </html>
