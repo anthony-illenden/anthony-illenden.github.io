@@ -58,15 +58,17 @@
             margin: 0;
             font-size: 1.5em; /* Adjust font size */
         }
-        .gallery {
-            overflow-x: auto;
+        .scroll-container {
+            background-color: #333;
+            overflow: auto;
             white-space: nowrap;
+            padding: 10px;
             margin-top: 20px;
         }
-        .gallery img {
-            width: 200px;
-            height: 200px;
-            margin-right: 10px;
+        .scroll-container img {
+            padding: 10px;
+            display: inline-block;
+            max-height: 200px;
         }
     </style>
 </head>
@@ -87,7 +89,7 @@
         <h1>About Me</h1>
         <p>This is some information about me...</p>
     </div>
-    <div class="gallery">
+    <div class="scroll-container">
         <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
         <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
         <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
