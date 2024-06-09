@@ -58,6 +58,34 @@
             margin: 0;
             font-size: 1.5em; /* Adjust font size */
         }
+        .project-list {
+            margin-top: 20px;
+        }
+        .project-list h2 {
+            margin-bottom: 10px;
+        }
+        .project-list ul {
+            list-style-type: none;
+            padding-left: 0;
+        }
+        .project-list ul li {
+            margin-bottom: 10px;
+        }
+        .internship {
+            margin-top: 40px;
+        }
+        .scroll-container {
+            background-color: #333;
+            overflow: auto;
+            white-space: nowrap;
+            padding: 10px;
+            margin-top: 20px;
+        }
+        .scroll-container img {
+            padding: 10px;
+            display: inline-block;
+            max-height: 300px; /* Adjust the maximum height of the images */
+        }
     </style>
 </head>
 <body>
@@ -74,8 +102,23 @@
         </div>
     </div>
     <div class="container">
-        <h1>Projects</h1>
-        <p>During my academic career, I have engaged in several impactful research projects. I investigated "The Severity of Regional Biomass Burnings," focusing on how increased aerosol concentrations correlate with adverse human health effects. This project provided valuable insights into the environmental and health impacts of biomass burning. Additionally, I worked on improving forecasting methods for lake-effect snow, which aimed to enhance prediction accuracy and mitigate the adverse effects of these snow events. My most recent project was a comprehensive case study of the July 19th, 2019 Derecho that impacted the Northern Great Lakes. In this study, I analyzed the synoptic and mesoscale environment, as well as the interaction between the cold pool and the marine stable layer over Lake Michigan. As an intern at NWS Detroit, I conducted a case study on the May 2023 Lake Enhancement Event, further honing my skills in weather pattern analysis and forecasting. These projects have collectively enriched my understanding of atmospheric sciences and their practical applications.</p>
+        <div class="project-list">
+            <h2>Undergraduate Research Projects</h2>
+            <ul>
+                <li>The severity of regional biomass burnings. </li>
+                <li>Improvement in forecasting lake effect snow.</li>
+                <li>An analysis of the current county-based warning system for heavy lake effect snow events.</li>
+                <li>A synoptic case study of the 2011 Groundhog Day Blizzard.</li>
+                <li>A case study of the July 19th, 2019 derecho that impacted the northern Great Lakes.</li>
+            </ul>
+        </div>
+        <div class="internship">
+            <h2>NWS Detroit Internship Project</h2>
+            <p>A synoptic and mesoscale case study of the May 2023 Lake Enhancement Event.</p>
+        </div>
+    </div>
+    <div class="scroll-container">
+        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/projects_gallery/gridrad_wrf.png" alt="">
     </div>
 </body>
 </html>
