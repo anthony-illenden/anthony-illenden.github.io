@@ -1,102 +1,98 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About</title>
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
+        .slideshow-container {
+            max-width: 1000px;
+            position: relative;
+            margin: auto;
+        }
+
+        .mySlides {
+            display: none;
+            width: 100%;
+            height: 500px;
+        }
+
+        .mySlides img {
             width: 100%;
             height: 100%;
-            font-family: Arial, sans-serif;
+            object-fit: cover;
         }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            margin-top: 40px;
-            padding: 20px;
-        }
-        nav {
-            background-color: #333;
-            overflow: hidden;
-        }
-        nav a {
-            float: left;
-            display: block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-        nav a:hover {
-            background-color: #ddd;
-            color: black;
-        }
-        .header {
-            position: relative;
-            text-align: center;
-            color: white;
-            height: 400px; /* Set the height of the header to 400px */
-            width: 100vw; /* Ensure it spans the full width of the viewport */
-        }
-        .header img {
-            width: 100%;
-            height: 100%; /* Make the image cover the header */
-            object-fit: cover; /* Ensure the image covers the area without distortion */
-        }
-        .header .text {
+
+        .prev, .next {
+            cursor: pointer;
             position: absolute;
             top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
+            width: auto;
+            padding: 16px;
+            margin-top: -22px;
+            color: white;
+            font-weight: bold;
+            font-size: 18px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            user-select: none;
         }
-        .header .text h1 {
-            margin: 0;
-            font-size: 1.5em; /* Adjust font size */
+
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
         }
-        .scroll-container {
-            background-color: #333;
-            overflow: auto;
-            white-space: nowrap;
-            padding: 10px;
-            margin-top: 20px;
-        }
-        .scroll-container img {
-            padding: 10px;
-            display: inline-block;
-            max-height: 300px; /* Adjust the maximum height of the images */
+
+        .prev:hover, .next:hover {
+            background-color: rgba(0,0,0,0.8);
         }
     </style>
 </head>
 <body>
-    <nav>
-        <a href="index.html">Home</a>
-        <a href="semichigan.html">SE Michigan</a>
-        <a href="projects.html">Projects</a>
-        <a href="about.html">About</a>
-    </nav>
-    <div class="header">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
-        <div class="text">
-            <h1>ABOUT</h1>
+    <div class="slideshow-container">
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
         </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx.jpg" alt="">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/post_svrops.jpg" alt="">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx2.jpeg" alt="">
+        </div>
+        <div class="mySlides">
+            <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/measurements.jpg" alt="">
+        </div>
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
     </div>
-    <div class="container">
-        <h1>About Me</h1>
-        <p>This is some information about me...</p>
-    </div>
-    <div class="scroll-container">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/radar_truck.jpg" alt="METR 4623: Radar Meteorology">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_severeforecasting.jpg" alt="METR 4403: Severe Forecasting">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/spc_ops.jpg" alt="NOAA NWS SPC Lead Forecaster Rich Thompson">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx.jpg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/post_svrops.jpg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/nwsdtx2.jpeg" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/gallery/measurements.jpg" alt="">
-    </div>
+
+    <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+
+        function plusSlides(n) {
+            showSlides(slideIndex += n);
+        }
+
+        function showSlides(n) {
+            var i;
+            var slides = document.getElementsByClassName("mySlides");
+            if (n > slides.length) {slideIndex = 1}
+            if (n < 1) {slideIndex = slides.length}
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slides[slideIndex-1].style.display = "block";
+        }
+    </script>
 </body>
 </html>
