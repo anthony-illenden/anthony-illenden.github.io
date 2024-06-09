@@ -90,39 +90,25 @@
     </py-config>
 
     <script type="py">
-                import matplotlib.pyplot as plt
-                import matplotlib.tri as tri
-                import numpy as np
-
-                    # First create the x and y coordinates of the points.
-                n_angles = 36
-                n_radii = 8
-                min_radius = 0.25
-                radii = np.linspace(min_radius, 0.95, n_radii)
-
-                angles = np.linspace(0, 2 * np.pi, n_angles, endpoint=False)
-                angles = np.repeat(angles[..., np.newaxis], n_radii, axis=1)
-                angles[:, 1::2] += np.pi / n_angles
-
-                x = (radii * np.cos(angles)).flatten()
-                y = (radii * np.sin(angles)).flatten()
-                z = (np.cos(radii) * np.cos(3 * angles)).flatten()
-
-                # Create the Triangulation; no triangles so Delaunay triangulation created.
-                triang = tri.Triangulation(x, y)
-
-                # Mask off unwanted triangles.
-                triang.set_mask(np.hypot(x[triang.triangles].mean(axis=1),
-                y[triang.triangles].mean(axis=1))
-                < min_radius)
-
-                fig1, ax1 = plt.subplots()
-                ax1.set_aspect('equal')
-                tpc = ax1.tripcolor(triang, z, shading='flat')
-                fig1.colorbar(tpc)
-                ax1.set_title('tripcolor of Delaunay triangulation, flat shading')
-
-                display(fig1, target="mpl")
+        import numpy as np
+        import matplotlib.pyplot as plt
+        
+        # Generate random sample data using NumPy
+        np.random.seed(0)  # For reproducibility
+        x = np.arange(1, 11)  # Array from 1 to 10
+        y = np.random.randint(1, 20, size=10)  # Array of 10 random integers between 1 and 20
+        
+        # Create the plot and define it as a figure object
+        fig, ax = plt.subplots(figsize=(8, 5))  # Create a figure and an axes
+        
+        # Plot the data
+        ax.plot(x, y, marker='o')
+        
+        # Add title and labels
+        ax.set_title("Basic Line Graph with Random Numbers")
+        ax.set_xlabel("X-axis Label")
+        ax.set_ylabel("Y-axis Label")
+        display(fig, target="mpl")
     </script>
 </body>
 </html>
