@@ -136,17 +136,14 @@
                 const day = daySelect.value;
                 const type = outlookType.value;
                 let imageUrl = '';
-                if (day <= 2) {
-                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}.png`;
-                    if (type !== 'cat') {
-                        imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_${type}.png`;
-                    }
-                } else {
+                if (day <= 3) {
                     if (type === 'cat') {
                         imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}.png`;
                     } else {
-                        imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_PROB.png`;
+                        imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_${type}.png`;
                     }
+                } else {
+                    imageUrl = `https://www.spc.noaa.gov/partners/outlooks/cwa/images/DTX_swody${day}_PROB.png`;
                 }
                 outlookImage.src = imageUrl;
             }
