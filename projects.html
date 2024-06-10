@@ -83,18 +83,40 @@
             margin-bottom: 10px;
             list-style-type: disc; /* Change list style to black circle */
         }
-        .scroll-container {
-            background-color: #333;
-            overflow: auto;
-            white-space: nowrap;
-            padding: 10px;
+        .slideshow-container {
+            max-width: 800px;
+            position: relative;
+            margin: auto;
             margin-top: 20px;
+            overflow: hidden;
         }
-        .scroll-container img {
-            padding: 10px;
-            display: inline-block;
-            max-height: 500px; /* Adjust the maximum height of the images */
+        .slideshow-container img {
+            display: none;
+            width: 100%;
+            height: auto;
+            max-height: 600px; /* Add max-height to control the height */
             object-fit: contain; /* Ensure images fit within the container without distortion */
+        }
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: auto;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
         }
     </style>
 </head>
@@ -124,14 +146,34 @@
         </div>
         <div class="internship">
             <h2>NWS Detroit Internship Project</h2>
-            <ul>
-                <li>A synoptic and mesoscale case study of the May 2023 Lake Enhancement Event.<li>
-            </ul>
+            <p>A synoptic and mesoscale case study of the May 2023 Lake Enhancement Event.</p>
         </div>
     </div>
-    <div class="scroll-container">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/projects_gallery/gridrad_wrf.png" alt="">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/projects_gallery/gfs_deformation.gif" alt="">
+    <div class="slideshow-container">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/projects_gallery/gridrad_wrf.png" alt="">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/projects_gallery/gfs_deformation.gif" alt="">
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
     </div>
+
+    <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+
+        function plusSlides(n) {
+            showSlides(slideIndex += n);
+        }
+
+        function showSlides(n) {
+            var i;
+            var slides = document.getElementsByClassName("mySlides");
+            if (n > slides.length) {slideIndex = 1}
+            if (n < 1) {slideIndex = slides.length}
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slides[slideIndex-1].style.display = "block";
+        }
+    </script>
 </body>
 </html>
