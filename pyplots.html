@@ -100,64 +100,65 @@
             <h2>High and Low Temperature Plots</h2>
             <div class="dropdown">
                 <label for="high-temp-dropdown">Select Day for High Temperature:</label>
-                <select id="high-temp-dropdown">
-                    <option value="1">Day 1 (Today - Thursday)</option>
-                    <option value="2">Day 2 (Tomorrow - Friday)</option>
-                    <option value="3">Day 3 (Saturday)</option>
-                    <option value="4">Day 4 (Sunday)</option>
-                    <option value="5">Day 5 (Monday)</option>
-                    <option value="6">Day 6 (Tuesday)</option>
-                    <option value="7">Day 7 (Wednesday)</option>
-                    <option value="8">Day 8 (Next Thursday)</option>
-                    <option value="9">Day 9 (Next Friday)</option>
-                </select>
+                <select id="high-temp-dropdown"></select>
             </div>
             <div id="high-temp-plot" class="plot-container">
-                <img id="high-temp-img" class="plot-img" src="https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/high/NDFD_High_Temp_0.png" alt="High Temperature Plot">
+                <img id="high-temp-img" class="plot-img" src="" alt="High Temperature Plot">
             </div>
         </div>
         <div class="content">
             <div class="dropdown">
                 <label for="low-temp-dropdown">Select Day for Low Temperature:</label>
-                <select id="low-temp-dropdown">
-                    <option value="1">Day 1 (Today - Thursday)</option>
-                    <option value="2">Day 2 (Tomorrow - Friday)</option>
-                    <option value="3">Day 3 (Saturday)</option>
-                    <option value="4">Day 4 (Sunday)</option>
-                    <option value="5">Day 5 (Monday)</option>
-                    <option value="6">Day 6 (Tuesday)</option>
-                    <option value="7">Day 7 (Wednesday)</option>
-                    <option value="8">Day 8 (Next Thursday)</option>
-                </select>
+                <select id="low-temp-dropdown"></select>
             </div>
             <div id="low-temp-plot" class="plot-container">
-                <img id="low-temp-img" class="plot-img" src="https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/low/NDFD_Low_Temp_0.png" alt="Low Temperature Plot">
+                <img id="low-temp-img" class="plot-img" src="" alt="Low Temperature Plot">
             </div>
         </div>
     </div>
 
     <script>
-        // Function to update high temperature plot based on selected day
-        function updateHighTempPlot(selectedDay) {
-            var imageUrl = `https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/high/NDFD_High_Temp_${selectedDay - 1}.png`;
-            document.getElementById('high-temp-img').src = imageUrl;
-        }
+        document.addEventListener('DOMContentLoaded', function() {
+            const highTempDropdown = document.getElementById('high-temp-dropdown');
+            const lowTempDropdown = document.getElementById('low-temp-dropdown');
+            const highTempImg = document.getElementById('high-temp-img');
+            const lowTempImg = document.getElementById('low-temp-img');
 
-        // Function to update low temperature plot based on selected day
-        function updateLowTempPlot(selectedDay) {
-            var imageUrl = `https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/low/NDFD_Low_Temp_${selectedDay - 1}.png`;
-            document.getElementById('low-temp-img').src = imageUrl;
-        }
+            function populateDayOptions() {
+                const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+                const today = new Date();
+                for (let i = 0; i < 9; i++) {
+                    const futureDate = new Date(today);
+                    futureDate.setDate(today.getDate() + i);
+                    const dayName = daysOfWeek[futureDate.getDay()];
+                    const optionText = i === 0 ? `Day 1 (Today - ${dayName})` : i === 1 ? `Day 2 (Tomorrow - ${dayName})` : `Day ${i + 1} (${dayName})`;
+                    const option = new Option(optionText, i + 1);
+                    highTempDropdown.add(option);
+                    lowTempDropdown.add(option.cloneNode(true));
+                }
+            }
 
-        // Event listeners for dropdown changes
-        document.getElementById('high-temp-dropdown').addEventListener('change', function() {
-            var selectedDay = this.value;
-            updateHighTempPlot(selectedDay);
-        });
+            function updatePlotImage(dropdown, img, type) {
+                const selectedDay = dropdown.value;
+                const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/${type}/NDFD_${type === 'high' ? 'High' : 'Low'}_Temp_${selectedDay - 1}.png`;
+                img.src = imageUrl;
+            }
 
-        document.getElementById('low-temp-dropdown').addEventListener('change', function() {
-            var selectedDay = this.value;
-            updateLowTempPlot(selectedDay);
+            // Populate day dropdown options
+            populateDayOptions();
+
+            // Set initial image src
+            updatePlotImage(highTempDropdown, highTempImg, 'high');
+            updatePlotImage(lowTempDropdown, lowTempImg, 'low');
+
+            // Event listeners
+            highTempDropdown.addEventListener('change', function() {
+                updatePlotImage(highTempDropdown, highTempImg, 'high');
+            });
+
+            lowTempDropdown.addEventListener('change', function() {
+                updatePlotImage(lowTempDropdown, lowTempImg, 'low');
+            });
         });
     </script>
 </body>
