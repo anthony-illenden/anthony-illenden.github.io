@@ -57,7 +57,7 @@
         }
         .header .text h1 {
             margin: 0;
-            font-size: 3em; 
+            font-size: 3em;
         }
         .container .content {
             background-color: rgba(255, 255, 255, 0.8); 
@@ -120,8 +120,7 @@
                 <img id="low-temp-img" class="plot-img" src="" alt="Low Temperature Plot">
             </div>
         </div>
-        
-        <!-- Radar Loop Container -->
+
         <div class="radar-loop-container">
             <img id="looped-radar" class="plot-img" src="" alt="Looped Radar Image">
         </div>
@@ -135,10 +134,8 @@
             const highTempImg = document.getElementById('high-temp-img');
             const lowTempImg = document.getElementById('low-temp-img');
             
-            // Array to hold radar image URLs
             const radarImageUrls = [];
             
-
             for (let i = 0; i < 12; i++) {
                 radarImageUrls.push(`https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/radar/reflectivity/Reflectivity_${i}.png`);
             }
@@ -153,8 +150,7 @@
             
             updateLoopedRadar();
             
-
-            setInterval(updateLoopedRadar, 300000);
+            setInterval(updateLoopedRadar, 500); // 500 milliseconds
             
             function populateDayOptions() {
                 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -176,14 +172,11 @@
                 img.src = imageUrl;
             }
             
-
             populateDayOptions();
             
-
             updatePlotImage(highTempDropdown, highTempImg, 'high');
             updatePlotImage(lowTempDropdown, lowTempImg, 'low');
             
-
             highTempDropdown.addEventListener('change', function() {
                 updatePlotImage(highTempDropdown, highTempImg, 'high');
             });
