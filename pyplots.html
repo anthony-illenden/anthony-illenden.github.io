@@ -124,6 +124,13 @@
 
         <div class="radar-loop-container">
             <h2>KDTX Doppler Radar Loop</h2>
+            <div class="dropdown">
+                <label for="radar-mode">Select Radar Mode:</label>
+                <select id="radar-mode">
+                    <option value="reflectivity">Reflectivity</option>
+                    <option value="velocity">Velocity</option>
+                </select>
+            </div>
             <img id="looped-radar" class="plot-img" src="" alt="Looped Radar Image">
         </div>
         
@@ -135,30 +142,37 @@
             const lowTempDropdown = document.getElementById('low-temp-dropdown');
             const highTempImg = document.getElementById('high-temp-img');
             const lowTempImg = document.getElementById('low-temp-img');
+            const radarModeDropdown = document.getElementById('radar-mode');
+            const loopedRadar = document.getElementById('looped-radar');
             
             const highTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/high/NDFD_High_Temp_';
             const lowTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/low/NDFD_Low_Temp_';
             
-            const radarImageUrls = [];
+            const radarImageUrls = {
+                reflectivity: [],
+                velocity: []
+            };
             
+            // Populate URLs for both reflectivity and velocity modes
             for (let i = 0; i < 8; i++) {
-                radarImageUrls.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_Z/Reflectivity_${i}.png`);
+                radarImageUrls.reflectivity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_Z/Reflectivity_${i}.png`);
+                radarImageUrls.velocity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_V/Velocity_${i}.png`);
             }
             
-            const loopedRadar = document.getElementById('looped-radar');
             let radarIndex = 0;
             
             function updateLoopedRadar() {
-                loopedRadar.src = radarImageUrls[radarIndex];
-
-                if (radarIndex === radarImageUrls.length - 1) {
+                const mode = radarModeDropdown.value;
+                loopedRadar.src = radarImageUrls[mode][radarIndex];
+        
+                if (radarIndex === radarImageUrls[mode].length - 1) {
                     setTimeout(() => {
-                        radarIndex = (radarIndex + 1) % radarImageUrls.length;
+                        radarIndex = (radarIndex + 1) % radarImageUrls[mode].length;
                         updateLoopedRadar();
                     }, 2000); 
                 } else {
                     setTimeout(() => {
-                        radarIndex = (radarIndex + 1) % radarImageUrls.length;
+                        radarIndex = (radarIndex + 1) % radarImageUrls[mode].length;
                         updateLoopedRadar();
                     }, 500); 
                 }
@@ -202,6 +216,11 @@
             
             lowTempDropdown.addEventListener('change', function() {
                 updatePlotImage(lowTempDropdown, lowTempImg, 'low');
+            });
+            
+            radarModeDropdown.addEventListener('change', function() {
+                radarIndex = 0; // Reset index when mode changes
+                updateLoopedRadar();
             });
         });
     </script>
