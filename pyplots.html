@@ -136,6 +136,9 @@
             const highTempImg = document.getElementById('high-temp-img');
             const lowTempImg = document.getElementById('low-temp-img');
             
+            const highTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/high/NDFD_High_Temp_';
+            const lowTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/low/NDFD_Low_Temp_';
+            
             const radarImageUrls = [];
             
             for (let i = 0; i < 8; i++) {
@@ -152,7 +155,7 @@
                     setTimeout(() => {
                         radarIndex = (radarIndex + 1) % radarImageUrls.length;
                         updateLoopedRadar();
-                    }, 2000);
+                    }, 2000); 
                 } else {
                     setTimeout(() => {
                         radarIndex = (radarIndex + 1) % radarImageUrls.length;
@@ -179,7 +182,12 @@
             
             function updatePlotImage(dropdown, img, type) {
                 const selectedDay = dropdown.value;
-                const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/actions-plots/main/plots/${type}/NDFD_${type === 'high' ? 'High' : 'Low'}_Temp_${selectedDay - 1}.png`;
+                let imageUrl;
+                if (type === 'high') {
+                    imageUrl = `${highTempBaseUrl}${selectedDay - 1}.png`;
+                } else if (type === 'low') {
+                    imageUrl = `${lowTempBaseUrl}${selectedDay - 1}.png`;
+                }
                 img.src = imageUrl;
             }
             
