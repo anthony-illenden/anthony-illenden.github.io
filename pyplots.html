@@ -147,12 +147,21 @@
             
             function updateLoopedRadar() {
                 loopedRadar.src = radarImageUrls[radarIndex];
-                radarIndex = (radarIndex + 1) % radarImageUrls.length;
+
+                if (radarIndex === radarImageUrls.length - 1) {
+                    setTimeout(() => {
+                        radarIndex = (radarIndex + 1) % radarImageUrls.length;
+                        updateLoopedRadar();
+                    }, 2000);
+                } else {
+                    setTimeout(() => {
+                        radarIndex = (radarIndex + 1) % radarImageUrls.length;
+                        updateLoopedRadar();
+                    }, 500); 
+                }
             }
             
             updateLoopedRadar();
-            
-            setInterval(updateLoopedRadar, 500); // 500 milliseconds
             
             function populateDayOptions() {
                 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
