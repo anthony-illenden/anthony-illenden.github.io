@@ -120,19 +120,6 @@
             width: 80%;
             margin: 20px auto;
         }
-        .play-pause-button {
-            display: block;
-            margin: 10px auto;
-            background-color: #000000;
-            color: white;
-            padding: 10px;
-            border: none;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .play-pause-button:hover {
-            background-color: #3e8e41;
-        }
     </style>
 </head>
 <body>
@@ -172,7 +159,6 @@
                 <div class="slideshow-container">
                     <img id="nam-250-isotachs-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_0.png" alt="NAM 250mb Isotachs">
                     <input type="range" min="0" max="28" value="0" class="slider" id="nam250IsotachSlider">
-                    <button id="nam250IsotachPausePlayButton" class="play-pause-button" onclick="togglePausePlay('nam250IsotachSlider', 'nam250IsotachPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-vort" class="model-content">
@@ -180,7 +166,6 @@
                 <div class="slideshow-container">
                     <img id="nam-vort-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
                     <input type="range" min="0" max="28" value="0" class="slider" id="namVortSlider">
-                    <button id="namVortPausePlayButton" class="play-pause-button" onclick="togglePausePlay('namVortSlider', 'namVortPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-850temp" class="model-content">
@@ -188,7 +173,6 @@
                 <div class="slideshow-container">
                     <img id="nam-850temp-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_0.png" alt="NAM 850 MB Temperature">
                     <input type="range" min="0" max="28" value="0" class="slider" id="nam850TempSlider">
-                    <button id="nam850TempPausePlayButton" class="play-pause-button" onclick="togglePausePlay('nam850TempSlider', 'nam850TempPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-other" class="model-content">
@@ -196,7 +180,6 @@
                 <div class="slideshow-container">
                     <img id="nam-other-slide" src="https://via.placeholder.com/800x400" alt="Other Parameter">
                     <input type="range" min="0" max="28" value="0" class="slider" id="namOtherSlider">
-                    <button id="namOtherPausePlayButton" class="play-pause-button" onclick="togglePausePlay('namOtherSlider', 'namOtherPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="hrrr-reflectivity" class="model-content">
@@ -204,7 +187,6 @@
                 <div class="slideshow-container">
                     <img id="hrrr-reflectivity-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/hrrr/reflectivity/reflectivity_0.png" alt="HRRR Reflectivity">
                     <input type="range" min="0" max="48" value="0" class="slider" id="hrrrReflectivitySlider">
-                    <button id="hrrrReflectivityPausePlayButton" class="play-pause-button" onclick="togglePausePlay('hrrrReflectivitySlider', 'hrrrReflectivityPausePlayButton')">Pause</button>
                 </div>
             </div>
         </div>
@@ -234,46 +216,23 @@
                 params[i].style.display = 'none';
             }
 
-            // Show the selected parameter content
-            document.getElementById(`${modelId}-${paramId}`).style.display = 'block';
-        }
-
-        var intervals = {};
-
-        function togglePausePlay(sliderId, buttonId) {
-            var slider = document.getElementById(sliderId);
-            var button = document.getElementById(buttonId);
-
-            if (intervals[sliderId]) {
-                clearInterval(intervals[sliderId]);
-                intervals[sliderId] = null;
-                button.textContent = 'Play';
-            } else {
-                intervals[sliderId] = setInterval(function() {
-                    if (slider.value < slider.max) {
-                        slider.value = parseInt(slider.value) + 1;
-                    } else {
-                        slider.value = slider.min;
-                    }
-                    updateSlide(sliderId);
-                }, 500);
-                button.textContent = 'Pause';
+            // Show the selected parameter content only if it belongs to the selected model
+            var modelParam = document.getElementById(`${modelId}-${paramId}`);
+            if (modelParam) {
+                modelParam.style.display = 'block';
             }
         }
-
         function updateSlide(sliderId) {
             var slider = document.getElementById(sliderId);
             var modelParam = sliderId.split('Slider')[0];
             var slideImg = document.getElementById(modelParam + '-slide');
-            slideImg.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/${modelParam.replace(/[0-9]/g, '')}/${modelParam.replace(/[a-zA-Z]/g, '')}/${modelParam.split(/(?=[A-Z])/).pop().toLowerCase()}/${modelParam.split(/(?=[A-Z])/).pop().toLowerCase()}_${slider.value}.png`;
+    
+            if (slideImg) {
+                // Construct the URL based on the slider value and update the image source
+                var sliderValue = slider.value;
+                slideImg.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/${modelParam.replace('-', '/')}/${modelParam}/${sliderValue}.png`;
+            }
         }
-
-        // Attach event listeners to all sliders
-        document.querySelectorAll('.slider').forEach(slider => {
-            slider.addEventListener('input', function() {
-                updateSlide(this.id);
-            });
-        });
     </script>
 </body>
 </html>
