@@ -11,10 +11,12 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
+            display: flex;
         }
         nav {
             background-color: #333;
             overflow: hidden;
+            width: 100%;
         }
         nav a {
             float: left;
@@ -32,8 +34,8 @@
             position: relative;
             text-align: center;
             color: white;
-            height: 400px;
-            width: 100vw;
+            height: 200px;
+            width: 100%;
         }
         .header img {
             width: 100%;
@@ -52,31 +54,37 @@
             margin: 0;
             font-size: 1.5em;
         }
-        .models-nav {
+        .container {
             display: flex;
-            justify-content: center;
-            margin-top: 20px;
-            background-color: #333;
+            width: 100%;
         }
-        .models-nav button {
+        .sidebar {
+            width: 250px;
+            background-color: #f4f4f4;
+            padding: 10px;
+        }
+        .sidebar button {
+            width: 100%;
             background-color: #4CAF50;
-            border: none;
             color: white;
-            padding: 14px 20px;
-            text-align: center;
-            text-decoration: none;
-            display: inline-block;
+            padding: 10px;
+            border: none;
+            text-align: left;
             font-size: 16px;
-            margin: 4px 2px;
             cursor: pointer;
+            margin: 5px 0;
+            transition: 0.3s;
         }
-        .models-nav button:hover {
+        .sidebar button:hover {
             background-color: #3e8e41;
+        }
+        .content {
+            flex-grow: 1;
+            padding: 20px;
         }
         .model-content {
             display: none;
             margin-top: 20px;
-            padding: 20px;
         }
         .slideshow-container {
             position: relative;
@@ -110,34 +118,45 @@
         </div>
     </div>
     
-    <div class="models-nav">
-        <button onclick="showModel('gfs')">GFS</button>
-        <button onclick="showModel('nam')">NAM</button>
-        <button onclick="showModel('rap')">RAP</button>
-        <button onclick="showModel('hrrr')">HRRR</button>
-    </div>
-    
-    <div id="gfs" class="model-content">
-        <h2>GFS Parameters and Plots</h2>
-        <p>Content for GFS.</p>
-    </div>
-    
-    <div id="nam" class="model-content">
-        <h2>NAM Parameters and Plots</h2>
-        <div class="slideshow-container">
-            <img id="nam-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
-            <input type="range" min="0" max="28" value="0" class="slider" id="namSlider">
+    <div class="container">
+        <div class="sidebar">
+            <button onclick="showModel('gfs')">GFS</button>
+            <button onclick="showModel('nam')">NAM</button>
+            <button onclick="showModel('rap')">RAP</button>
+            <button onclick="showModel('hrrr')">HRRR</button>
         </div>
-    </div>
-    
-    <div id="rap" class="model-content">
-        <h2>RAP Parameters and Plots</h2>
-        <p>Content for RAP.</p>
-    </div>
-    
-    <div id="hrrr" class="model-content">
-        <h2>HRRR Parameters and Plots</h2>
-        <p>Content for HRRR.</p>
+        <div class="content">
+            <div id="gfs" class="model-content">
+                <h2>GFS Parameters and Plots</h2>
+                <p>Content for GFS.</p>
+            </div>
+            
+            <div id="nam" class="model-content">
+                <h2>NAM Parameters and Plots</h2>
+                <div class="sidebar">
+                    <button onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
+                    <button onclick="showParameter('nam', 'other')">Other Parameter</button>
+                </div>
+                <div class="slideshow-container" id="nam-vort" style="display: none;">
+                    <img id="nam-vort-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
+                    <input type="range" min="0" max="28" value="0" class="slider" id="namVortSlider">
+                </div>
+                <div class="slideshow-container" id="nam-other" style="display: none;">
+                    <img id="nam-other-slide" src="https://via.placeholder.com/800x400" alt="Other Parameter">
+                    <input type="range" min="0" max="28" value="0" class="slider" id="namOtherSlider">
+                </div>
+            </div>
+            
+            <div id="rap" class="model-content">
+                <h2>RAP Parameters and Plots</h2>
+                <p>Content for RAP.</p>
+            </div>
+            
+            <div id="hrrr" class="model-content">
+                <h2>HRRR Parameters and Plots</h2>
+                <p>Content for HRRR.</p>
+            </div>
+        </div>
     </div>
     
     <script>
@@ -149,11 +168,26 @@
             document.getElementById(modelId).style.display = 'block';
         }
 
-        var namSlider = document.getElementById('namSlider');
-        var namSlide = document.getElementById('nam-slide');
+        function showParameter(modelId, paramId) {
+            var params = document.querySelectorAll(`#${modelId} .slideshow-container`);
+            params.forEach(param => {
+                param.style.display = 'none';
+            });
+            document.getElementById(`${modelId}-${paramId}`).style.display = 'block';
+        }
+
+        var namVortSlider = document.getElementById('namVortSlider');
+        var namVortSlide = document.getElementById('nam-vort-slide');
         
-        namSlider.oninput = function() {
-            namSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_${this.value}.png`;
+        namVortSlider.oninput = function() {
+            namVortSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_${this.value}.png`;
+        }
+        
+        var namOtherSlider = document.getElementById('namOtherSlider');
+        var namOtherSlide = document.getElementById('nam-other-slide');
+        
+        namOtherSlider.oninput = function() {
+            namOtherSlide.src = `https://via.placeholder.com/800x400?text=Other+Parameter+Image+${this.value}`;
         }
     </script>
 </body>
