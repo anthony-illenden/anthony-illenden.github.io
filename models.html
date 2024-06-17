@@ -145,6 +145,7 @@
     <div class="container">
         <div class="sidebar" id="parameterSidebar">
             <button onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
+            <button onclick="showParameter('nam', '850temp')">850 MB Temperature</button>
             <button onclick="showParameter('nam', 'other')">Other Parameter</button>
         </div>
         <div class="content">
@@ -153,6 +154,13 @@
                 <div class="slideshow-container">
                     <img id="nam-vort-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
                     <input type="range" min="0" max="28" value="0" class="slider" id="namVortSlider">
+                </div>
+            </div>
+            <div id="nam-850temp" class="model-content">
+                <h2>NAM 850 MB Temperature</h2>
+                <div class="slideshow-container">
+                    <img id="nam-850temp-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_0.png" alt="NAM 850 MB Temperature">
+                    <input type="range" min="0" max="28" value="0" class="slider" id="nam850TempSlider">
                 </div>
             </div>
             <div id="nam-other" class="model-content">
@@ -167,23 +175,28 @@
     
     <script>
         function showModel(modelId) {
+            // Hide parameter sidebar initially
             document.getElementById('parameterSidebar').style.display = 'none';
 
+            // Hide all model content
             var contents = document.getElementsByClassName('model-content');
             for (var i = 0; i < contents.length; i++) {
                 contents[i].style.display = 'none';
             }
 
+            // Show the parameter sidebar for the selected model
             if (modelId === 'nam') {
                 document.getElementById('parameterSidebar').style.display = 'block';
             }
         }
 
         function showParameter(modelId, paramId) {
+            // Hide all parameter content within the model
             var params = document.getElementsByClassName('model-content');
             for (var i = 0; i < params.length; i++) {
                 params[i].style.display = 'none';
             }
+            // Show the selected parameter content
             document.getElementById(`${modelId}-${paramId}`).style.display = 'block';
         }
 
@@ -194,10 +207,18 @@
             namVortSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_${this.value}.png`;
         }
 
+        var nam850TempSlider = document.getElementById('nam850TempSlider');
+        var nam850TempSlide = document.getElementById('nam-850temp-slide');
+
+        nam850TempSlider.oninput = function() {
+            nam850TempSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_${this.value}.png`;
+        }
+
         var namOtherSlider = document.getElementById('namOtherSlider');
         var namOtherSlide = document.getElementById('nam-other-slide');
 
         namOtherSlider.oninput = function() {
+            // Replace with the correct URL for other parameter images
             namOtherSlide.src = `https://via.placeholder.com/800x400?text=Other+Parameter+Image+${this.value}`;
         }
     </script>
