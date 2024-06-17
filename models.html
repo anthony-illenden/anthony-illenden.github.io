@@ -114,8 +114,8 @@
             height: auto;
         }
         .slider {
-            width: 80%;
-            margin: 20px auto;
+        width: 100%; /* Adjusted width */
+        margin: 20px auto; /* Ensures centering */
         }
     </style>
 </head>
@@ -179,7 +179,11 @@
                 </div>
             </div>
         </div>
+    <div class="slideshow-container">
+        <input type="range" class="slider" id="nam250IsotachSlider">
+        <button id="playPauseBtn">Play</button>
     </div>
+
     
     <script>
         function showModel(modelId) {
@@ -236,6 +240,26 @@
             // Replace with the correct URL for other parameter images
             namOtherSlide.src = `https://via.placeholder.com/800x400?text=Other+Parameter+Image+${this.value}`;
         }
+
+        let isPlaying = false;
+        let playInterval;
+
+        document.getElementById('playPauseBtn').addEventListener('click', function() {
+            if (isPlaying) {
+                clearInterval(playInterval);
+                this.textContent = 'Play';
+            } else {
+                playInterval = setInterval(function() {
+                    let slider = document.getElementById('nam250IsotachSlider');
+                    let value = parseInt(slider.value, 10);
+                    value = (value >= slider.max) ? 0 : value + 1;
+                    slider.value = value;
+                    slider.oninput(); // Trigger the update of the image
+                }, 1000); // Adjust time interval as needed
+                this.textContent = 'Pause';
+            }
+            isPlaying = !isPlaying;
+        });
     </script>
 </body>
 </html>
