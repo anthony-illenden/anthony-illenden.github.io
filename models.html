@@ -78,6 +78,20 @@
             margin-top: 20px;
             padding: 20px;
         }
+        .slideshow-container {
+            position: relative;
+            max-width: 100%;
+            margin: auto;
+            text-align: center;
+        }
+        .slideshow-container img {
+            width: 100%;
+            height: auto;
+        }
+        .slider {
+            width: 80%;
+            margin: 20px auto;
+        }
     </style>
 </head>
 <body>
@@ -110,7 +124,10 @@
     
     <div id="nam" class="model-content">
         <h2>NAM Parameters and Plots</h2>
-        <p>Content for NAM.</p>
+        <div class="slideshow-container">
+            <img id="nam-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
+            <input type="range" min="0" max="28" value="0" class="slider" id="namSlider">
+        </div>
     </div>
     
     <div id="rap" class="model-content">
@@ -125,13 +142,18 @@
     
     <script>
         function showModel(modelId) {
-            // Hide all model content
             var contents = document.getElementsByClassName('model-content');
             for (var i = 0; i < contents.length; i++) {
                 contents[i].style.display = 'none';
             }
-            // Show the selected model content
             document.getElementById(modelId).style.display = 'block';
+        }
+
+        var namSlider = document.getElementById('namSlider');
+        var namSlide = document.getElementById('nam-slide');
+        
+        namSlider.oninput = function() {
+            namSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_${this.value}.png`;
         }
     </script>
 </body>
