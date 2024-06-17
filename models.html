@@ -48,10 +48,13 @@
             transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.5);
             padding: 10px 20px;
+            width: 100%;
+            box-sizing: border-box;
         }
         .header .text h1 {
             margin: 0;
             font-size: 1.5em;
+            text-align: center;
         }
         .model-buttons {
             text-align: center;
@@ -114,8 +117,21 @@
             height: auto;
         }
         .slider {
-        width: 100%; /* Adjusted width */
-        margin: 20px auto; /* Ensures centering */
+            width: 80%;
+            margin: 20px auto;
+        }
+        .play-pause-button {
+            display: block;
+            margin: 10px auto;
+            background-color: #000000;
+            color: white;
+            padding: 10px;
+            border: none;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+        .play-pause-button:hover {
+            background-color: #3e8e41;
         }
     </style>
 </head>
@@ -148,6 +164,7 @@
             <button onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
             <button onclick="showParameter('nam', '850temp')">850 MB Temperature</button>
             <button onclick="showParameter('nam', 'other')">Other Parameter</button>
+            <button onclick="showParameter('hrrr', 'reflectivity')">Composite Reflectivity</button>
         </div>
         <div class="content">
             <div id="nam-250-isotachs" class="model-content">
@@ -155,6 +172,7 @@
                 <div class="slideshow-container">
                     <img id="nam-250-isotachs-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_0.png" alt="NAM 250mb Isotachs">
                     <input type="range" min="0" max="28" value="0" class="slider" id="nam250IsotachSlider">
+                    <button id="nam250IsotachPausePlayButton" class="play-pause-button" onclick="togglePausePlay('nam250IsotachSlider', 'nam250IsotachPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-vort" class="model-content">
@@ -162,6 +180,7 @@
                 <div class="slideshow-container">
                     <img id="nam-vort-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
                     <input type="range" min="0" max="28" value="0" class="slider" id="namVortSlider">
+                    <button id="namVortPausePlayButton" class="play-pause-button" onclick="togglePausePlay('namVortSlider', 'namVortPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-850temp" class="model-content">
@@ -169,6 +188,7 @@
                 <div class="slideshow-container">
                     <img id="nam-850temp-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_0.png" alt="NAM 850 MB Temperature">
                     <input type="range" min="0" max="28" value="0" class="slider" id="nam850TempSlider">
+                    <button id="nam850TempPausePlayButton" class="play-pause-button" onclick="togglePausePlay('nam850TempSlider', 'nam850TempPausePlayButton')">Pause</button>
                 </div>
             </div>
             <div id="nam-other" class="model-content">
@@ -176,15 +196,20 @@
                 <div class="slideshow-container">
                     <img id="nam-other-slide" src="https://via.placeholder.com/800x400" alt="Other Parameter">
                     <input type="range" min="0" max="28" value="0" class="slider" id="namOtherSlider">
+                    <button id="namOtherPausePlayButton" class="play-pause-button" onclick="togglePausePlay('namOtherSlider', 'namOtherPausePlayButton')">Pause</button>
+                </div>
+            </div>
+            <div id="hrrr-reflectivity" class="model-content">
+                <h2>HRRR Composite Reflectivity</h2>
+                <div class="slideshow-container">
+                    <img id="hrrr-reflectivity-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/hrrr/reflectivity/reflectivity_0.png" alt="HRRR Reflectivity">
+                    <input type="range" min="0" max="48" value="0" class="slider" id="hrrrReflectivitySlider">
+                    <button id="hrrrReflectivityPausePlayButton" class="play-pause-button" onclick="togglePausePlay('hrrrReflectivitySlider', 'hrrrReflectivityPausePlayButton')">Pause</button>
                 </div>
             </div>
         </div>
-    <div class="slideshow-container">
-        <input type="range" class="slider" id="nam250IsotachSlider">
-        <button id="playPauseBtn">Play</button>
     </div>
 
-    
     <script>
         function showModel(modelId) {
             // Hide parameter sidebar initially
@@ -197,7 +222,7 @@
             }
 
             // Show the parameter sidebar for the selected model
-            if (modelId === 'nam') {
+            if (modelId === 'nam' || modelId === 'hrrr') {
                 document.getElementById('parameterSidebar').style.display = 'block';
             }
         }
@@ -208,57 +233,46 @@
             for (var i = 0; i < params.length; i++) {
                 params[i].style.display = 'none';
             }
+
             // Show the selected parameter content
             document.getElementById(`${modelId}-${paramId}`).style.display = 'block';
         }
 
-        var nam250IsotachSlider = document.getElementById('nam250IsotachSlider');
-        var nam250IsotachSlide = document.getElementById('nam-250-isotachs-slide');
+        var intervals = {};
 
-        nam250IsotachSlider.oninput = function() {
-            nam250IsotachSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_${this.value}.png`;
-        }
-        
-        var namVortSlider = document.getElementById('namVortSlider');
-        var namVortSlide = document.getElementById('nam-vort-slide');
+        function togglePausePlay(sliderId, buttonId) {
+            var slider = document.getElementById(sliderId);
+            var button = document.getElementById(buttonId);
 
-        namVortSlider.oninput = function() {
-            namVortSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_${this.value}.png`;
-        }
-
-        var nam850TempSlider = document.getElementById('nam850TempSlider');
-        var nam850TempSlide = document.getElementById('nam-850temp-slide');
-
-        nam850TempSlider.oninput = function() {
-            nam850TempSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_${this.value}.png`;
-        }
-
-        var namOtherSlider = document.getElementById('namOtherSlider');
-        var namOtherSlide = document.getElementById('nam-other-slide');
-
-        namOtherSlider.oninput = function() {
-            // Replace with the correct URL for other parameter images
-            namOtherSlide.src = `https://via.placeholder.com/800x400?text=Other+Parameter+Image+${this.value}`;
-        }
-
-        let isPlaying = false;
-        let playInterval;
-
-        document.getElementById('playPauseBtn').addEventListener('click', function() {
-            if (isPlaying) {
-                clearInterval(playInterval);
-                this.textContent = 'Play';
+            if (intervals[sliderId]) {
+                clearInterval(intervals[sliderId]);
+                intervals[sliderId] = null;
+                button.textContent = 'Play';
             } else {
-                playInterval = setInterval(function() {
-                    let slider = document.getElementById('nam250IsotachSlider');
-                    let value = parseInt(slider.value, 10);
-                    value = (value >= slider.max) ? 0 : value + 1;
-                    slider.value = value;
-                    slider.oninput(); // Trigger the update of the image
-                }, 1000); // Adjust time interval as needed
-                this.textContent = 'Pause';
+                intervals[sliderId] = setInterval(function() {
+                    if (slider.value < slider.max) {
+                        slider.value = parseInt(slider.value) + 1;
+                    } else {
+                        slider.value = slider.min;
+                    }
+                    updateSlide(sliderId);
+                }, 500);
+                button.textContent = 'Pause';
             }
-            isPlaying = !isPlaying;
+        }
+
+        function updateSlide(sliderId) {
+            var slider = document.getElementById(sliderId);
+            var modelParam = sliderId.split('Slider')[0];
+            var slideImg = document.getElementById(modelParam + '-slide');
+            slideImg.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/${modelParam.replace(/[0-9]/g, '')}/${modelParam.replace(/[a-zA-Z]/g, '')}/${modelParam.split(/(?=[A-Z])/).pop().toLowerCase()}/${modelParam.split(/(?=[A-Z])/).pop().toLowerCase()}_${slider.value}.png`;
+        }
+
+        // Attach event listeners to all sliders
+        document.querySelectorAll('.slider').forEach(slider => {
+            slider.addEventListener('input', function() {
+                updateSlide(this.id);
+            });
         });
     </script>
 </body>
