@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>About</title>
+    <title>Models</title>
     <style>
         html, body {
             margin: 0;
@@ -11,24 +11,6 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-        }
-        .container {
-            max-width: 800px;
-            margin: auto;
-            margin-top: 40px;
-            padding: 20px;
-            position: relative; 
-        }
-        .headshot {
-            width: 150px; 
-            position: absolute;
-            top: 0;
-            left: -170px; 
-            border-radius: 50%; 
-            object-fit: cover; 
-        }
-        .container p {
-            font-size: 1.2em; 
         }
         nav {
             background-color: #333;
@@ -50,13 +32,13 @@
             position: relative;
             text-align: center;
             color: white;
-            height: 400px; 
-            width: 100vw; 
+            height: 400px;
+            width: 100vw;
         }
         .header img {
             width: 100%;
-            height: 100%; 
-            object-fit: cover; 
+            height: 100%;
+            object-fit: cover;
         }
         .header .text {
             position: absolute;
@@ -68,42 +50,33 @@
         }
         .header .text h1 {
             margin: 0;
-            font-size: 1.5em; 
+            font-size: 1.5em;
         }
-        .slideshow-container {
-            max-width: 800px;
-            position: relative;
-            margin: auto;
+        .models-nav {
+            display: flex;
+            justify-content: center;
             margin-top: 20px;
-            overflow: hidden;
+            background-color: #333;
         }
-        .slideshow-container img {
-            display: none;
-            width: 100%;
-            height: auto;
-            max-height: 600px; 
-            object-fit: contain; 
-        }
-        .prev, .next {
-            cursor: pointer;
-            position: absolute;
-            top: 50%;
-            transform: translateY(-50%);
-            width: auto;
-            padding: 16px;
+        .models-nav button {
+            background-color: #4CAF50;
+            border: none;
             color: white;
-            font-weight: bold;
-            font-size: 20px;
-            transition: 0.6s ease;
-            border-radius: 0 3px 3px 0;
-            background-color: rgba(0, 0, 0, 0.5);
+            padding: 14px 20px;
+            text-align: center;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 16px;
+            margin: 4px 2px;
+            cursor: pointer;
         }
-        .next {
-            right: 0;
-            border-radius: 3px 0 0 3px;
+        .models-nav button:hover {
+            background-color: #3e8e41;
         }
-        .prev:hover, .next:hover {
-            background-color: rgba(0, 0, 0, 0.8);
+        .model-content {
+            display: none;
+            margin-top: 20px;
+            padding: 20px;
         }
     </style>
 </head>
@@ -122,6 +95,44 @@
             <h1>MODELS</h1>
         </div>
     </div>
-
+    
+    <div class="models-nav">
+        <button onclick="showModel('gfs')">GFS</button>
+        <button onclick="showModel('nam')">NAM</button>
+        <button onclick="showModel('rap')">RAP</button>
+        <button onclick="showModel('hrrr')">HRRR</button>
+    </div>
+    
+    <div id="gfs" class="model-content">
+        <h2>GFS Parameters and Plots</h2>
+        <p>Content for GFS.</p>
+    </div>
+    
+    <div id="nam" class="model-content">
+        <h2>NAM Parameters and Plots</h2>
+        <p>Content for NAM.</p>
+    </div>
+    
+    <div id="rap" class="model-content">
+        <h2>RAP Parameters and Plots</h2>
+        <p>Content for RAP.</p>
+    </div>
+    
+    <div id="hrrr" class="model-content">
+        <h2>HRRR Parameters and Plots</h2>
+        <p>Content for HRRR.</p>
+    </div>
+    
+    <script>
+        function showModel(modelId) {
+            // Hide all model content
+            var contents = document.getElementsByClassName('model-content');
+            for (var i = 0; i < contents.length; i++) {
+                contents[i].style.display = 'none';
+            }
+            // Show the selected model content
+            document.getElementById(modelId).style.display = 'block';
+        }
+    </script>
 </body>
 </html>
