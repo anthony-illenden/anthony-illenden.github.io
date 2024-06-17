@@ -207,6 +207,13 @@
             document.getElementById(`${modelId}-${paramId}`).style.display = 'block';
         }
 
+        var nam250IsotachSlider = document.getElementById('nam250IsotachSlider');
+        var nam250IsotachSlide = document.getElementById('nam-250-isotachs-slide');
+
+        nam250IsotachSlider.oninput = function() {
+            nam250IsotachSlide.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_${this.value}.png`;
+        }
+        
         var namVortSlider = document.getElementById('namVortSlider');
         var namVortSlide = document.getElementById('nam-vort-slide');
 
