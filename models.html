@@ -247,14 +247,39 @@
         }
 
         function updateSlider(sliderId) {
-            var slider = document.getElementById(sliderId);
-            var modelParam = sliderId.replace('Slider', '');
-            var slideImg = document.getElementById(modelParam + '-slide');
-
-            if (slideImg) {
-                var sliderValue = slider.value;
-                slideImg.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/${modelParam.replace('-', '/')}/${modelParam}/${sliderValue}.png`;
+            const slider = document.getElementById(sliderId);
+            const value = slider.value;
+            let imgId;
+            let basePath;
+            
+            switch (sliderId) {
+                case 'nam250IsotachSlider':
+                    imgId = 'nam-250-isotachs-slide';
+                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_';
+                    break;
+                case 'namVortSlider':
+                    imgId = 'nam-vort-slide';
+                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_';
+                    break;
+                case 'nam850TempSlider':
+                    imgId = 'nam-850temp-slide';
+                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_';
+                    break;
+                case 'namOtherSlider':
+                    imgId = 'nam-other-slide';
+                    basePath = 'https://via.placeholder.com/800x400';
+                    break;
+                case 'hrrrReflectivitySlider':
+                    imgId = 'hrrr-reflectivity-slide';
+                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/hrrr/reflectivity/reflectivity_';
+                    break;
+                default:
+                    console.error('Unknown slider ID:', sliderId);
+                    return;
             }
+
+            const img = document.getElementById(imgId);
+            img.src = `${basePath}${value}.png`;
         }
     </script>
 </body>
