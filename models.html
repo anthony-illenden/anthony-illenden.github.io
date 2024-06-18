@@ -147,11 +147,11 @@
 
     <div class="container">
         <div class="sidebar" id="parameterSidebar">
-            <button onclick="showParameter('nam', '250-isotachs')">250 MB Isotachs</button>
-            <button onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
-            <button onclick="showParameter('nam', '850temp')">850 MB Temperature</button>
-            <button onclick="showParameter('nam', 'other')">Other Parameter</button>
-            <button onclick="showParameter('hrrr', 'reflectivity')">Composite Reflectivity</button>
+            <button id="nam-250-isotachs-btn" style="display: none;" onclick="showParameter('nam', '250-isotachs')">250 MB Isotachs</button>
+            <button id="nam-vort-btn" style="display: none;" onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
+            <button id="nam-850temp-btn" style="display: none;" onclick="showParameter('nam', '850temp')">850 MB Temperature</button>
+            <button id="nam-other-btn" style="display: none;" onclick="showParameter('nam', 'other')">Other Parameter</button>
+            <button id="hrrr-reflectivity-btn" style="display: none;" onclick="showParameter('hrrr', 'reflectivity')">Composite Reflectivity</button>
         </div>
         <div class="content">
             <div id="nam-250-isotachs" class="model-content">
@@ -196,22 +196,25 @@
         function showModel(modelId) {
             // Hide parameter sidebar initially
             document.getElementById('parameterSidebar').style.display = 'none';
-
+        
             // Hide all model content
             var contents = document.getElementsByClassName('model-content');
             for (var i = 0; i < contents.length; i++) {
                 contents[i].style.display = 'none';
             }
-
+        
             // Show the parameter sidebar for the selected model
-            if (modelId === 'nam' || modelId === 'hrrr') {
+            if (modelId === 'nam') {
                 document.getElementById('parameterSidebar').style.display = 'block';
-            }
-
-            // Show the content for the selected model
-            var modelContent = document.getElementById(modelId + '-250-isotachs');
-            if (modelContent) {
-                modelContent.style.display = 'block';
+                // Show NAM specific parameter buttons
+                document.getElementById('nam-250-isotachs-btn').style.display = 'block';
+                document.getElementById('nam-vort-btn').style.display = 'block';
+                document.getElementById('nam-850temp-btn').style.display = 'block';
+                document.getElementById('nam-other-btn').style.display = 'block';
+            } else if (modelId === 'hrrr') {
+                document.getElementById('parameterSidebar').style.display = 'block';
+                // Show HRRR specific parameter buttons
+                document.getElementById('hrrr-reflectivity-btn').style.display = 'block';
             }
         }
 
