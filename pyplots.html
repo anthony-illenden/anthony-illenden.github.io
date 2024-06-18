@@ -123,6 +123,20 @@
             </div>
         </div>
 
+        <div class="content">
+            <h2>Real Time Mesoscale Analysis</h2>
+            <div class="dropdown">
+                <label for="rtma-options">Select Analysis Type:</label>
+                <select id="rtma-options">
+                    <option value="air">Air Temperature</option>
+                    <option value="dewpoint">Dewpoint Temperature</option>
+                </select>
+            </div>
+            <div id="rtma-plot" class="plot-container">
+                <img id="rtma-img" class="plot-img" src="" alt="Real Time Mesoscale Analysis">
+            </div>
+        </div>
+        
         <div class="radar-loop-container">
             <h2>KDTX Doppler Radar Loop</h2>
             <div class="dropdown">
@@ -145,42 +159,39 @@
             const lowTempImg = document.getElementById('low-temp-img');
             const radarModeDropdown = document.getElementById('radar-mode');
             const loopedRadar = document.getElementById('looped-radar');
-            
+            const rtmaOptions = document.getElementById('rtma-options');
+            const rtmaImg = document.getElementById('rtma-img');
+        
             const highTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/high/NDFD_High_Temp_';
             const lowTempBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/low/NDFD_Low_Temp_';
-            
-            const radarImageUrls = {
-                reflectivity: [],
-                velocity: []
-            };
-            
-            // Populate URLs for both reflectivity and velocity modes
-            for (let i = 0; i < 8; i++) {
-                radarImageUrls.reflectivity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_Z/Reflectivity_${i}.png`);
-                radarImageUrls.velocity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_V/Velocity_${i}.png`);
-            }
-            
-            let radarIndex = 0;
-            
-            function updateLoopedRadar() {
-                const mode = radarModeDropdown.value;
-                loopedRadar.src = radarImageUrls[mode][radarIndex];
         
-                if (radarIndex === radarImageUrls[mode].length - 1) {
-                    setTimeout(() => {
-                        radarIndex = (radarIndex + 1) % radarImageUrls[mode].length;
-                        updateLoopedRadar();
-                    }, 2000); 
-                } else {
-                    setTimeout(() => {
-                        radarIndex = (radarIndex + 1) % radarImageUrls[mode].length;
-                        updateLoopedRadar();
-                    }, 500); 
-                }
+            const rtmaImageUrls = {
+                air: 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/rtma/latest_t.png',
+                dewpoint: 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/rtma/latest_td.png'
+            };
+        
+            // Function to update RTMA image based on selection
+            function updateRTMAImage() {
+                const option = rtmaOptions.value;
+                rtmaImg.src = rtmaImageUrls[option];
             }
-            
-            updateLoopedRadar();
-            
+        
+            updateRTMAImage(); // Initial update
+        
+            rtmaOptions.addEventListener('change', updateRTMAImage);
+        
+            // Existing functions for updating high/low temp plots and radar loop
+            function updatePlotImage(dropdown, img, type) {
+                const selectedDay = dropdown.value;
+                let imageUrl;
+                if (type === 'high') {
+                    imageUrl = `${highTempBaseUrl}${selectedDay - 1}.png`;
+                } else if (type === 'low') {
+                    imageUrl = `${lowTempBaseUrl}${selectedDay}.png`;
+                }
+                img.src = imageUrl;
+            }
+        
             function populateDayOptions() {
                 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
                 const today = new Date();
@@ -194,36 +205,36 @@
                     lowTempDropdown.add(option.cloneNode(true));
                 }
             }
-            
-            function updatePlotImage(dropdown, img, type) {
-                const selectedDay = dropdown.value;
-                let imageUrl;
-                if (type === 'high') {
-                    imageUrl = `${highTempBaseUrl}${selectedDay - 1}.png`;
-                } else if (type === 'low') {
-                    imageUrl = `${lowTempBaseUrl}${selectedDay}.png`;
-                }
-                img.src = imageUrl;
-            }
-            
+        
             populateDayOptions();
-            
-            updatePlotImage(highTempDropdown, highTempImg, 'high');
-            updatePlotImage(lowTempDropdown, lowTempImg, 'low');
-            
+        
             highTempDropdown.addEventListener('change', function() {
                 updatePlotImage(highTempDropdown, highTempImg, 'high');
             });
-            
+        
             lowTempDropdown.addEventListener('change', function() {
                 updatePlotImage(lowTempDropdown, lowTempImg, 'low');
             });
-            
+        
             radarModeDropdown.addEventListener('change', function() {
                 radarIndex = 0; // Reset index when mode changes
                 updateLoopedRadar();
             });
+        
+            // Loop for updating radar images
+            let radarIndex = 0;
+            function updateLoopedRadar() {
+                const mode = radarModeDropdown.value;
+                loopedRadar.src = radarImageUrls[mode][radarIndex];
+        
+                const delay = mode === 'reflectivity' ? 2000 : 500; // Adjust delay based on mode
+                radarIndex = (radarIndex + 1) % radarImageUrls[mode].length;
+                setTimeout(updateLoopedRadar, delay);
+            }
+        
+            updateLoopedRadar(); // Initial call
         });
+
     </script>
 </body>
 </html>
