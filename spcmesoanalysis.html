@@ -152,7 +152,7 @@
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
             tadv: '850mb Temperature Advection',
-            fgen925: '1000-925 mb Frontogenesis',
+            fgen925: '1000-925mb Frontogenesis',
             fgen98: '925-850mb Frontogenesis',
             fgen857: '850-700mb Frontogenesis',
             fgen75: '700-500mb Frontogenesis',
@@ -184,11 +184,16 @@
 
         const urlPatterns = {
             default: '/${parameterCode}/${parameterCode}_sf.gif',
+            skewt: '/${parameterCode}/${parameterCode}.gif',
             dcape: '/${parameterCode}/${parameterCode}.gif',
             mcon: '/${parameterCode}/${parameterCode}.gif',
             pmsl: '/${parameterCode}/${parameterCode}.gif',
             mxth: '/${parameterCode}/${parameterCode}.gif',
-            pchg: '/${parameterCode}/${parameterCode}.gif'
+            pchg: '/${parameterCode}/${parameterCode}.gif',
+            fgen925: '/${parameterCode}/${parameterCode}.gif',
+            fgen98: '/${parameterCode}/${parameterCode}.gif',
+            fgen857: '/${parameterCode}/${parameterCode}.gif',
+            fgen75: '/${parameterCode}/${parameterCode}.gif'
         };
 
         function updateParameters() {
