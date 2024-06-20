@@ -10,8 +10,8 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: #333; 
-            color: white; 
+            background-color: #333; /* Same background color as the original code */
+            color: white; /* Text color */
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -22,12 +22,12 @@
             position: relative;
             text-align: center;
             color: white;
-            overflow: hidden;
+            overflow: hidden; /* Hide overflow to prevent image from stretching */
         }
         .header img {
-            width: 100%; 
+            width: 100%; /* Ensure image covers the container */
             height: auto;
-            object-fit: cover; 
+            object-fit: cover; /* Maintain aspect ratio */
         }
         .header .text {
             position: absolute;
@@ -42,10 +42,10 @@
             font-size: 1.5em; 
         }
 
-       
+        /* Adjustments for the select dropdowns and image display */
         select, #gifDisplay {
             width: 100%;
-            max-width: 600px; 
+            max-width: 600px; /* Limit maximum width */
             padding: 10px;
             margin: 10px 0;
             font-size: 1em;
@@ -59,6 +59,22 @@
 
         .parameter-selectors h3 {
             margin-right: 20px;
+        }
+
+        .options-container {
+            display: flex; /* Aligns items horizontally */
+            justify-content: space-around; /* Distributes space evenly around items */
+            padding: 10px;
+        }
+        .option-button {
+            background-color: #f0f0f0; /* Light grey background */
+            border: 1px solid #ddd; /* Light grey border */
+            padding: 10px 20px; /* Padding around text */
+            cursor: pointer; /* Changes cursor to pointer on hover */
+            text-align: center; /* Centers text */
+        }
+        .option-button:hover {
+            background-color: #e7e7e7; /* Slightly darker grey on hover */
         }
     </style>
 </head>
@@ -76,15 +92,21 @@
         <option value="s21">Great Lakes</option>
     </select>
 
-    <div class="parameter-selectors">
-        <h3>Thermodynamics</h3>
-        <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
+    <div class="parameter-selectors" style="display: flex; justify-content: space-around;">
+        <div class="selector-group">
+            <h3>Thermodynamics</h3>
+            <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
+        </div>
 
-        <h3>Dynamics</h3>
-        <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
+        <div class="selector-group">
+            <h3>Dynamics</h3>
+            <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
+        </div>
 
-        <h3>Kinematics</h3>
-        <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
+        <div class="selector-group">
+            <h3>Kinematics</h3>
+            <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
+        </div>
     </div>
 
     <img id="gifDisplay" src="" alt="Selected GIF" style="max-width: 100%; height: auto;">
@@ -93,8 +115,8 @@
         const parameters = {
             s19: {
                 thermo: ['mlcp', 'sbcp'],
-                dynamic: ['vadv', 'padv'], 
-                kinematic: ['300mb', '500mb'] 
+                dynamic: ['vadv', 'padv'], // Example dynamic parameters
+                kinematic: ['300mb', '500mb'] // Example kinematic parameters
             },
             s21: {
                 thermo: ['mlcp', 'sbcp'],
@@ -115,7 +137,7 @@
 
         function updateCategoryDropdown(category, params) {
             const select = document.getElementById(`${category}Select`);
-            select.innerHTML = '';
+            select.innerHTML = ''; // Clear existing options
             params.forEach(param => {
                 const option = document.createElement('option');
                 option.value = param;
@@ -137,6 +159,7 @@
             gifDisplay.src = gifUrl;
         }
 
+        // Initialize parameters dropdown on page load
         window.onload = updateParameters;
     </script>
 </body>
