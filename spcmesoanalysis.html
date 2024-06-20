@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Display SPC Mesoscale Analysis</title>
+    <title>Parameter Selection</title>
 </head>
 <body>
     <label for="sectorSelect">Select Sector:</label>
@@ -11,49 +11,66 @@
         <option value="s21">Great Lakes</option>
     </select>
 
-    <label for="parameterSelect">Select Parameter:</label>
-    <select id="parameterSelect" onchange="displayGIF()">
-    </select>
+    <h3>Thermodynamics</h3>
+    <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
+
+    <h3>Dynamics</h3>
+    <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
+
+    <h3>Kinematics</h3>
+    <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
 
     <img id="gifDisplay" src="" alt="Selected GIF" style="max-width: 100%; height: auto;">
 
     <script>
         const parameters = {
-            s19: ['mlcp', 'sbcp'], // Example parameters for CONUS
-            s21: ['mlcp', 'sbcp'] // Example parameters for Great Lakes
+            s19: {
+                thermo: ['mlcp', 'sbcp'],
+                dynamic: ['vadv', 'padv'], // Example dynamic parameters
+                kinematic: ['300mb', '500mb'] // Example kinematic parameters
+            },
+            s21: {
+                thermo: ['mlcp', 'sbcp'],
+                dynamic: ['vadv', 'padv'],
+                kinematic: ['300mb', '500mb']
+            }
         };
 
         function updateParameters() {
             const sectorSelect = document.getElementById('sectorSelect');
-            const parameterSelect = document.getElementById('parameterSelect');
             const selectedSector = sectorSelect.value;
 
-            parameterSelect.innerHTML = '';
-
-
-            parameters[selectedSector].forEach(param => {
-                const option = document.createElement('option');
-                option.value = param;
-                option.textContent = param.toUpperCase(); 
-                parameterSelect.appendChild(option);
-            });
-
-            displayGIF();
+            // Update each category dropdown
+            updateCategoryDropdown('thermo', parameters[selectedSector].thermo);
+            updateCategoryDropdown('dynamic', parameters[selectedSector].dynamic);
+            updateCategoryDropdown('kinematic', parameters[selectedSector].kinematic);
         }
 
-        function displayGIF() {
+        function updateCategoryDropdown(category, params) {
+            const select = document.getElementById(`${category}Select`);
+            select.innerHTML = ''; // Clear existing options
+            params.forEach(param => {
+                const option = document.createElement('option');
+                option.value = param;
+                option.textContent = param.toUpperCase();
+                select.appendChild(option);
+            });
+        }
+
+        function displayGIF(category) {
             const sectorSelect = document.getElementById('sectorSelect');
-            const parameterSelect = document.getElementById('parameterSelect');
+            const select = document.getElementById(`${category}Select`);
             const gifDisplay = document.getElementById('gifDisplay');
 
             const baseUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
             const sectorCode = sectorSelect.value;
-            const parameterCode = parameterSelect.value;
+            const parameterCode = select.value;
             const gifUrl = `${baseUrl}${sectorCode}/${parameterCode}/${parameterCode}_sf.gif`;
 
             gifDisplay.src = gifUrl;
         }
 
+        // Initialize parameters dropdown on page load
         window.onload = updateParameters;
     </script>
 </body>
