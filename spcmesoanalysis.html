@@ -152,10 +152,10 @@
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
             tadv: '850mb Temperature Advection',
-            fgen925: '1000-925mb Frontogenesis',
-            fgen98: '925-850mb Frontogenesis',
-            fgen857: '850-700mb Frontogenesis',
-            fgen75: '700-500mb Frontogenesis',
+            '925f': '1000-925mb Frontogenesis',
+            '98ft': '925-850mb Frontogenesis',
+            '857f': '850-700mb Frontogenesis',
+            '75ft': '700-500mb Frontogenesis',
             '300mb': '300mb Wind',
             '500mb': '500mb Wind',
             '700mb': '700mb Wind',
@@ -171,13 +171,13 @@
             s19: {
                 sfc: ['mcon', 'pmsl', 'mxth', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp','dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv', 'fgen925', 'fgen98', 'fgen857', 'fgen75'],
+                dynamic: ['vadv', 'padv', 'tadv', '925f', '98ft', '857f', '75ft'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             },
             s21: {
                 sfc: ['mcon', 'pmsl', 'mxth', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp', 'dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv', 'fgen925', 'fgen98', 'fgen857', 'fgen75'],
+                dynamic: ['vadv', 'padv', 'tadv', '925f', '98ft', '857f', '75ft'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
         };
@@ -190,10 +190,10 @@
             pmsl: '/${parameterCode}/${parameterCode}.gif',
             mxth: '/${parameterCode}/${parameterCode}.gif',
             pchg: '/${parameterCode}/${parameterCode}.gif',
-            fgen925: '/${parameterCode}/${parameterCode}.gif',
-            fgen98: '/${parameterCode}/${parameterCode}.gif',
-            fgen857: '/${parameterCode}/${parameterCode}.gif',
-            fgen75: '/${parameterCode}/${parameterCode}.gif'
+            '925f': '/${parameterCode}/${parameterCode}.gif',
+            '98ft': '/${parameterCode}/${parameterCode}.gif',
+            '857f': '/${parameterCode}/${parameterCode}.gif',
+            '75ft': '/${parameterCode}/${parameterCode}.gif'
         };
 
         function updateParameters() {
