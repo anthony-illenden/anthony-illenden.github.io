@@ -151,7 +151,9 @@
             skewt: 'Skew-T Log-P',
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
+            'tadv_925': '925mb Temperature Advection',
             tadv: '850mb Temperature Advection',
+            '7tad': '700mb Temperature Advection',
             '925f': '1000-925mb Frontogenesis',
             '98ft': '925-850mb Frontogenesis',
             '857f': '850-700mb Frontogenesis',
@@ -164,20 +166,21 @@
             mcon: 'Moisture Convergence',
             pmsl: 'MSLP and Winds',
             mxth: 'Surface Mixing Ratio',
+            mixr: 'Mean Mixing Ratio
             pchg: 'Two-Hour Pressure Change'
         };
 
         const parameters = {
             s19: {
-                sfc: ['mcon', 'pmsl', 'mxth', 'pchg'],
+                sfc: ['mcon', 'pmsl', 'mxth', 'mixr', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp','dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv', '925f', '98ft', '857f', '75ft'],
+                dynamic: ['vadv', 'padv', 'tadv_925', 'tadv', '7tad', '925f', '98ft', '857f', '75ft'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             },
             s21: {
-                sfc: ['mcon', 'pmsl', 'mxth', 'pchg'],
+                sfc: ['mcon', 'pmsl', 'mxth', 'mixr', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp', 'dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv', '925f', '98ft', '857f', '75ft'],
+                dynamic: ['vadv', 'padv', 'tadv_925', 'tadv', '7tad', '925f', '98ft', '857f', '75ft'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
         };
@@ -189,6 +192,7 @@
             mcon: '/${parameterCode}/${parameterCode}.gif',
             pmsl: '/${parameterCode}/${parameterCode}.gif',
             mxth: '/${parameterCode}/${parameterCode}.gif',
+            mixr: '/${parameterCode}/${parameterCode}.gif',
             pchg: '/${parameterCode}/${parameterCode}.gif',
             '925f': '/${parameterCode}/${parameterCode}.gif',
             '98ft': '/${parameterCode}/${parameterCode}.gif',
