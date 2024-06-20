@@ -2,7 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <title>Parameter Selection</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Map Wall</title>
     <style>
         html, body {
             margin: 0;
@@ -10,74 +11,77 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: white; /* Same background color as the original code */
-            color: white; /* Text color */
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
-        .header {
-            width: 100%;
-            height: 400px; 
-            position: relative;
-            text-align: center;
+        nav {
+            background-color: #333;
+            overflow: hidden;
+        }
+        nav a {
+            float: left;
+            display: block;
             color: white;
-            overflow: hidden; /* Hide overflow to prevent image from stretching */
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
         }
-        .header img {
-            width: 100%; /* Ensure image covers the container */
-            height: auto;
-            object-fit: cover; /* Maintain aspect ratio */
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
         }
-        .header .text {
+        .hero-section {
+            background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
+            background-size: cover;
+            background-position: center;
+            height: 400px;
+            position: relative;
+            width: 100vw;
+        }
+        .hero-text {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            color: white;
             background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
+            padding: 20px;
+            border-radius: 5px;
+            text-align: center;
         }
-        .header .text h1 {
-            margin: 0;
-            font-size: 1.5em; 
+        .container {
+            max-width: 800px;
+            margin: auto;
+            margin-top: 40px;
         }
-
-        /* Adjustments for the select dropdowns and image display */
-        select, #gifDisplay {
-            max-width: 50%; /* Adjusts the maximum width to 50% of its container */
-            height: auto; /* Maintains the aspect ratio */
-            display: block; /* Ensures the image is a block-level element */
-            margin: 0 auto; /* Centers the image horizontally */
+        .controls {
+            margin-bottom: 20px;
         }
-
-        .parameter-selectors {
-            display: flex;
-            justify-content: center;
-            flex-wrap: wrap;
+        .controls select,
+        .controls input {
+            padding: 5px;
+            margin-right: 10px;
         }
-
-        .parameter-selectors h3 {
-            margin-right: 20px;
+        .error {
+            color: red;
+            font-weight: bold;
         }
-
-        .options-container {
-            display: flex; /* Aligns items horizontally */
-            justify-content: space-around; /* Distributes space evenly around items */
-            padding: 10px;
+        .image-container {
+            margin-top: 20px;
         }
-        .option-button {
-            background-color: #f0f0f0; /* Light grey background */
-            border: 1px solid #ddd; /* Light grey border */
-            padding: 10px 20px; /* Padding around text */
-            cursor: pointer; /* Changes cursor to pointer on hover */
-            text-align: center; /* Centers text */
-        }
-        .option-button:hover {
-            background-color: #e7e7e7; /* Slightly darker grey on hover */
+        img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
+    <nav>
+        <a href="index.html">Home</a>
+        <a href="semichigan.html">SE Michigan</a>
+        <a href="pyplots.html">Python Plots</a>
+        <a href="models.html">Models</a>
+        <a href="projects.html">Projects</a>
+        <a href="about.html">About</a>
+    </nav>
     <div class="header">
         <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
         <div class="text">
