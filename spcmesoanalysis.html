@@ -64,7 +64,12 @@
         }
         .controls {
             margin-bottom: 20px;
-            text-align: center;
+            display: flex;
+            justify-content: space-around;
+            align-items: center;
+        }
+        .controls label {
+            margin-right: 10px;
         }
         .controls select,
         .controls input {
@@ -109,14 +114,18 @@
         </select>
 
         <div class="controls">
-            <h3>Thermodynamics</h3>
-            <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
-
-            <h3>Dynamics</h3>
-            <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
-
-            <h3>Kinematics</h3>
-            <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
+            <div>
+                <label for="thermoSelect">Thermodynamics</label>
+                <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
+            </div>
+            <div>
+                <label for="dynamicSelect">Dynamics</label>
+                <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
+            </div>
+            <div>
+                <label for="kinematicSelect">Kinematics</label>
+                <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
+            </div>
         </div>
 
         <div class="image-container">
@@ -125,6 +134,15 @@
     </div>
 
     <script>
+        const parameterNames = {
+            mlcp: 'Mixed Layer Convective Potential',
+            sbcp: 'Surface Based Convective Potential',
+            vadv: 'Differential Vorticity Advection',
+            padv: 'Potential Vorticity Advection',
+            '300mb': '300mb Wind',
+            '500mb': '500mb Wind'
+        };
+
         const parameters = {
             s19: {
                 thermo: ['mlcp', 'sbcp'],
@@ -154,7 +172,7 @@
             params.forEach(param => {
                 const option = document.createElement('option');
                 option.value = param;
-                option.textContent = param.toUpperCase();
+                option.textContent = parameterNames[param];
                 select.appendChild(option);
             });
         }
