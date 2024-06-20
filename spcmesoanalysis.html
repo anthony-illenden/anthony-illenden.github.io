@@ -140,19 +140,22 @@
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
             '300mb': '300mb Wind',
-            '500mb': '500mb Wind'
+            '500mb': '500mb Wind',
+            '700mb': '700mb Wind',
+            '850mb2': '850mb Wind',
+            '925mb': '925mb Wind'
         };
 
         const parameters = {
             s19: {
                 thermo: ['mlcp', 'sbcp'],
                 dynamic: ['vadv', 'padv'], // Example dynamic parameters
-                kinematic: ['300mb', '500mb'] // Example kinematic parameters
+                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb'] // Example kinematic parameters
             },
             s21: {
                 thermo: ['mlcp', 'sbcp'],
                 dynamic: ['vadv', 'padv'],
-                kinematic: ['300mb', '500mb']
+                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
         };
 
