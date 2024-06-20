@@ -10,14 +10,14 @@
             width: 100%;
             height: 100%;
             font-family: Arial, sans-serif;
-            background-color: white; /* Background color */
-            color: black; /* Text color */
+            background-color: white;
+            color: black;
             display: flex;
             flex-direction: column;
             align-items: center;
         }
         nav {
-            background-color: #333; /* Same as body background */
+            background-color: #333;
             overflow: hidden;
             width: 100%;
         }
@@ -37,10 +37,10 @@
             background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
             background-size: cover;
             background-position: center;
-            height: 400px; /* Adjust the height as needed */
+            height: 400px;
             position: relative;
             width: 100vw;
-            margin-bottom: 40px; /* Adjust margin to create space below header */
+            margin-bottom: 40px;
         }
         .hero-text {
             position: absolute;
@@ -55,12 +55,12 @@
         }
         .hero-text h1 {
             margin: 0;
-            font-size: 2em; /* Increase font size for header */
+            font-size: 2em;
         }
         .container {
             max-width: 800px;
             margin: auto;
-            margin-top: 40px; /* Add some space between sections */
+            margin-top: 40px;
         }
         .controls {
             margin-bottom: 20px;
@@ -73,7 +73,7 @@
         }
         .controls select,
         .controls input {
-            padding: 10px; /* Increase padding for better touch interaction */
+            padding: 10px;
             margin-right: 10px;
         }
         .error {
@@ -116,6 +116,10 @@
 
         <div class="controls">
             <div>
+                <label for="sfcSelect">Surface</label>
+                <select id="sfcSelect" onchange="displayGIF('sfc')"></select>
+            </div>
+            <div>
                 <label for="thermoSelect">Thermodynamics</label>
                 <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
             </div>
@@ -151,27 +155,42 @@
             '500mb': '500mb Wind',
             '700mb': '700mb Wind',
             '850mb2': '850mb Wind',
-            '925mb': '925mb Wind'
+            '925mb': '925mb Wind',
+            mcon: 'Moisture Convergence',
+            pmsl: 'MSLP and Winds',
+            mxth: 'Surface Mixing Ratio',
+            pchg: 'Two-Hour Pressure Change'
         };
 
         const parameters = {
             s19: {
+                sfc: ['mcon', 'pmsl', 'mxth', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp','dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv'], // Example dynamic parameters
-                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb'] // Example kinematic parameters
+                dynamic: ['vadv', 'padv'],
+                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             },
             s21: {
+                sfc: ['mlcp', 'sbcp', 'mucp', 'mcon', 'pmsl', 'mxth', 'pchg'],
                 thermo: ['mlcp', 'sbcp', 'mucp', 'dcape','lllr','laps','lclh', 'lfch', 'skewt'],
                 dynamic: ['vadv', 'padv'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
         };
 
+        const urlPatterns = {
+            default: '/${parameterCode}/${parameterCode}_sf.gif',
+            dcape: '/${parameterCode}/${parameterCode}.gif',
+            mcon: '/${parameterCode}/${parameterCode}.gif',
+            pmsl: '/${parameterCode}/${parameterCode}.gif',
+            mxth: '/${parameterCode}/${parameterCode}.gif',
+            pchg: '/${parameterCode}/${parameterCode}.gif'
+        };
+
         function updateParameters() {
             const sectorSelect = document.getElementById('sectorSelect');
             const selectedSector = sectorSelect.value;
 
-            // Update each category dropdown
+            updateCategoryDropdown('sfc', parameters[selectedSector].sfc);
             updateCategoryDropdown('thermo', parameters[selectedSector].thermo);
             updateCategoryDropdown('dynamic', parameters[selectedSector].dynamic);
             updateCategoryDropdown('kinematic', parameters[selectedSector].kinematic);
@@ -179,7 +198,7 @@
 
         function updateCategoryDropdown(category, params) {
             const select = document.getElementById(`${category}Select`);
-            select.innerHTML = ''; // Clear existing options
+            select.innerHTML = '';
             params.forEach(param => {
                 const option = document.createElement('option');
                 option.value = param;
@@ -196,12 +215,13 @@
             const baseUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
             const sectorCode = sectorSelect.value;
             const parameterCode = select.value;
-            const gifUrl = `${baseUrl}${sectorCode}/${parameterCode}/${parameterCode}_sf.gif`;
+
+            const pattern = urlPatterns[parameterCode] || urlPatterns.default;
+            const gifUrl = `${baseUrl}${sectorCode}${pattern.replace(/\${parameterCode}/g, parameterCode)}`;
 
             gifDisplay.src = gifUrl;
         }
 
-        // Initialize parameters dropdown on page load
         window.onload = updateParameters;
     </script>
 </body>
