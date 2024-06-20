@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mesoscale Analysis</title>
+    <style>
+        .image-container {
+            margin-top: 20px;
+        }
+        .image-container img {
+            max-width: 100%;
+            height: auto;
+            display: none; 
+        }
+    </style>
+</head>
+<body>
+    <h1>Mesoscale Analysis</h1>
+
+    <label for="region-select">Select Region:</label>
+    <select id="region-select">
+        <option value="national">National Sector (s19)</option>
+        <!-- Add more options for other regions if needed -->
+    </select>
+
+    <label for="parameter-select">Select Parameter:</label>
+    <select id="parameter-select">
+        <option value="sbcape">SBCAPE</option>
+        <option value="mlcape">MLCAPE</option>
+
+    </select>
+
+    <div class="image-container" id="image-container">
+
+    </div>
+
+
+    <script>
+        const imageContainer = document.getElementById('image-container');
+        const regionSelect = document.getElementById('region-select');
+        const parameterSelect = document.getElementById('parameter-select');
+
+        regionSelect.addEventListener('change', updateImages);
+        parameterSelect.addEventListener('change', updateImages);
+
+        function updateImages() {
+            const selectedRegion = regionSelect.value;
+            const selectedParameter = parameterSelect.value;
+            imageContainer.innerHTML = '';
+
+            let imageUrl = '';
+
+            if (selectedRegion === 'national') {
+                if (selectedParameter === 'sbcape') {
+                    imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif';
+                } else if (selectedParameter === 'mlcape') {
+                    imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif';
+                }
+            } 
+
+
+            displayImage(imageUrl);
+        }
+
+        function displayImage(imageUrl) {
+            if (imageUrl) {
+                const img = document.createElement('img');
+                img.src = imageUrl;
+                img.alt = 'Mesoscale Analysis Image';
+                imageContainer.appendChild(img);
+            }
+        }
+    </script>
+</body>
+</html>
