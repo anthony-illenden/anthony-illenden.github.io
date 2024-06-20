@@ -44,11 +44,10 @@
 
         /* Adjustments for the select dropdowns and image display */
         select, #gifDisplay {
-            width: 100%;
-            max-width: 600px; /* Limit maximum width */
-            padding: 10px;
-            margin: 10px 0;
-            font-size: 1em;
+            max-width: 50%; /* Adjusts the maximum width to 50% of its container */
+            height: auto; /* Maintains the aspect ratio */
+            display: block; /* Ensures the image is a block-level element */
+            margin: 0 auto; /* Centers the image horizontally */
         }
 
         .parameter-selectors {
