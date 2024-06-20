@@ -2,75 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mesoscale Analysis</title>
-    <style>
-        .image-container {
-            margin-top: 20px;
-        }
-        .image-container img {
-            max-width: 100%;
-            height: auto;
-            display: none; 
-        }
-    </style>
+    <title>Display SPC Mesoscale Analysis</title>
 </head>
 <body>
-    <h1>Mesoscale Analysis</h1>
-
-    <label for="region-select">Select Region:</label>
-    <select id="region-select">
-        <option value="national">National Sector (s19)</option>
-        <!-- Add more options for other regions if needed -->
+    <label for="sectorSelect">Select Sector:</label>
+    <select id="sectorSelect" onchange="updateParameters()">
+        <option value="s19">CONUS</option>
+        <option value="s21">Great Lakes</option>
     </select>
 
-    <label for="parameter-select">Select Parameter:</label>
-    <select id="parameter-select">
-        <option value="sbcape">SBCAPE</option>
-        <option value="mlcape">MLCAPE</option>
-
+    <label for="parameterSelect">Select Parameter:</label>
+    <select id="parameterSelect" onchange="displayGIF()">
     </select>
 
-    <div class="image-container" id="image-container">
-
-    </div>
-
+    <img id="gifDisplay" src="" alt="Selected GIF" style="max-width: 100%; height: auto;">
 
     <script>
-        const imageContainer = document.getElementById('image-container');
-        const regionSelect = document.getElementById('region-select');
-        const parameterSelect = document.getElementById('parameter-select');
+        const parameters = {
+            s19: ['mlcp', 'sbcp'], // Example parameters for CONUS
+            s21: ['mlcp', 'sbcp'] // Example parameters for Great Lakes
+        };
 
-        regionSelect.addEventListener('change', updateImages);
-        parameterSelect.addEventListener('change', updateImages);
+        function updateParameters() {
+            const sectorSelect = document.getElementById('sectorSelect');
+            const parameterSelect = document.getElementById('parameterSelect');
+            const selectedSector = sectorSelect.value;
 
-        function updateImages() {
-            const selectedRegion = regionSelect.value;
-            const selectedParameter = parameterSelect.value;
-            imageContainer.innerHTML = '';
-
-            let imageUrl = '';
-
-            if (selectedRegion === 'national') {
-                if (selectedParameter === 'sbcape') {
-                    imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/sbcp/sbcp_sf.gif';
-                } else if (selectedParameter === 'mlcape') {
-                    imageUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/s19/mlcp/mlcp_sf.gif';
-                }
-            } 
+            parameterSelect.innerHTML = '';
 
 
-            displayImage(imageUrl);
+            parameters[selectedSector].forEach(param => {
+                const option = document.createElement('option');
+                option.value = param;
+                option.textContent = param.toUpperCase(); 
+                parameterSelect.appendChild(option);
+            });
+
+            displayGIF();
         }
 
-        function displayImage(imageUrl) {
-            if (imageUrl) {
-                const img = document.createElement('img');
-                img.src = imageUrl;
-                img.alt = 'Mesoscale Analysis Image';
-                imageContainer.appendChild(img);
-            }
+        function displayGIF() {
+            const sectorSelect = document.getElementById('sectorSelect');
+            const parameterSelect = document.getElementById('parameterSelect');
+            const gifDisplay = document.getElementById('gifDisplay');
+
+            const baseUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
+            const sectorCode = sectorSelect.value;
+            const parameterCode = parameterSelect.value;
+            const gifUrl = `${baseUrl}${sectorCode}/${parameterCode}/${parameterCode}_sf.gif`;
+
+            gifDisplay.src = gifUrl;
         }
+
+        window.onload = updateParameters;
     </script>
 </body>
 </html>
