@@ -137,6 +137,12 @@
         const parameterNames = {
             mlcp: 'Mixed-Layer CAPE',
             sbcp: 'Surface-Based CAPE',
+            mucp: 'Most-Unstable CAPE',
+            lllr: 'Low-Level Lapse Rates',
+            laps: 'Mid-Level Lapse Rates',
+            lclh: 'Lifted Condensation Height',
+            lfch: 'Level of Free Convection Height',
+            skewt: 'Skew-T Log-P'
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
             '300mb': '300mb Wind',
@@ -148,12 +154,12 @@
 
         const parameters = {
             s19: {
-                thermo: ['mlcp', 'sbcp'],
+                thermo: ['mlcp', 'sbcp', 'mucp','lllr','laps','lclh', 'lfch', 'skewt'],
                 dynamic: ['vadv', 'padv'], // Example dynamic parameters
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb'] // Example kinematic parameters
             },
             s21: {
-                thermo: ['mlcp', 'sbcp'],
+                thermo: ['mlcp', 'sbcp', 'mucp','lllr','laps','lclh', 'lfch', 'skewt'],
                 dynamic: ['vadv', 'padv'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
