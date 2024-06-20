@@ -208,6 +208,9 @@
             updateCategoryDropdown('thermo', parameters[selectedSector].thermo);
             updateCategoryDropdown('dynamic', parameters[selectedSector].dynamic);
             updateCategoryDropdown('kinematic', parameters[selectedSector].kinematic);
+
+            document.getElementById('sfcSelect').value = 'pmsl';
+            displayGIF('sfc');
         }
 
         function updateCategoryDropdown(category, params) {
