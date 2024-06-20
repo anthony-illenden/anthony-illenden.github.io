@@ -139,6 +139,7 @@
             mlcp: 'Mixed-Layer CAPE',
             sbcp: 'Surface-Based CAPE',
             mucp: 'Most-Unstable CAPE',
+            dcape: 'Downdraft CAPE',
             lllr: 'Low-Level Lapse Rates',
             laps: 'Mid-Level Lapse Rates',
             lclh: 'Lifted Condensation Height',
@@ -155,12 +156,12 @@
 
         const parameters = {
             s19: {
-                thermo: ['mlcp', 'sbcp', 'mucp','lllr','laps','lclh', 'lfch', 'skewt'],
+                thermo: ['mlcp', 'sbcp', 'mucp','dcape','lllr','laps','lclh', 'lfch', 'skewt'],
                 dynamic: ['vadv', 'padv'], // Example dynamic parameters
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb'] // Example kinematic parameters
             },
             s21: {
-                thermo: ['mlcp', 'sbcp', 'mucp','lllr','laps','lclh', 'lfch', 'skewt'],
+                thermo: ['mlcp', 'sbcp', 'mucp', 'dcape','lllr','laps','lclh', 'lfch', 'skewt'],
                 dynamic: ['vadv', 'padv'],
                 kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
             }
