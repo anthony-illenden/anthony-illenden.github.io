@@ -135,7 +135,12 @@
             </div>
             <img id="looped-radar" class="plot-img" src="" alt="Looped Radar Image">
         </div>
-        
+    
+        <div class="model-image-container">
+            <h2>RAP Forecast Sounding for Rochester Hills, MI</h2>
+            <img id="model-image" class="plot-img" src="" alt="Model Image">
+        </div> 
+
     </div>
 
     <script>
@@ -155,7 +160,6 @@
                 velocity: []
             };
             
-            // Populate URLs for both reflectivity and velocity modes
             for (let i = 0; i < 8; i++) {
                 radarImageUrls.reflectivity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_Z/Reflectivity_${i}.png`);
                 radarImageUrls.velocity.push(`https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/base_V/Velocity_${i}.png`);
@@ -206,9 +210,7 @@
                 }
                 img.src = imageUrl;
             }
-            
             populateDayOptions();
-            
             updatePlotImage(highTempDropdown, highTempImg, 'high');
             updatePlotImage(lowTempDropdown, lowTempImg, 'low');
             
@@ -221,9 +223,28 @@
             });
             
             radarModeDropdown.addEventListener('change', function() {
-                radarIndex = 0; // Reset index when mode changes
+                radarIndex = 0; 
                 updateLoopedRadar();
             });
+    
+            const modelBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/rap/soundings/rh/sounding_';
+    
+            const modelImageUrls = [];
+            for (let i = 0; i <= 21; i++) {
+                modelImageUrls.push(`${modelBaseUrl}${i}.png`);
+            }
+    
+            let modelIndex = 0;
+            const modelImage = document.getElementById('model-image');
+    
+            function updateModelImage() {
+                modelImage.src = modelImageUrls[modelIndex];
+
+                modelIndex = (modelIndex + 1) % modelImageUrls.length;
+
+                setTimeout(updateModelImage, 750); 
+            }
+            updateModelImage();
         });
     </script>
 </body>
