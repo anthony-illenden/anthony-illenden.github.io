@@ -85,6 +85,15 @@
             margin-top: 20px;
             text-align: center;
         }
+        .slider-container {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-top: 20px;
+        }
+        .slider-container input {
+            margin: 0 10px;
+        }
     </style>
 </head>
 <body>
@@ -140,6 +149,10 @@
         <div class="model-image-container">
             <h2>RAP Forecast Sounding for Rochester Hills, MI</h2>
             <img id="model-image" class="plot-img" src="" alt="Model Image">
+            <div class="slider-container">
+                <button id="play-pause-btn">Pause</button>
+                <input id="model-slider" type="range" min="0" max="21" step="1" value="0">
+            </div>
         </div> 
 
     </div>
@@ -231,21 +244,50 @@
             const modelBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/rap/soundings/rh/sounding_';
     
             const modelImageUrls = [];
-            for (let i = 0; i <= 21; i++) {
+            for (let i = 0; i <= 22; i++) {
                 modelImageUrls.push(`${modelBaseUrl}${i}.png`);
             }
     
             let modelIndex = 0;
             const modelImage = document.getElementById('model-image');
+            const modelSlider = document.getElementById('model-slider');
+            const playPauseBtn = document.getElementById('play-pause-btn');
+            let isPlaying = true;
+            let intervalId;
     
             function updateModelImage() {
-                modelImage.src = modelImageUrls[modelIndex];
-
-                modelIndex = (modelIndex + 1) % modelImageUrls.length;
-
-                setTimeout(updateModelImage, 750); 
+                modelImage.src = modelImageUrls[modelSlider.value];
             }
-            updateModelImage();
+    
+            function playModelImages() {
+                intervalId = setInterval(() => {
+                    modelIndex = (modelIndex + 1) % modelImageUrls.length;
+                    modelSlider.value = modelIndex;
+                    updateModelImage();
+                }, 750);
+            }
+    
+            function pauseModelImages() {
+                clearInterval(intervalId);
+            }
+    
+            modelSlider.addEventListener('input', () => {
+                modelIndex = modelSlider.value;
+                updateModelImage();
+            });
+    
+            playPauseBtn.addEventListener('click', () => {
+                if (isPlaying) {
+                    pauseModelImages();
+                    playPauseBtn.textContent = 'Play';
+                } else {
+                    playModelImages();
+                    playPauseBtn.textContent = 'Pause';
+                }
+                isPlaying = !isPlaying;
+            });
+    
+            playModelImages();
         });
     </script>
 </body>
