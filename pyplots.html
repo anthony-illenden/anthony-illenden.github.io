@@ -160,8 +160,17 @@
             <img id="gfs-model-image" class="plot-img" src="" alt="GFS Model Image">
             <div class="slider-container">
                 <button id="gfs-play-pause-btn">Pause</button>
-                <input id="gfs-model-slider" type="range" min="0" max="28" step="1" value="0">
+                <input id="gfs-model-slider" type="range" min="0" max="29" step="1" value="0">
             </div>
+        </div>
+
+        <div class="radar-loop-container">
+            <h2>NEXRAD Radar Loop</h2>
+            <div class="slider-container">
+                <button id="radar-play-pause-btn">Pause</button>
+                <input id="radar-slider" type="range" min="0" max="10" step="1" value="0">
+            </div>
+            <img id="radar-image" class="plot-img" src="" alt="Radar Image">
         </div>
 
     </div>
@@ -345,6 +354,53 @@
         });
 
         playGfsModelImages();
+
+        const radarBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/nexrad/reflectivity_';
+        const radarImageUrls = [];
+        for (let i = 10; i >= 0; i--) {
+            radarImageUrls.push(`${radarBaseUrl}${i}.png`);
+        }
+
+        let radarIndex = 0;
+        const radarImage = document.getElementById('radar-image');
+        const radarSlider = document.getElementById('radar-slider');
+        const radarPlayPauseBtn = document.getElementById('radar-play-pause-btn');
+        let radarIsPlaying = true;
+        let radarIntervalId;
+
+        function updateRadarImage() {
+            radarImage.src = radarImageUrls[radarSlider.value];
+        }
+
+        function playRadarImages() {
+            radarIntervalId = setInterval(() => {
+                radarIndex = (radarIndex + 1) % radarImageUrls.length;
+                radarSlider.value = radarIndex;
+                updateRadarImage();
+            }, 750); 
+        }
+
+        function pauseRadarImages() {
+            clearInterval(radarIntervalId);
+        }
+
+        radarSlider.addEventListener('input', () => {
+            radarIndex = radarSlider.value;
+            updateRadarImage();
+        });
+
+        radarPlayPauseBtn.addEventListener('click', () => {
+            if (radarIsPlaying) {
+                pauseRadarImages();
+                radarPlayPauseBtn.textContent = 'Play';
+            } else {
+                playRadarImages();
+                radarPlayPauseBtn.textContent = 'Pause';
+            }
+            radarIsPlaying = !radarIsPlaying;
+        });
+
+        playRadarImages();
     </script>
 </body>
 </html>
