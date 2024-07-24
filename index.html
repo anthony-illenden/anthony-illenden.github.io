@@ -52,7 +52,8 @@
         .container {
             max-width: 800px;
             margin: auto;
-            margin-top: 40px; /* Add some space between sections */
+            margin-top: 40px;
+            font-size: 18px;
         }
         .controls {
             margin-bottom: 20px;
@@ -73,6 +74,41 @@
             max-width: 100%;
             height: auto;
         }
+        .slideshow-container {
+            max-width: 800px;
+            position: relative;
+            margin: auto;
+            margin-top: 20px;
+            overflow: hidden;
+        }
+        .slideshow-container img {
+            display: none;
+            width: 100%;
+            height: auto;
+            max-height: 600px; 
+            object-fit: contain; 
+        }
+        .prev, .next {
+            cursor: pointer;
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            width: auto;
+            padding: 16px;
+            color: white;
+            font-weight: bold;
+            font-size: 20px;
+            transition: 0.6s ease;
+            border-radius: 0 3px 3px 0;
+            background-color: rgba(0, 0, 0, 0.5);
+        }
+        .next {
+            right: 0;
+            border-radius: 3px 0 0 3px;
+        }
+        .prev:hover, .next:hover {
+            background-color: rgba(0, 0, 0, 0.8);
+        }
     </style>
 </head>
 <body>
@@ -91,14 +127,28 @@
             <h1>MAP WALL</h1>
         </div>
     </div>
-
     <div class="container">
-        <h1>Current UTC Time: <span id="currentTime"></span></h1> <!-- Current UTC Time section -->
+        <h1>Hello, welcome to my GitHub Pages!</h1>
+        <p>This website provides comprehensive weather information, including temperature, precipitation, and convective forecasts. You'll also find technical forecast discussions, as well as data from observational and numerical weather models.</p>
+    </div>
+    <div class="slideshow-container">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/4.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/5.jpg">
+         <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/notes.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/6.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/3.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/textbook.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/1.jpg">
+        <img class="mySlides" src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/main/2.jpg">
+        <a class="prev" onclick="plusSlides(-1)">&#10094;</a>
+        <a class="next" onclick="plusSlides(1)">&#10095;</a>
+    </div>
+    <div class="container">
+        <h1>Current UTC Time: <span id="currentTime"></span></h1> 
     </div>
 
     <div class="container">
         <h1>SPC Soundings</h1>
-        <p>This page displays the latest SPC sounding plots.</p>
         <div class="controls">
             <label for="datetime">Select DateTime:</label>
             <select id="datetime"></select>
@@ -106,15 +156,12 @@
             <label for="station">Enter Station Code:</label>
             <input type="text" id="station" placeholder="e.g., OUN">
         </div>
-
-        <h2>Sounding Plot</h2>
         <img id="soundingPlot" src="" alt="Sounding Plot">
         <p id="error" class="error" style="display:none;">Image not available for the selected DateTime and Station.</p>
     </div>
 
     <div class="container">
         <h1>College of DuPage Surface Analysis</h1>
-        <p>This section displays the latest surface analysis from the College of DuPage.</p>
         <div class="image-container">
             <img id="surfaceAnalysis" src="https://climate.cod.edu/data/surface/US_zoom/contour/current/USZOOM.fronts.gif" alt="Surface Analysis">
         </div>
@@ -170,6 +217,24 @@
     </div>
 
     <script>
+        var slideIndex = 1;
+        showSlides(slideIndex);
+
+        function plusSlides(n) {
+            showSlides(slideIndex += n);
+        }
+
+        function showSlides(n) {
+            var i;
+            var slides = document.getElementsByClassName("mySlides");
+            if (n > slides.length) {slideIndex = 1}
+            if (n < 1) {slideIndex = slides.length}
+            for (i = 0; i < slides.length; i++) {
+                slides[i].style.display = "none";
+            }
+            slides[slideIndex-1].style.display = "block";
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // Function to display current UTC time
             function updateCurrentTime() {
@@ -194,12 +259,11 @@
             const upperAirImage = document.getElementById('upperAirImage');
             const dateTimeSelect = document.getElementById('dateTime');
 
-            // Function to generate the last several days' datetimes in yymmdd_hh format
             function generateDatetimes() {
                 const now = new Date();
                 const datetimes = [];
                 const datetimesUpperAir = [];
-                for (let i = 0; i < 10; i++) {  // Adjust number of days as needed
+                for (let i = 0; i < 9; i++) {  
                     const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
                     const yy = date.getUTCFullYear().toString().slice(2);
                     const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
@@ -216,7 +280,6 @@
                 return { datetimes, datetimesUpperAir };
             }
 
-            // Populate datetime dropdowns
             const { datetimes, datetimesUpperAir } = generateDatetimes();
             datetimes.forEach(datetime => {
                 const option = document.createElement('option');
@@ -232,7 +295,15 @@
                 dateTimeSelect.appendChild(dateTimeOption);
             });
 
-            // Set initial image src
+            stationInput.value = 'OUN';
+
+            if (datetimeSelect.options.length > 0) {
+                datetimeSelect.selectedIndex = 0; 
+            }
+            if (dateTimeSelect.options.length > 0) {
+                dateTimeSelect.selectedIndex = 0; 
+            }
+
             updateImage();
 
             // Event listeners
