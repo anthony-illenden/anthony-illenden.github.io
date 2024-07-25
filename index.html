@@ -237,16 +237,13 @@
         }
 
         document.addEventListener('DOMContentLoaded', function() {
-            // Function to display current UTC time
             function updateCurrentTime() {
                 const now = new Date();
                 const utcString = now.toISOString().slice(0, 19).replace('T', ' ') + ' UTC';
                 document.getElementById('currentTime').textContent = utcString;
             }
-            
-            // Update current time initially
+    
             updateCurrentTime();
-            // Update current time every second
             setInterval(updateCurrentTime, 1000);
             
             const datetimeSelect = document.getElementById('datetime');
@@ -262,6 +259,7 @@
 
             function generateDatetimes() {
                 const now = new Date();
+                const currentUTCHour = now.getUTCHours();
                 const datetimes = [];
                 const datetimesUpperAir = [];
                 for (let i = 0; i < 9; i++) {  
@@ -269,14 +267,14 @@
                     const yy = date.getUTCFullYear().toString().slice(2);
                     const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
                     const dd = date.getUTCDate().toString().padStart(2, '0');
-                    datetimes.push(`${yy}${mm}${dd}12`);
+                
+                    if (currentUTCHour >= 12 || i > 0) { 
+                        datetimes.push(`${yy}${mm}${dd}12`);
+                        datetimesUpperAir.push(`${yy}${mm}${dd}_12`);
+                    }
+                    
                     datetimes.push(`${yy}${mm}${dd}00`);
-
-                    const upperAirDateTimes = `${yy}${mm}${dd}_12`;
-                    const upperAirDateTimes_00 = `${yy}${mm}${dd}_00`;
-
-                    datetimesUpperAir.push(upperAirDateTimes);
-                    datetimesUpperAir.push(upperAirDateTimes_00);
+                    datetimesUpperAir.push(`${yy}${mm}${dd}_00`);
                 }
                 return { datetimes, datetimesUpperAir };
             }
