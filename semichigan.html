@@ -127,12 +127,20 @@
         </div>
     </div>
 
-    <div class="container">
-        <h1>NWS Detroit Area Forecast Discussion</h1>
+    <section class="container">
+        <h1>NWS Area Forecast Discussion</h1>
+        <div class="controls">
+            <label for="forecastOfficeSelect">Select Forecast Office:</label>
+            <select id="forecastOfficeSelect">
+                <option value="DTX" selected>Detroit, MI</option>
+                <option value="GRR">Grand Rapids, MI</option>
+                <option value="APX">Gaylord, MI</option>
+            </select>
+        </div>
         <div class="forecast-text" id="forecast-text">
             <p>Loading forecast...</p>
         </div>
-    </div>
+    </section>
 
     <div class="container twitter-container">
         <a class="twitter-timeline" href="https://twitter.com/tonesweatherbot?ref_src=twsrc%5Etfw">Tweets by tonesweatherbot</a> 
@@ -146,6 +154,8 @@
             const outlookImage = document.getElementById('outlookImage');
             const citySelect = document.getElementById('citySelect');
             const tempImage = document.getElementById('tempImage');
+            const forecastOfficeSelect = document.getElementById('forecastOfficeSelect');
+            const forecastText = document.getElementById('forecast-text');
     
             function populateDayOptions() {
                 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -176,35 +186,55 @@
                 outlookImage.src = imageUrl;
             }
     
+            function updateForecastText() {
+                const office = forecastOfficeSelect.value;
+                let url = '';
+                switch (office) {
+                    case 'DTX':
+                        url = 'https://forecast.weather.gov/product.php?site=DTX&issuedby=DTX&product=AFD&format=CI&version=1&glossary=1';
+                        break;
+                    case 'GRR':
+                        url = 'https://forecast.weather.gov/product.php?site=GRR&issuedby=GRR&product=AFD&format=CI&version=1&glossary=1';
+                        break;
+                    case 'APX':
+                        url = 'https://forecast.weather.gov/product.php?site=APX&issuedby=APX&product=AFD&format=CI&version=1&glossary=1';
+                        break;
+                    default:
+                        console.log('Office not recognized');
+                        return; 
+                }
+                fetchForecast(url);
+            }
+    
+            async function fetchForecast(url) {
+                try {
+                    const response = await fetch(url);
+                    const text = await response.text();
+                    
+                    const parser = new DOMParser();
+                    const doc = parser.parseFromString(text, 'text/html');
+                    const forecastContent = doc.querySelector('pre').innerText;
+
+                    forecastText.innerHTML = `<h2>Area Forecast Discussion</h2><pre>${forecastContent}</pre>`;
+                } catch (error) {
+                    console.error('Error fetching the forecast:', error);
+                    forecastText.innerHTML = '<h2>Area Forecast Discussion</h2><p>Unable to load forecast.</p>';
+                }
+            }
+    
             populateDayOptions();
             updateOutlookImage();
-    
+            updateForecastText();
+
             daySelect.addEventListener('change', updateOutlookImage);
             outlookType.addEventListener('change', updateOutlookImage);
-    
             citySelect.addEventListener('change', function() {
                 const cityCode = citySelect.value;
                 const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/ndfd/cities/${cityCode}.png`;
                 tempImage.src = imageUrl;
             });
     
-            async function fetchForecast() {
-                try {
-                    const response = await fetch('https://forecast.weather.gov/product.php?site=DTX&issuedby=DTX&product=AFD&format=CI&version=1&glossary=1');
-                    const text = await response.text();
-                    
-                    const parser = new DOMParser();
-                    const doc = parser.parseFromString(text, 'text/html');
-                    const forecastText = doc.querySelector('pre').innerText;
-
-                    document.getElementById('forecast-text').innerHTML = `<h2>Area Forecast Discussion</h2><pre>${forecastText}</pre>`;
-                } catch (error) {
-                    console.error('Error fetching the forecast:', error);
-                    document.getElementById('forecast-text').innerHTML = '<h2>Area Forecast Discussion</h2><p>Unable to load forecast.</p>';
-                }
-            }
-    
-            fetchForecast();
+            forecastOfficeSelect.addEventListener('change', updateForecastText);
         });
     </script>
 </body>
