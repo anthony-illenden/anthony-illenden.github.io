@@ -14,19 +14,15 @@
             font-family: Arial, sans-serif;
             background-color: white;
             color: black;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
         }
         nav {
             background-color: #333;
             overflow: hidden;
-            width: 100%;
+            text-align: center;
         }
         nav a {
-            float: left;
-            display: block;
-            color: white;
+            display: inline-block;
+            color: #f2f2f2;
             text-align: center;
             padding: 14px 16px;
             text-decoration: none;
@@ -42,7 +38,6 @@
             height: 400px;
             position: relative;
             width: 100vw;
-            margin-bottom: 40px;
         }
         .hero-text {
             position: absolute;
@@ -93,6 +88,11 @@
     </style>
 </head>
 <body>
+    <div class="hero-section">
+        <div class="hero-text">
+            <h1>SPC Mesoscale Analysis</h1>
+        </div>
+    </div>
     <nav>
         <a href="index.html">Home</a>
         <a href="semichigan.html">SE Michigan</a>
@@ -103,12 +103,6 @@
         <a href="about.html">About</a>
     </nav>
     
-    <div class="hero-section">
-        <div class="hero-text">
-            <h1>SPC Mesoscale Analysis</h1>
-        </div>
-    </div>
-
     <div class="container">
         <label for="sectorSelect">Select Sector:</label>
         <select id="sectorSelect" onchange="updateParameters()">
