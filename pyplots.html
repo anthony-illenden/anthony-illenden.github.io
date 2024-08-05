@@ -146,6 +146,15 @@
             </div>
             <img id="looped-radar" class="plot-img" src="" alt="Looped Radar Image">
         </div>
+
+        <div class="radar-loop-container">
+            <h2>NEXRAD Radar Loop</h2>
+            <div class="slider-container">
+                <button id="radar-play-pause-btn">Pause</button>
+                <input id="radar-slider" type="range" min="0" max="10" step="1" value="0">
+            </div>
+            <img id="radar-image" class="plot-img" src="" alt="Radar Image">
+        </div>
     
         <div class="model-image-container">
             <h2>RAP Forecast Soundings for Rochester Hills, MI</h2>
@@ -164,16 +173,6 @@
                 <input id="gfs-model-slider" type="range" min="0" max="29" step="1" value="0">
             </div>
         </div>
-
-        <div class="radar-loop-container">
-            <h2>NEXRAD Radar Loop</h2>
-            <div class="slider-container">
-                <button id="radar-play-pause-btn">Pause</button>
-                <input id="radar-slider" type="range" min="0" max="10" step="1" value="0">
-            </div>
-            <img id="radar-image" class="plot-img" src="" alt="Radar Image">
-        </div>
-
     </div>
 
     <script>
@@ -309,53 +308,6 @@
             playModelImages();
         });
 
-        const gfsModelBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/gfs/soundings/rh/sounding_';
-        const gfsModelImageUrls = [];
-        for (let i = 0; i <= 28; i++) {
-            gfsModelImageUrls.push(`${gfsModelBaseUrl}${i}.png`);
-        }
-
-        let gfsModelIndex = 0;
-        const gfsModelImage = document.getElementById('gfs-model-image');
-        const gfsModelSlider = document.getElementById('gfs-model-slider');
-        const gfsPlayPauseBtn = document.getElementById('gfs-play-pause-btn');
-        let gfsIsPlaying = true;
-        let gfsIntervalId;
-
-        function updateGfsModelImage() {
-            gfsModelImage.src = gfsModelImageUrls[gfsModelSlider.value];
-        }
-
-        function playGfsModelImages() {
-            gfsIntervalId = setInterval(() => {
-                gfsModelIndex = (gfsModelIndex + 1) % gfsModelImageUrls.length;
-                gfsModelSlider.value = gfsModelIndex;
-                updateGfsModelImage();
-            }, 750);
-        }
-
-        function pauseGfsModelImages() {
-            clearInterval(gfsIntervalId);
-        }
-
-        gfsModelSlider.addEventListener('input', () => {
-            gfsModelIndex = gfsModelSlider.value;
-            updateGfsModelImage();
-        });
-
-        gfsPlayPauseBtn.addEventListener('click', () => {
-            if (gfsIsPlaying) {
-                pauseGfsModelImages();
-                gfsPlayPauseBtn.textContent = 'Play';
-            } else {
-                playGfsModelImages();
-                gfsPlayPauseBtn.textContent = 'Pause';
-            }
-            gfsIsPlaying = !gfsIsPlaying;
-        });
-
-        playGfsModelImages();
-
         const radarBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/doppler_radar/nexrad/reflectivity_';
         const radarImageUrls = [];
         for (let i = 10; i >= 0; i--) {
@@ -402,6 +354,53 @@
         });
 
         playRadarImages();
+
+        const gfsModelBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/gfs/soundings/rh/sounding_';
+        const gfsModelImageUrls = [];
+        for (let i = 0; i <= 28; i++) {
+            gfsModelImageUrls.push(`${gfsModelBaseUrl}${i}.png`);
+        }
+
+        let gfsModelIndex = 0;
+        const gfsModelImage = document.getElementById('gfs-model-image');
+        const gfsModelSlider = document.getElementById('gfs-model-slider');
+        const gfsPlayPauseBtn = document.getElementById('gfs-play-pause-btn');
+        let gfsIsPlaying = true;
+        let gfsIntervalId;
+
+        function updateGfsModelImage() {
+            gfsModelImage.src = gfsModelImageUrls[gfsModelSlider.value];
+        }
+
+        function playGfsModelImages() {
+            gfsIntervalId = setInterval(() => {
+                gfsModelIndex = (gfsModelIndex + 1) % gfsModelImageUrls.length;
+                gfsModelSlider.value = gfsModelIndex;
+                updateGfsModelImage();
+            }, 750);
+        }
+
+        function pauseGfsModelImages() {
+            clearInterval(gfsIntervalId);
+        }
+
+        gfsModelSlider.addEventListener('input', () => {
+            gfsModelIndex = gfsModelSlider.value;
+            updateGfsModelImage();
+        });
+
+        gfsPlayPauseBtn.addEventListener('click', () => {
+            if (gfsIsPlaying) {
+                pauseGfsModelImages();
+                gfsPlayPauseBtn.textContent = 'Play';
+            } else {
+                playGfsModelImages();
+                gfsPlayPauseBtn.textContent = 'Pause';
+            }
+            gfsIsPlaying = !gfsIsPlaying;
+        });
+
+        playGfsModelImages();
     </script>
 </body>
 </html>
