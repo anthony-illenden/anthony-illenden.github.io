@@ -102,7 +102,7 @@
         </select>
     
         <div class="image-container">
-            <img id="tempImage" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/ndfd/cities/RH.png" alt="Temperature Forecast">
+            <img id="tempImage" src="https://raw.githubusercontent.com/anthony-illenden/ndfd-actions/main/cities/RH.png" alt="Temperature Forecast">
         </div>
     </div>
 
@@ -229,7 +229,7 @@
             outlookType.addEventListener('change', updateOutlookImage);
             citySelect.addEventListener('change', function() {
                 const cityCode = citySelect.value;
-                const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/temps/ndfd/cities/${cityCode}.png`;
+                const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/ndfd-actions/main/cities/${cityCode}.png`;
                 tempImage.src = imageUrl;
             });
     
