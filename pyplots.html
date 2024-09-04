@@ -170,7 +170,7 @@
             <img id="gfs-model-image" class="plot-img" src="" alt="GFS Model Image">
             <div class="slider-container">
                 <button id="gfs-play-pause-btn">Pause</button>
-                <input id="gfs-model-slider" type="range" min="0" max="29" step="1" value="0">
+                <input id="gfs-model-slider" type="range" min="0" max="28" step="1" value="0">
             </div>
         </div>
     </div>
@@ -357,7 +357,7 @@
 
         const gfsModelBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/model-sounding-actions/main/models/gfs/sounding_';
         const gfsModelImageUrls = [];
-        for (let i = 0; i <= 27; i++) {
+        for (let i = 0; i <= 28; i++) {
             gfsModelImageUrls.push(`${gfsModelBaseUrl}${i}.png`);
         }
 
