@@ -125,6 +125,21 @@
         </div>
     </div>
 
+    <div class="container">
+        <h1>Winter Weather Maps</h1>
+        <div class="controls">
+            <label for="winterMapSelect">Select Map:</label>
+            <select id="winterMapSelect">
+                <option value="LP" selected>Lower Peninsula</option>
+                <option value="UP">Upper Peninsula</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="winterMapImage" src="https://www.weather.gov/images/erh/gis/LP_state_Snow.png" alt="Winter Weather Map">
+        </div>
+    </div>
+
     <section class="container">
         <h1>NWS Area Forecast Discussion</h1>
         <div class="controls">
@@ -154,6 +169,8 @@
             const tempImage = document.getElementById('tempImage');
             const forecastOfficeSelect = document.getElementById('forecastOfficeSelect');
             const forecastText = document.getElementById('forecast-text');
+            const winterMapSelect = document.getElementById('winterMapSelect');
+            const winterMapImage = document.getElementById('winterMapImage');
     
             function populateDayOptions() {
                 const daysOfWeek = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
@@ -219,10 +236,22 @@
                     forecastText.innerHTML = '<h2>Area Forecast Discussion</h2><p>Unable to load forecast.</p>';
                 }
             }
+
+            function updateWinterMapImage() {
+                const mapType = winterMapSelect.value;
+                let imageUrl = '';
+                if (mapType === 'LP') {
+                    imageUrl = 'https://www.weather.gov/images/erh/gis/LP_state_Snow.png';
+                } else {
+                    imageUrl = 'https://www.weather.gov/images/erh/gis/UP_state_Snow.png';
+                }
+                winterMapImage.src = imageUrl;
+            }
     
             populateDayOptions();
             updateOutlookImage();
             updateForecastText();
+            updateWinterMapImage();
 
             daySelect.addEventListener('change', updateOutlookImage);
             outlookType.addEventListener('change', updateOutlookImage);
@@ -231,8 +260,8 @@
                 const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/ndfd-actions/main/cities/${cityCode}.png`;
                 tempImage.src = imageUrl;
             });
-    
             forecastOfficeSelect.addEventListener('change', updateForecastText);
+            winterMapSelect.addEventListener('change', updateWinterMapImage);
         });
     </script>
 </body>
