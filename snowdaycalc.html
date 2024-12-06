@@ -33,13 +33,13 @@
             position: relative;
             text-align: center;
             color: white;
-            height: 400px; 
-            width: 100vw; 
+            height: 400px;
+            width: 100vw;
         }
         .header img {
             width: 100%;
-            height: 100%; 
-            object-fit: cover; 
+            height: 100%;
+            object-fit: cover;
         }
         .header .text {
             position: absolute;
@@ -51,10 +51,9 @@
         }
         .header .text h1 {
             margin: 0;
-            font-size: 1.5em; 
+            font-size: 1.5em;
         }
         body {
-            font-family: Arial, sans-serif;
             background-color: #eef5f9;
             color: #333;
             margin: 0;
@@ -68,16 +67,18 @@
             max-width: 600px;
             text-align: center;
         }
-        input, button {
+        input, select, button {
             padding: 0.5rem;
             margin: 0.5rem 0;
             font-size: 1rem;
+            width: 100%;
+            max-width: 400px;
         }
         .result {
             margin-top: 1.5rem;
             font-weight: bold;
-            font-size: 1.5rem; /* Increased font size */
-            padding: 1rem; /* Added padding */
+            font-size: 1.5rem;
+            padding: 1rem;
         }
     </style>
 </head>
@@ -97,18 +98,29 @@
         <a href="winter.html">Winter</a>
         <a href="about.html">About</a>
     </nav>
-
     <main>
         <h2>Snow Day Odds Calculator</h2>
-        <p>Enter your city and state below to get your forecast and snow day odds!</p>
+        <p>Enter your city, normal snowfall frequency, and prior snow days below to get your forecast and snow day odds!</p>
+
+        <!-- User Inputs -->
         <input type="text" id="city" placeholder="Enter city (e.g., Chicago, IL)" required />
+        <label for="snowFrequency">Normal snowfall frequency:</label>
+        <select id="snowFrequency">
+            <option value="Yes">Yes</option>
+            <option value="Occasionally" selected>Occasionally</option>
+            <option value="Not Really">Not Really</option>
+            <option value="No">No</option>
+        </select>
+        <label for="priorSnowDays">Snow days already had this season:</label>
+        <input type="number" id="priorSnowDays" min="0" placeholder="Enter a number (e.g., 2)" required />
         <button onclick="getWeather()">Check Snow Day Odds</button>
         <div id="result" class="result"></div>
     </main>
-
     <script>
         async function getWeather() {
             const city = document.getElementById('city').value.trim();
+            const snowFrequency = document.getElementById('snowFrequency').value;
+            const priorSnowDays = parseInt(document.getElementById('priorSnowDays').value, 10) || 0;
             const resultDiv = document.getElementById('result');
             resultDiv.textContent = "Loading...";
 
@@ -127,11 +139,8 @@
                 }
 
                 const { lat, lon } = geoData[0];
-
                 const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
-                    headers: {
-                        "User-Agent": "SnowDayOddsApp (your-email@example.com)"
-                    }
+                    headers: { "User-Agent": "SnowDayOddsApp (your-email@example.com)" }
                 });
                 const pointsData = await pointsResponse.json();
 
@@ -141,16 +150,12 @@
                 }
 
                 const forecastUrl = pointsData.properties.forecast;
-
                 const forecastResponse = await fetch(forecastUrl, {
-                    headers: {
-                        "User-Agent": "SnowDayOddsApp (your-email@example.com)"
-                    }
+                    headers: { "User-Agent": "SnowDayOddsApp (your-email@example.com)" }
                 });
                 const forecastData = await forecastResponse.json();
-
                 const periods = forecastData.properties.periods;
-                const snowDayOdds = calculateSnowDayOdds(periods);
+                const snowDayOdds = calculateSnowDayOdds(periods, snowFrequency, priorSnowDays);
 
                 const forecastSummary = periods.slice(0, 2).map(period => `
                     <p><strong>${period.name}:</strong> ${period.detailedForecast}</p>
@@ -167,7 +172,7 @@
             }
         }
 
-        function calculateSnowDayOdds(periods) {
+        function calculateSnowDayOdds(periods, snowFrequency, priorSnowDays) {
             let snowAmount = 0;
 
             for (const period of periods) {
@@ -186,27 +191,18 @@
                 }
             }
 
-            let odds = 0;
+            const thresholds = {
+                "Yes": 6,
+                "Occasionally": 4,
+                "Not Really": 2,
+                "No": 1
+            };
 
-            if (snowAmount >= 8) {
-                odds = 100;
-            } else if (snowAmount >= 7) {
-                odds = 90;
-            } else if (snowAmount >= 6) {
-                odds = 85;
-            } else if (snowAmount >= 5) {
-                odds = 70;
-            } else if (snowAmount >= 4) {
-                odds = 50;
-            } else if (snowAmount >= 3) {
-                odds = 20;
-            } else if (snowAmount >= 2) {
-                odds = 10;
-            } else if (snowAmount >= 1) {
-                odds = 5;
-            }
+            let snowFactor = Math.min(1, snowAmount / thresholds[snowFrequency]) * 0.6;
+            let frequencyFactor = { "Yes": 0.3, "Occasionally": 0.2, "Not Really": 0.1, "No": 0 }[snowFrequency];
+            let priorSnowFactor = Math.max(0, 0.2 - (priorSnowDays * 0.02));
 
-            return odds;
+            return Math.round((snowFactor + frequencyFactor + priorSnowFactor) * 100);
         }
     </script>
 </body>
