@@ -149,6 +149,7 @@
                 <option value="DTX" selected>Detroit, MI</option>
                 <option value="GRR">Grand Rapids, MI</option>
                 <option value="APX">Gaylord, MI</option>
+                <option value="MQT">Marquette, MI</option>
             </select>
         </div>
         <div class="forecast-text" id="forecast-text">
@@ -214,6 +215,9 @@
                         break;
                     case 'APX':
                         url = 'https://forecast.weather.gov/product.php?site=APX&issuedby=APX&product=AFD&format=CI&version=1&glossary=1';
+                        break;
+                    case 'MQT':
+                        url = 'https://forecast.weather.gov/product.php?site=MQT&issuedby=MQT&product=AFD&format=CI&version=1&glossary=1';
                         break;
                     default:
                         console.log('Office not recognized');
