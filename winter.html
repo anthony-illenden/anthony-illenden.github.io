@@ -109,12 +109,37 @@
         </div>
 
         <h1>NDFD Snow and Ice Forecast</h1>
-        <div class="image-container">
+        <div class="controls">
+            <label for="forecastSelect">Select Forecast Type:</label>
+            <select id="forecastSelect">
+                <option value="snow" selected>Snow Forecast</option>
+                <option value="ice">Ice Forecast</option>
+            </select>
+        </div>
+
+        <div class="image-container" id="snowForecastContainer">
             <img id="snowForecastImage" src="https://www.weather.gov/images/erh/gis/CONUS_Snow.png" alt="Snow Forecast">
         </div>
 
-        <div class="image-container">
+        <div class="image-container" id="iceForecastContainer" style="display: none;">
             <img id="iceForecastImage" src="https://www.weather.gov/images/erh/gis/CONUS_Ice.png" alt="Ice Forecast">
+        </div>
+
+        <h1>NWS Detroit Snow Probabilities</h1>
+        <div class="controls">
+            <label for="additionalSnowSelect">Select Snow Probability:</label>
+            <select id="additionalSnowSelect">
+                <option value="01" selected>>= 1 inch</option>
+                <option value="02">>= 2 inches</option>
+                <option value="04">>= 4 inches</option>
+                <option value="06">>= 6 inches</option>
+                <option value="08">>= 8 inches</option>
+                <option value="12">>= 12 inches</option>
+            </select>
+        </div>
+
+        <div class="image-container">
+            <img id="additionalSnowImage" src="https://www.weather.gov/images/dtx/winter/ProbSnowGE01.jpg" alt="Additional Snow Probability Map">
         </div>
     </div>
 
@@ -123,6 +148,8 @@
             const daySelect = document.getElementById('daySelect');
             const snowSelect = document.getElementById('snowSelect');
             const snowImage = document.getElementById('snowImage');
+            const additionalSnowSelect = document.getElementById('additionalSnowSelect');
+            const additionalSnowImage = document.getElementById('additionalSnowImage');
 
             function updateSnowImage() {
                 const day = daySelect.value;
@@ -131,8 +158,15 @@
                 snowImage.src = imageUrl;
             }
 
+            function updateAdditionalSnowImage() {
+                const snow = additionalSnowSelect.value;
+                const imageUrl = `https://www.weather.gov/images/dtx/winter/ProbSnowGE${snow}.jpg`;
+                additionalSnowImage.src = imageUrl;
+            }
+
             daySelect.addEventListener('change', updateSnowImage);
             snowSelect.addEventListener('change', updateSnowImage);
+            additionalSnowSelect.addEventListener('change', updateAdditionalSnowImage);
         });
     </script>
 </body>
