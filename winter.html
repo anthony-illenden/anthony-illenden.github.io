@@ -125,7 +125,17 @@
             <img id="iceForecastImage" src="https://www.weather.gov/images/erh/gis/CONUS_Ice.png" alt="Ice Forecast">
         </div>
 
-        <h1>NWS Detroit Snow Probabilities</h1>
+        <h1>NWS Snow Probabilities</h1>
+        <div class="controls">
+            <label for="officeSelect">Select Office:</label>
+            <select id="officeSelect">
+                <option value="dtx" selected>Detroit (DTX)</option>
+                <option value="grr">Grand Rapids (GRR)</option>
+                <option value="apx">Gaylord (APX)</option>
+                <option value="mqt">Marquette (MQT)</option>
+            </select>
+        </div>
+        
         <div class="controls">
             <label for="additionalSnowSelect">Select Snow Probability:</label>
             <select id="additionalSnowSelect">
@@ -137,37 +147,39 @@
                 <option value="12">>= 12 inches</option>
             </select>
         </div>
-
+        
         <div class="image-container">
             <img id="additionalSnowImage" src="https://www.weather.gov/images/dtx/winter/ProbSnowGE01.jpg" alt="Additional Snow Probability Map">
         </div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', function() {
-            const daySelect = document.getElementById('daySelect');
-            const snowSelect = document.getElementById('snowSelect');
-            const snowImage = document.getElementById('snowImage');
-            const additionalSnowSelect = document.getElementById('additionalSnowSelect');
-            const additionalSnowImage = document.getElementById('additionalSnowImage');
-
-            function updateSnowImage() {
-                const day = daySelect.value;
-                const snow = snowSelect.value;
-                const imageUrl = `https://www.wpc.ncep.noaa.gov/wwd/${day}_psnow_gt_${snow}_conus.gif`;
-                snowImage.src = imageUrl;
-            }
-
-            function updateAdditionalSnowImage() {
-                const snow = additionalSnowSelect.value;
-                const imageUrl = `https://www.weather.gov/images/dtx/winter/ProbSnowGE${snow}.jpg`;
-                additionalSnowImage.src = imageUrl;
-            }
-
-            daySelect.addEventListener('change', updateSnowImage);
-            snowSelect.addEventListener('change', updateSnowImage);
-            additionalSnowSelect.addEventListener('change', updateAdditionalSnowImage);
-        });
-    </script>
-</body>
-</html>
+        
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                const daySelect = document.getElementById('daySelect');
+                const snowSelect = document.getElementById('snowSelect');
+                const snowImage = document.getElementById('snowImage');
+                const additionalSnowSelect = document.getElementById('additionalSnowSelect');
+                const additionalSnowImage = document.getElementById('additionalSnowImage');
+                const officeSelect = document.getElementById('officeSelect'); // New element for office selection
+        
+                function updateSnowImage() {
+                    const day = daySelect.value;
+                    const snow = snowSelect.value;
+                    const imageUrl = `https://www.wpc.ncep.noaa.gov/wwd/${day}_psnow_gt_${snow}_conus.gif`;
+                    snowImage.src = imageUrl;
+                }
+        
+                function updateAdditionalSnowImage() {
+                    const snow = additionalSnowSelect.value;
+                    const office = officeSelect.value;
+                    const imageUrl = `https://www.weather.gov/images/${office}/winter/ProbSnowGE${snow}.jpg`;
+                    additionalSnowImage.src = imageUrl;
+                }
+        
+                daySelect.addEventListener('change', updateSnowImage);
+                snowSelect.addEventListener('change', updateSnowImage);
+                additionalSnowSelect.addEventListener('change', updateAdditionalSnowImage);
+                officeSelect.addEventListener('change', updateAdditionalSnowImage);
+            });
+        </script>
+        </body>
+        </html>
