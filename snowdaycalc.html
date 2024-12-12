@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Snowday Calculator</title>
+    <title>Snow Day Calculator</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+        body {
             font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
         }
         nav {
             background-color: #333;
@@ -19,8 +17,9 @@
             text-align: center;
         }
         nav a {
+            float: none; 
             display: inline-block;
-            color: #f2f2f2;
+            color: white;
             text-align: center;
             padding: 14px 16px;
             text-decoration: none;
@@ -29,64 +28,51 @@
             background-color: #ddd;
             color: black;
         }
-        .header {
+        .hero-section {
+            background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
+            background-size: cover;
+            background-position: center;
+            height: 400px; 
             position: relative;
-            text-align: center;
-            color: white;
-            height: 400px;
-            width: 100vw;
         }
-        .header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .header .text {
+        .hero-text {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
+            color: white;
             background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-        }
-        .header .text h1 {
-            margin: 0;
-            font-size: 1.5em;
-        }
-        body {
-            background-color: #eef5f9;
-            color: #333;
-            margin: 0;
-            padding: 0;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-        }
-        main {
-            padding: 2rem;
-            max-width: 600px;
+            padding: 20px;
+            border-radius: 5px;
             text-align: center;
         }
-        input, select, button {
-            padding: 0.5rem;
-            margin: 0.5rem 0;
-            font-size: 1rem;
-            width: 100%;
-            max-width: 400px;
+        .container {
+            max-width: 800px;
+            margin: auto;
+            padding: 20px;
+            text-align: center;
         }
-        .result {
-            margin-top: 1.5rem;
-            font-weight: bold;
-            font-size: 1.5rem;
-            padding: 1rem;
+        .controls {
+            margin-bottom: 20px;
+            text-align: left;
+        }
+        .controls label, .controls input, .controls select {
+            display: block;
+            margin: 10px 0;
+        }
+        .image-container {
+            margin-top: 20px;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
-        <div class="text">
-            <h1>SNOW DAY CALCULATOR</h1>
+    <div class="hero-section">
+        <div class="hero-text">
+            <h1>Winter</h1>
         </div>
     </div>
     <nav>
@@ -98,24 +84,29 @@
         <a href="winter.html">Winter</a>
         <a href="about.html">About</a>
     </nav>
-    <main>
+    <div class="container">
         <h2>Snow Day Odds Calculator</h2>
         <p>Enter your city, normal snowfall frequency, and prior snow days below to get your forecast and snow day odds!</p>
 
         <!-- User Inputs -->
-        <input type="text" id="city" placeholder="Enter city (e.g., Chicago, IL)" required />
-        <label for="snowFrequency">Normal snowfall frequency:</label>
-        <select id="snowFrequency">
-            <option value="Yes">Yes</option>
-            <option value="Occasionally" selected>Occasionally</option>
-            <option value="Not Really">Not Really</option>
-            <option value="No">No</option>
-        </select>
-        <label for="priorSnowDays">Snow days already had this season:</label>
-        <input type="number" id="priorSnowDays" min="0" placeholder="Enter a number (e.g., 2)" required />
+        <div class="controls">
+            <label for="city">Enter city (e.g., Chicago, IL):</label>
+            <input type="text" id="city" placeholder="Enter city" required />
+
+            <label for="snowFrequency">Does it normally snow:</label>
+            <select id="snowFrequency">
+                <option value="Yes">Yes</option>
+                <option value="Occasionally" selected>Occasionally</option>
+                <option value="Not Really">Not Really</option>
+                <option value="No">No</option>
+            </select>
+
+            <label for="priorSnowDays">Snow days already had this season:</label>
+            <input type="number" id="priorSnowDays" min="0" placeholder="Enter a number (e.g., 2)" required />
+        </div>
         <button onclick="getWeather()">Check Snow Day Odds</button>
         <div id="result" class="result"></div>
-    </main>
+    </div>
     <script>
         async function getWeather() {
             const city = document.getElementById('city').value.trim();
@@ -202,7 +193,7 @@
             let frequencyFactor = { "Yes": 0.3, "Occasionally": 0.2, "Not Really": 0.1, "No": 0 }[snowFrequency];
             let priorSnowFactor = Math.max(0, 0.2 - (priorSnowDays * 0.02));
 
-            return Math.round((snowFactor + frequencyFactor + priorSnowFactor) * 100);
+            return Math.min(100, Math.round((snowFactor + frequencyFactor + priorSnowFactor) * 100));
         }
     </script>
 </body>
