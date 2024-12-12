@@ -67,12 +67,23 @@
             max-width: 100%;
             height: auto;
         }
+        .result {
+            font-size: 1.5em;
+            margin-top: 20px;
+        }
+        #result p {
+            font-size: 1.2em;
+        }
+        .alerts {
+            font-size: 1.2em;
+            margin-top: 20px;
+        }
     </style>
 </head>
 <body>
     <div class="hero-section">
         <div class="hero-text">
-            <h1>Snowday Calculator</h1>
+            <h1>Snow Day Calculator</h1>
         </div>
     </div>
     <nav>
@@ -114,7 +125,9 @@
             const snowFrequency = document.getElementById('snowFrequency').value;
             const priorSnowDays = parseInt(document.getElementById('priorSnowDays').value, 10) || 0;
             const resultDiv = document.getElementById('result');
+            const alertsDiv = document.createElement('div');
             resultDiv.textContent = "Loading...";
+            alertsDiv.textContent = "";
 
             if (!city) {
                 resultDiv.textContent = "Please enter a city.";
@@ -122,6 +135,7 @@
             }
 
             try {
+                // Geocode the city to get latitude and longitude
                 const geoResponse = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(city)}`);
                 const geoData = await geoResponse.json();
 
@@ -131,6 +145,32 @@
                 }
 
                 const { lat, lon } = geoData[0];
+
+                // Fetch winter weather alerts
+                const alertsResponse = await fetch(`https://api.weather.gov/alerts/active?point=${lat},${lon}`, {
+                    headers: { "User-Agent": "SnowDayOddsApp (your-email@example.com)" }
+                });
+                const alertsData = await alertsResponse.json();
+                const winterAlerts = alertsData.features.filter(alert => /Winter|Ice|Snow/i.test(alert.properties.event));
+
+                // Display active alerts
+                if (winterAlerts.length > 0) {
+                    alertsDiv.innerHTML = `
+                        <h3>Active Winter Weather Alerts:</h3>
+                        ${winterAlerts.map(alert => `
+                            <div>
+                                <strong>${alert.properties.event}:</strong> ${alert.properties.headline} <br>
+                                <em>Effective:</em> ${new Date(alert.properties.effective).toLocaleString()} <br>
+                                <em>Expires:</em> ${new Date(alert.properties.expires).toLocaleString()} <br>
+                                <p>${alert.properties.description || "No description available."}</p>
+                            </div>
+                        `).join("")}
+                    `;
+                } else {
+                    alertsDiv.innerHTML = "<p>No active winter weather alerts at this time.</p>";
+                }
+
+                // Fetch forecast and calculate snow day odds
                 const pointsResponse = await fetch(`https://api.weather.gov/points/${lat},${lon}`, {
                     headers: { "User-Agent": "SnowDayOddsApp (your-email@example.com)" }
                 });
@@ -155,6 +195,7 @@
 
                 resultDiv.innerHTML = `
                     <p><strong>Snow Day Odds:</strong> ${snowDayOdds}%</p>
+                    ${alertsDiv.innerHTML}
                     <h3>Next 1-2 Forecast Periods:</h3>
                     ${forecastSummary}
                 `;
@@ -190,11 +231,9 @@
                 "No": 1
             };
 
-            let snowFactor = Math.min(1, snowAmount / thresholds[snowFrequency]) * 0.6;
-            let frequencyFactor = { "Yes": 0.3, "Occasionally": 0.2, "Not Really": 0.1, "No": 0 }[snowFrequency];
-            let priorSnowFactor = Math.max(0, 0.2 - (priorSnowDays * 0.02));
-
-            return Math.min(100, Math.round((snowFactor + frequencyFactor + priorSnowFactor) * 100));
+            const baseProbability = Math.min((snowAmount / thresholds[snowFrequency]) * 100, 100);
+            const adjustedProbability = Math.max(0, baseProbability - (priorSnowDays * 5));
+            return Math.round(adjustedProbability);
         }
     </script>
 </body>
