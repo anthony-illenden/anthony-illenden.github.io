@@ -3,15 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Models</title>
+    <title>Variable Time Steps</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
+        body {
             font-family: Arial, sans-serif;
+            padding: 0;
+            margin: 0;
         }
         nav {
             background-color: #333;
@@ -30,258 +28,138 @@
             background-color: #ddd;
             color: black;
         }
-        .header {
+        .hero-section {
+            background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
+            background-size: cover;
+            background-position: center;
+            height: 400px; 
             position: relative;
-            text-align: center;
-            color: white;
-            height: 200px;
-            width: 100%;
         }
-        .header img {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-        }
-        .header .text {
+        .hero-text {
             position: absolute;
             top: 50%;
             left: 50%;
             transform: translate(-50%, -50%);
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 10px 20px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .header .text h1 {
-            margin: 0;
-            font-size: 1.5em;
-            text-align: center;
-        }
-        .model-buttons {
-            text-align: center;
-            margin: 20px 0;
-        }
-        .model-buttons button {
-            background-color: #000000;
             color: white;
-            padding: 10px;
-            border: none;
-            margin: 5px;
-            cursor: pointer;
-            transition: 0.3s;
-        }
-        .model-buttons button:hover {
-            background-color: #3e8e41;
-        }
-        .container {
-            display: flex;
-            width: 100%;
-        }
-        .sidebar {
-            width: 200px;
-            background-color: #f4f4f4;
-            padding: 10px;
-            display: none;
-            position: absolute;
-            left: 0;
-            top: 200px;
-        }
-        .sidebar button:hover {
-            background-color: #3e8e41;
-        }
-        .content {
-            flex-grow: 1;
+            background-color: rgba(0, 0, 0, 0.5);
             padding: 20px;
-        }
-        .model-content {
-            display: none;
-            margin-top: 20px;
-        }
-        .slideshow-container {
-            max-width: 800px;
-            position: relative;
-            margin: auto;
-            margin-top: 20px;
-            overflow: hidden;
-        }
-        .slideshow-container img {
-            width: 100%;
-            height: auto;
-        }
-        .slider {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 100%;
-            height: 15px;
             border-radius: 5px;
-            background: #d3d3d3;
-            outline: none;
-            opacity: 0.7;
-            transition: opacity 0.2s;
+            text-align: center;
         }
-        .slider::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            appearance: none;
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #000000;
-            cursor: pointer;
+        .variable-timesteps {
+            margin: 20px;
+            font-size: 14px;
+            text-align: center;
         }
-        .slider::-moz-range-thumb {
-            width: 25px;
-            height: 25px;
-            border-radius: 50%;
-            background: #04AA6D;
-            cursor: pointer;
+        .variable {
+            margin: 10px 0;
+            font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+        }
+        .timesteps {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+        }
+        .timesteps a {
+            margin: 2px;
+            padding: 4px 6px;
+            text-decoration: none;
+            color: white;
+            background-color: #007bff;
+            border-radius: 3px;
+            text-align: center;
+            width: 30px;
+            height: 20px;
+            display: inline-block;
+            line-height: 20px;
+        }
+        .timesteps a:hover {
+            background-color: #0056b3;
+        }
+        .image-display {
+            text-align: center;
+            margin: 20px;
+        }
+        .image-display img {
+            max-width: 100%;
+            max-height: 800px; 
+            height: auto;
+            border: 1px solid #ccc;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
     </style>
 </head>
 <body>
-    <div class="header">
-        <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
-        <div class="text">
-            <h1>MODELS</h1>
+    <div class="hero-section">
+        <div class="hero-text">
+            <h1>Weather Data Viewer</h1>
         </div>
     </div>
     <nav>
         <a href="index.html">Home</a>
         <a href="semichigan.html">SE Michigan</a>
         <a href="pyplots.html">Python Plots</a>
-        <a href="models.html">Models</a>
+        <a href="snowdaycalc.html">Snow Day Calculator</a>
         <a href="spcmesoanalysis.html">SPC Mesoanalysis</a>
-        <a href="projects.html">Projects</a>
+        <a href="winter.html">Winter</a>
         <a href="about.html">About</a>
     </nav>
-    <div class="model-buttons">
-        <button onclick="showModel('gfs')">GFS</button>
-        <button onclick="showModel('nam')">NAM</button>
-        <button onclick="showModel('rap')">RAP</button>
-        <button onclick="showModel('hrrr')">HRRR</button>
+
+    <div class="variable-timesteps">
+        <div id="variables-container">
+        </div>
     </div>
 
-    <div class="container">
-        <div class="sidebar" id="parameterSidebar">
-            <button id="nam-250-isotachs-btn" style="display: none;" onclick="showParameter('nam', '250-isotachs')">250 MB Isotachs</button>
-            <button id="nam-vort-btn" style="display: none;" onclick="showParameter('nam', 'vort')">500 MB Absolute Vorticity</button>
-            <button id="nam-850temp-btn" style="display: none;" onclick="showParameter('nam', '850temp')">850 MB Temperature</button>
-            <button id="nam-other-btn" style="display: none;" onclick="showParameter('nam', 'other')">Other Parameter</button>
-            <button id="hrrr-reflectivity-btn" style="display: none;" onclick="showParameter('hrrr', 'reflectivity')">Composite Reflectivity</button>
-        </div>
-        <div class="content">
-            <div id="nam-250-isotachs" class="model-content">
-                <h2>NAM 250 MB Isotachs</h2>
-                <div class="slideshow-container">
-                    <img id="nam-250-isotachs-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_0.png" alt="NAM 250mb Isotachs">
-                    <input type="range" min="0" max="28" value="0" class="slider" id="nam250IsotachSlider" oninput="updateSlider('nam250IsotachSlider')">
-                </div>
-            </div>
-            <div id="nam-vort" class="model-content">
-                <h2>NAM 500 MB Absolute Vorticity</h2>
-                <div class="slideshow-container">
-                    <img id="nam-vort-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_0.png" alt="NAM Vorticity">
-                    <input type="range" min="0" max="28" value="0" class="slider" id="namVortSlider" oninput="updateSlider('namVortSlider')">
-                </div>
-            </div>
-            <div id="nam-850temp" class="model-content">
-                <h2>NAM 850 MB Temperature</h2>
-                <div class="slideshow-container">
-                    <img id="nam-850temp-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_0.png" alt="NAM 850 MB Temperature">
-                    <input type="range" min="0" max="28" value="0" class="slider" id="nam850TempSlider" oninput="updateSlider('nam850TempSlider')">
-                </div>
-            </div>
-            <div id="nam-other" class="model-content">
-                <h2>NAM Other Parameter</h2>
-                <div class="slideshow-container">
-                    <img id="nam-other-slide" src="https://via.placeholder.com/800x400" alt="Other Parameter">
-                    <input type="range" min="0" max="28" value="0" class="slider" id="namOtherSlider" oninput="updateSlider('namOtherSlider')">
-                </div>
-            </div>
-            <div id="hrrr-reflectivity" class="model-content">
-                <h2>HRRR Composite Reflectivity</h2>
-                <div class="slideshow-container">
-                    <img id="hrrr-reflectivity-slide" src="https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/hrrr/reflectivity/reflectivity_0.png" alt="HRRR Reflectivity">
-                    <input type="range" min="0" max="48" value="0" class="slider" id="hrrrReflectivitySlider" oninput="updateSlider('hrrrReflectivitySlider')">
-                </div>
-            </div>
-        </div>
+    <div class="image-display">
+        <img id="display-image" src="images/GFS_IVT_timestep_0.png" alt="GFS IVT Time Step 0">
     </div>
 
     <script>
-        function showModel(modelId) {
-            // Hide parameter sidebar initially
-            document.getElementById('parameterSidebar').style.display = 'none';
-        
-            // Hide all model content
-            var contents = document.getElementsByClassName('model-content');
-            for (var i = 0; i < contents.length; i++) {
-                contents[i].style.display = 'none';
-            }
-        
-            // Show the parameter sidebar for the selected model
-            if (modelId === 'nam') {
-                document.getElementById('parameterSidebar').style.display = 'block';
-                // Show NAM specific parameter buttons
-                document.getElementById('nam-250-isotachs-btn').style.display = 'block';
-                document.getElementById('nam-vort-btn').style.display = 'block';
-                document.getElementById('nam-850temp-btn').style.display = 'block';
-                document.getElementById('nam-other-btn').style.display = 'block';
-            } else if (modelId === 'hrrr') {
-                document.getElementById('parameterSidebar').style.display = 'block';
-                // Show HRRR specific parameter buttons
-                document.getElementById('hrrr-reflectivity-btn').style.display = 'block';
-            }
-        }
+        const variables = [
+            "GFS 500-hPa Vorticity", 
+            "NAM 500-hPa Vorticity", 
+            "GFS MSLP and 1000-500 hPa thickness", 
+            "NAM MSLP and 1000-500 hPa thickness"
+        ];
+        const timesteps = [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 78, 84];
+        const variablesContainer = document.getElementById('variables-container');
+        const imageDisplay = document.getElementById('display-image');
 
-        function showParameter(modelId, paramId) {
-            // Hide all parameter content within the model
-            var params = document.getElementsByClassName('model-content');
-            for (var i = 0; i < params.length; i++) {
-                params[i].style.display = 'none';
-            }
+        variables.forEach(variable => {
+            const variableLabel = document.createElement('div');
+            variableLabel.className = 'variable';
+            variableLabel.textContent = `${variable}:`;
 
-            // Show the selected parameter content only if it belongs to the selected model
-            var modelParam = document.getElementById(`${modelId}-${paramId}`);
-            if (modelParam) {
-                modelParam.style.display = 'block';
-            }
-        }
+            const timestepsContainer = document.createElement('div');
+            timestepsContainer.className = 'timesteps';
 
-        function updateSlider(sliderId) {
-            const slider = document.getElementById(sliderId);
-            const value = slider.value;
-            let imgId;
-            let basePath;
-            
-            switch (sliderId) {
-                case 'nam250IsotachSlider':
-                    imgId = 'nam-250-isotachs-slide';
-                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/250/isotachs/isotachs_';
-                    break;
-                case 'namVortSlider':
-                    imgId = 'nam-vort-slide';
-                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/vort/vort_';
-                    break;
-                case 'nam850TempSlider':
-                    imgId = 'nam-850temp-slide';
-                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/nam/850/temps/temps_';
-                    break;
-                case 'namOtherSlider':
-                    imgId = 'nam-other-slide';
-                    basePath = 'https://via.placeholder.com/800x400';
-                    break;
-                case 'hrrrReflectivitySlider':
-                    imgId = 'hrrr-reflectivity-slide';
-                    basePath = 'https://raw.githubusercontent.com/anthony-illenden/website-actions/main/plots/models/hrrr/reflectivity/reflectivity_';
-                    break;
-                default:
-                    console.error('Unknown slider ID:', sliderId);
-                    return;
-            }
+            timesteps.forEach(timestep => {
+                const link = document.createElement('a');
+                link.href = "#";
+                link.textContent = timestep;
 
-            const img = document.getElementById(imgId);
-            img.src = `${basePath}${value}.png`;
-        }
+                // Prevent the default jump behavior and update the image
+                link.addEventListener('click', (event) => {
+                    event.preventDefault(); // Prevent the jump to the top
+                    const formattedVariable = variable.replace(/\s+/g, '_'); // Replace spaces with underscores for filenames
+                    if (variable.includes("NAM 500-hPa Vorticity")) {
+                        imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/website-actions/refs/heads/main/plots/models/nam/vort/vort_${timestep}.png`;
+                    } else {
+                        imageDisplay.src = `images/${formattedVariable}_timestep_${timestep}.png`; // Adjust path as needed
+                    }
+                    imageDisplay.alt = `${variable} Time Step ${timestep}`;
+                });
+
+                timestepsContainer.appendChild(link);
+            });
+
+            // Add the variable label and time steps to the container
+            variablesContainer.appendChild(variableLabel);
+            variablesContainer.appendChild(timestepsContainer);
+        });
     </script>
 </body>
 </html>
