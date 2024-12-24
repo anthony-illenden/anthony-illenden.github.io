@@ -169,6 +169,8 @@
             imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/gfs/vort/${timestep}.png`;
         } else if (currentVariable.includes("NAM MSLP and 1000-500 hPa thickness")) {
             imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/nam/sfc/${timestep}.png`;
+        } else if (currentVariable.includes("GFS MSLP and 1000-500 hPa thickness")) {
+            imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/gfs/sfc/${timestep}.png`;
         } else {
             imageDisplay.src = `images/${formattedVariable}_timestep_${timestep}.png`; // Adjust path as needed
         }
