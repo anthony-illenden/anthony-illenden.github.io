@@ -1,51 +1,59 @@
-<?xml version="1.0" encoding="UTF-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+<!--  created with sitemap generator https://octopus.do  -->
+
     <url>
-        <loc>https://anthony-illenden.github.io/</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>1.0</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/semichigan.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/index</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/pyplots.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/semichigan</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/snowdaycalc.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/pyplots</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/spcmesoanalysis.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/snowdaycalc</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/models.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/spcmesoanalysis</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/winter.html</loc>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/models</loc>
         <lastmod>2024-12-28</lastmod>
-        <changefreq>daily</changefreq>
-        <priority>0.8</priority>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
     </url>
     <url>
-        <loc>https://anthony-illenden.github.io/about.html</loc>
-        <lastmod>2024-12-15</lastmod>
-        <changefreq>monthly</changefreq>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/winter</loc>
+        <lastmod>2024-12-28</lastmod>
+        <changefreq>always</changefreq>
+        <priority>0.5</priority>
+    </url>
+    <url>
+        <loc>https://anthony-illenden.github.io/sitemap.xml/about</loc>
+        <lastmod>2024-12-28</lastmod>
+        <changefreq>always</changefreq>
         <priority>0.5</priority>
     </url>
 </urlset>
