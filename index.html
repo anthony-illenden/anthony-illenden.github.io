@@ -219,14 +219,28 @@
         </div>
     </div>
 
+    <div class="container">
+        <h1>Satellite Imagery</h1>
+        <div class="controls">
+            <label for="satelliteSelect">Select Satellite Imagery:</label>
+            <select id="satelliteSelect">
+                <option value="midLevel">Mid-Level Water Vapor</option>
+                <option value="geoColor">GeoColor</option>
+                <option value="sandwich">Sandwich</option>
+            </select>
+        </div>
+        <div class="image-container">
+            <img id="satelliteImage" src="https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/09/625x375.jpg" alt="Satellite Imagery">
+        </div>
+    </div>
     <script>
         var slideIndex = 1;
         showSlides(slideIndex);
-
+    
         function plusSlides(n) {
             showSlides(slideIndex += n);
         }
-
+    
         function showSlides(n) {
             var i;
             var slides = document.getElementsByClassName("mySlides");
@@ -237,7 +251,7 @@
             }
             slides[slideIndex-1].style.display = "block";
         }
-
+    
         document.addEventListener('DOMContentLoaded', function() {
             function updateCurrentTime() {
                 const now = new Date();
@@ -258,7 +272,9 @@
             const upperAirLevel = document.getElementById('upperAirLevel');
             const upperAirImage = document.getElementById('upperAirImage');
             const dateTimeSelect = document.getElementById('dateTime');
-
+            const satelliteSelect = document.getElementById('satelliteSelect');
+            const satelliteImage = document.getElementById('satelliteImage');
+    
             function generateDatetimes() {
                 const now = new Date();
                 const currentUTCHour = now.getUTCHours();
@@ -280,7 +296,7 @@
                 }
                 return { datetimes, datetimesUpperAir };
             }
-
+    
             const { datetimes, datetimesUpperAir } = generateDatetimes();
             datetimes.forEach(datetime => {
                 const option = document.createElement('option');
@@ -288,34 +304,33 @@
                 option.textContent = datetime;
                 datetimeSelect.appendChild(option);
             });
-
+    
             datetimesUpperAir.forEach(datetime => {
                 const dateTimeOption = document.createElement('option');
                 dateTimeOption.value = datetime;
                 dateTimeOption.textContent = datetime;
                 dateTimeSelect.appendChild(dateTimeOption);
             });
-
+    
             stationInput.value = 'OUN';
-
+    
             if (datetimeSelect.options.length > 0) {
                 datetimeSelect.selectedIndex = 0; 
             }
             if (dateTimeSelect.options.length > 0) {
                 dateTimeSelect.selectedIndex = 0; 
             }
-
+    
             updateImage();
-
-            // Event listeners
+    
             datetimeSelect.addEventListener('change', updateImage);
             stationInput.addEventListener('input', updateImage);
             daySelect.addEventListener('change', updateOutlookImage);
             outlookType.addEventListener('change', updateOutlookImage);
             upperAirLevel.addEventListener('change', updateUpperAirImage);
             dateTimeSelect.addEventListener('change', updateUpperAirImage);
-
-            // Update image function for SPC Soundings
+            satelliteSelect.addEventListener('change', updateSatelliteImage);
+    
             function updateImage() {
                 const datetime = datetimeSelect.value;
                 const station = stationInput.value.trim().toUpperCase();
@@ -332,8 +347,7 @@
                     };
                 }
             }
-
-            // Function to update SPC Convective Outlook image
+    
             function updateOutlookImage() {
                 const day = daySelect.value;
                 const type = outlookType.value;
@@ -349,8 +363,7 @@
                 }
                 outlookImage.src = imageUrl;
             }
-
-            // Function to update Observed Upper Air Maps
+    
             function updateUpperAirImage() {
                 const level = upperAirLevel.value;
                 const datetime = dateTimeSelect.value;
@@ -360,10 +373,29 @@
                     upperAirImage.src = imageUrl;
                 }
             }
-
-            // Set initial images
+    
+            function updateSatelliteImage() {
+                const selectedOption = satelliteSelect.value;
+                let imageUrl = '';
+    
+                switch (selectedOption) {
+                    case 'midLevel':
+                        imageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/09/1250x750.jpg';
+                        break;
+                    case 'geoColor':
+                        imageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/GEOCOLOR/1250x750.jpg';
+                        break;
+                    case 'sandwich':
+                        imageUrl = 'https://cdn.star.nesdis.noaa.gov/GOES16/ABI/CONUS/Sandwich/1250x750.jpg';
+                        break;
+                }
+    
+                satelliteImage.src = imageUrl;
+            }
+    
             updateOutlookImage();
             updateUpperAirImage();
+            updateSatelliteImage();
         });
     </script>
 </body>
