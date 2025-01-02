@@ -94,6 +94,10 @@
             border: 1px solid #ccc;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
         }
+        .gif-download {
+            text-align: center;
+            margin: 20px;
+        }
     </style>
 </head>
 <body>
@@ -120,6 +124,26 @@
 
     <div class="image-display">
         <img id="display-image" src="https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/gfs/vort/0.png">
+    </div>
+
+    <div class="gif-download">
+        <form id="gif-form">
+            <label for="model-select">Model:</label>
+            <select id="model-select">
+                <option value="gfs">GFS</option>
+                <option value="nam">NAM</option>
+            </select>
+            <label for="variable-select">Variable:</label>
+            <select id="variable-select">
+                <option value="vort">500-hPa Vorticity</option>
+                <option value="sfc">MSLP and 1000-500 hPa thickness</option>
+            </select>
+            <label for="start-time">Start Time:</label>
+            <input type="number" id="start-time" min="0" max="84" step="6" value="0">
+            <label for="end-time">End Time:</label>
+            <input type="number" id="end-time" min="0" max="84" step="6" value="84">
+            <button type="button" onclick="downloadGif()">Download GIF</button>
+        </form>
     </div>
 
 <script>
@@ -190,6 +214,38 @@
             updateImage();
         }
     });
+
+    function downloadGif() {
+        const model = document.getElementById('model-select').value;
+        const variable = document.getElementById('variable-select').value;
+        const startTime = parseInt(document.getElementById('start-time').value);
+        const endTime = parseInt(document.getElementById('end-time').value);
+
+        const images = [];
+        for (let time = startTime; time <= endTime; time += 6) {
+            const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/${model}/${variable}/${time}.png`;
+            images.push(imageUrl);
+        }
+
+        // Use a library like gifshot to create the GIF
+        gifshot.createGIF({
+            images: images,
+            interval: 0.5,
+            gifWidth: 800,
+            gifHeight: 600
+        }, function (obj) {
+            if (!obj.error) {
+                const image = obj.image;
+                const a = document.createElement('a');
+                a.href = image;
+                a.download = `${model}_${variable}_${startTime}-${endTime}.gif`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+            }
+        });
+    }
 </script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
 </body>
 </html>
