@@ -118,6 +118,7 @@
     </nav>
 
     <div class="variable-timesteps">
+        <p>To navigate, click the buttons and use your arrow keys to step forward or backward in time.</p>
         <div id="variables-container">
         </div>
     </div>
@@ -138,6 +139,7 @@
                 <option value="vort">500-hPa Vorticity</option>
                 <option value="sfc">MSLP and 1000-500 hPa thickness</option>
                 <option value="isentropic_295k">295K Isentropic Surface</option>
+                <option value="isentropic_300k">300K Isentropic Surface</option>
             </select>
             <label for="start-time">Start Time:</label>
             <input type="number" id="start-time" min="0" max="84" step="6" value="0">
@@ -153,7 +155,8 @@
             "NAM 500-hPa Vorticity", 
             "GFS MSLP and 1000-500 hPa thickness", 
             "NAM MSLP and 1000-500 hPa thickness",
-            "GFS 295K Isentropic Surface"
+            "GFS 295K Isentropic Surface",
+            "GFS 300K Isentropic Surface"
         ];
         const timesteps = [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 78, 84];
         const variablesContainer = document.getElementById('variables-container');
@@ -203,6 +206,8 @@
                 imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/gfs/sfc/${timestep}.png`;
             } else if (currentVariable.includes("GFS 295K Isentropic Surface")) {
                 imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_295k/${timestep}.png`;
+            } else if (currentVariable.includes("GFS 300K Isentropic Surface")) {
+                imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_300k/${timestep}.png`;
             } else {
                 imageDisplay.src = `images/${formattedVariable}_timestep_${timestep}.png`; // Adjust path as needed
             }
