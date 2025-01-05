@@ -196,8 +196,8 @@
             };
             
             for (let i = 0; i < 8; i++) {
-                radarImageUrls.reflectivity.push(`https://raw.githubusercontent.com/anthony-illenden/radar-actions/main/reflectivity/kdtx/z_${i}.png`);
-                radarImageUrls.velocity.push(`https://raw.githubusercontent.com/anthony-illenden/radar-actions/main/velocity/kdtx/v_${i}.png`);
+                radarImageUrls.reflectivity.push(`https://raw.githubusercontent.com/anthony-illenden/radar-actions-v2/refs/heads/main/reflectivity/kdtx/z_${i}.png`);
+                radarImageUrls.velocity.push(`https://raw.githubusercontent.com/anthony-illenden/radar-actions-v2/refs/heads/main/velocity/kdtx/v_${i}.png`);
             }
             
             let radarIndex = 0;
@@ -311,7 +311,7 @@
             playModelImages();
         });
 
-        const radarBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/radar-actions/main/reflectivity/nexrad/z_';
+        const radarBaseUrl = 'https://raw.githubusercontent.com/anthony-illenden/radar-actions-v2/refs/heads/main/reflectivity/nexrad/z_';
         const radarImageUrls = [];
         for (let i = 10; i >= 0; i--) {
             radarImageUrls.push(`${radarBaseUrl}${i}.png`);
