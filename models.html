@@ -54,6 +54,8 @@
             margin: 20px;
             font-size: 14px;
             text-align: center;
+            max-width: 800px;
+            margin: 0 auto;
         }
         .variable {
             margin: 10px 0;
@@ -118,7 +120,7 @@
     </nav>
 
     <div class="variable-timesteps">
-        <p>To navigate, click the buttons and use your arrow keys to step forward or backward in time.</p>
+        <p>To navigate, click the buttons and use your arrow keys. Use the right/left arrow keys to step forward or backward in time, and the up/down arrow keys to change the variable.</p>
         <div id="variables-container">
         </div>
     </div>
@@ -140,6 +142,7 @@
                 <option value="sfc">MSLP and 1000-500 hPa thickness</option>
                 <option value="isentropic_295k">295K Isentropic Surface</option>
                 <option value="isentropic_300k">300K Isentropic Surface</option>
+                <option value="ivt">Integrated Water Vapor Transport (IVT)</option>
             </select>
             <label for="start-time">Start Time:</label>
             <input type="number" id="start-time" min="0" max="84" step="6" value="0">
@@ -156,12 +159,13 @@
             "GFS MSLP and 1000-500 hPa thickness", 
             "NAM MSLP and 1000-500 hPa thickness",
             "GFS 295K Isentropic Surface",
-            "GFS 300K Isentropic Surface"
+            "GFS 300K Isentropic Surface",
+            "GFS Integrated Water Vapor Transport (IVT)"
         ];
         const timesteps = [0, 6, 12, 18, 24, 30, 36, 42, 48, 54, 60, 66, 72, 78, 84];
         const variablesContainer = document.getElementById('variables-container');
         const imageDisplay = document.getElementById('display-image');
-        let currentVariable = variables[0];
+        let currentVariableIndex = 0;
         let currentTimestepIndex = 0;
     
         variables.forEach(variable => {
@@ -180,7 +184,7 @@
                 // Prevent the default jump behavior and update the image
                 link.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the jump to the top
-                    currentVariable = variable;
+                    currentVariableIndex = variables.indexOf(variable);
                     currentTimestepIndex = timesteps.indexOf(timestep);
                     updateImage();
                 });
@@ -194,6 +198,7 @@
         });
     
         function updateImage() {
+            const currentVariable = variables[currentVariableIndex];
             const formattedVariable = currentVariable.replace(/\s+/g, '_'); // Replace spaces with underscores for filenames
             const timestep = timesteps[currentTimestepIndex];
             if (currentVariable.includes("NAM 500-hPa Vorticity")) {
@@ -208,6 +213,8 @@
                 imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_295k/${timestep}.png`;
             } else if (currentVariable.includes("GFS 300K Isentropic Surface")) {
                 imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_300k/${timestep}.png`;
+            } else if (currentVariable.includes("GFS Integrated Water Vapor Transport (IVT)")) {
+                imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/ivt/${timestep}.png`;
             } else {
                 imageDisplay.src = `images/${formattedVariable}_timestep_${timestep}.png`; // Adjust path as needed
             }
@@ -220,6 +227,14 @@
                 updateImage();
             } else if (event.key === 'ArrowLeft') {
                 currentTimestepIndex = (currentTimestepIndex - 1 + timesteps.length) % timesteps.length;
+                updateImage();
+            } else if (event.key === 'ArrowUp') {
+                event.preventDefault();
+                currentVariableIndex = (currentVariableIndex - 1 + variables.length) % variables.length;
+                updateImage();
+            } else if (event.key === 'ArrowDown') {
+                event.preventDefault();
+                currentVariableIndex = (currentVariableIndex + 1) % variables.length;
                 updateImage();
             }
         });
@@ -254,7 +269,7 @@
                 }
             });
         }
-    </script>
+</script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
 </body>
 </html>
