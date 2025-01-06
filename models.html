@@ -167,20 +167,20 @@
         const imageDisplay = document.getElementById('display-image');
         let currentVariableIndex = 0;
         let currentTimestepIndex = 0;
-    
+
         variables.forEach(variable => {
             const variableLabel = document.createElement('div');
             variableLabel.className = 'variable';
             variableLabel.textContent = `${variable}:`;
-    
+
             const timestepsContainer = document.createElement('div');
             timestepsContainer.className = 'timesteps';
-    
+
             timesteps.forEach(timestep => {
                 const link = document.createElement('a');
                 link.href = "#";
                 link.textContent = timestep;
-    
+
                 // Prevent the default jump behavior and update the image
                 link.addEventListener('click', (event) => {
                     event.preventDefault(); // Prevent the jump to the top
@@ -188,15 +188,15 @@
                     currentTimestepIndex = timesteps.indexOf(timestep);
                     updateImage();
                 });
-    
+
                 timestepsContainer.appendChild(link);
             });
-    
+
             // Add the variable label and time steps to the container
             variablesContainer.appendChild(variableLabel);
             variablesContainer.appendChild(timestepsContainer);
         });
-    
+
         function updateImage() {
             const currentVariable = variables[currentVariableIndex];
             const formattedVariable = currentVariable.replace(/\s+/g, '_'); // Replace spaces with underscores for filenames
@@ -220,7 +220,7 @@
             }
             imageDisplay.alt = `${currentVariable} Time Step ${timestep}`;
         }
-    
+
         document.addEventListener('keydown', (event) => {
             if (event.key === 'ArrowRight') {
                 currentTimestepIndex = (currentTimestepIndex + 1) % timesteps.length;
@@ -238,25 +238,34 @@
                 updateImage();
             }
         });
-    
+
         function downloadGif() {
             const model = document.getElementById('model-select').value;
             const variable = document.getElementById('variable-select').value;
             const startTime = parseInt(document.getElementById('start-time').value);
             const endTime = parseInt(document.getElementById('end-time').value);
-    
+
             const images = [];
             for (let time = startTime; time <= endTime; time += 6) {
-                const imageUrl = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/${model}/${variable}/${time}.png`;
+                let imageUrl;
+                if (variable === 'isentropic_295k') {
+                    imageUrl = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_295k/${time}.png`;
+                } else if (variable === 'isentropic_300k') {
+                    imageUrl = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/isentropic_300k/${time}.png`;
+                } else if (variable === 'ivt') {
+                    imageUrl = `https://raw.githubusercontent.com/anthony-illenden/gfs-actions/refs/heads/main/plots/ivt/${time}.png`;
+                } else {
+                    imageUrl = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/${model}/${variable}/${time}.png`;
+                }
                 images.push(imageUrl);
             }
-    
+
             // Use a library like gifshot to create the GIF
             gifshot.createGIF({
                 images: images,
                 interval: 0.5,
-                gifWidth: 800,
-                gifHeight: 600
+                gifWidth: imageDisplay.naturalWidth,
+                gifHeight: imageDisplay.naturalHeight
             }, function (obj) {
                 if (!obj.error) {
                     const image = obj.image;
@@ -269,7 +278,7 @@
                 }
             });
         }
-</script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
+    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gifshot/0.3.2/gifshot.min.js"></script>
 </body>
 </html>
