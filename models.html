@@ -181,9 +181,8 @@
                 link.href = "#";
                 link.textContent = timestep;
 
-                // Prevent the default jump behavior and update the image
                 link.addEventListener('click', (event) => {
-                    event.preventDefault(); // Prevent the jump to the top
+                    event.preventDefault(); 
                     currentVariableIndex = variables.indexOf(variable);
                     currentTimestepIndex = timesteps.indexOf(timestep);
                     updateImage();
@@ -192,14 +191,13 @@
                 timestepsContainer.appendChild(link);
             });
 
-            // Add the variable label and time steps to the container
             variablesContainer.appendChild(variableLabel);
             variablesContainer.appendChild(timestepsContainer);
         });
 
         function updateImage() {
             const currentVariable = variables[currentVariableIndex];
-            const formattedVariable = currentVariable.replace(/\s+/g, '_'); // Replace spaces with underscores for filenames
+            const formattedVariable = currentVariable.replace(/\s+/g, '_'); 
             const timestep = timesteps[currentTimestepIndex];
             if (currentVariable.includes("NAM 500-hPa Vorticity")) {
                 imageDisplay.src = `https://raw.githubusercontent.com/anthony-illenden/nwp-actions/refs/heads/main/nam/vort/${timestep}.png`;
@@ -260,7 +258,6 @@
                 images.push(imageUrl);
             }
 
-            // Use a library like gifshot to create the GIF
             gifshot.createGIF({
                 images: images,
                 interval: 0.5,
