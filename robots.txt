@@ -2,3 +2,5 @@ User-agent: *
 Disallow: /
 Allow: /index.html
 Allow: /about.html
+
+Sitemap: https://anthony-illenden.github.io/sitemap.xml
