@@ -59,19 +59,47 @@
             margin: auto;
             margin-top: 40px;
         }
-        .controls {
+        .mode-selector {
             margin-bottom: 20px;
             display: flex;
-            justify-content: space-around;
             align-items: center;
+            gap: 15px;
         }
-        .controls label {
-            margin-right: 10px;
+        .mode-selector label {
+            margin-right: 0;
+        }
+        .mode-selector button {
+            padding: 10px 15px;
+            margin: 0 5px;
+            cursor: pointer;
+            border: 2px solid #333;
+            background-color: white;
+            border-radius: 4px;
+        }
+        .mode-selector button.active {
+            background-color: #333;
+            color: white;
+        }
+        .controls {
+            margin-bottom: 20px;
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 15px;
+        }
+        .panel-control {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .panel-control label {
+            margin-right: 0;
+            font-weight: bold;
+            font-size: 0.9em;
         }
         .controls select,
         .controls input {
-            padding: 10px;
-            margin-right: 10px;
+            padding: 8px;
+            margin-right: 0;
         }
         .error {
             color: red;
@@ -79,11 +107,22 @@
         }
         .image-container {
             margin-top: 20px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 0px;
+        }
+        .image-panel {
             text-align: center;
+        }
+        .image-panel h3 {
+            margin: 0 0 10px 0;
+            font-size: 1em;
         }
         img {
             max-width: 100%;
             height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
         }
     </style>
 </head>
@@ -109,30 +148,62 @@
         <label for="sectorSelect">Select Sector:</label>
         <select id="sectorSelect" onchange="updateParameters()">
             <option value="s19">CONUS</option>
+            <option value="s13">Northern Great Plains</option>
+            <option value="s14">Central Great Plains</option>
+            <option value="s15">Southern Great Plains</option>
+            <option value="s16">Northeast</option>
+            <option value="s17">Southeast</option>
+            <option value="s20">Midwest</option>
             <option value="s21">Great Lakes</option>
         </select>
+    </div>
 
-        <div class="controls">
-            <div>
-                <label for="sfcSelect">Surface</label>
-                <select id="sfcSelect" onchange="displayGIF('sfc')"></select>
+    <div class="container">
+        <div class="mode-selector">
+            <label>Display Mode:</label>
+            <button class="active" onclick="setMode('single')">Single Panel</button>
+            <button onclick="setMode('grid')">4 Panel</button>
+        </div>
+    </div>
+
+    <div class="container">
+        <div class="controls" id="controls">
+            <div class="panel-control">
+                <label for="panel1Select">Panel 1</label>
+                <select id="panel1Select" onchange="displayAllGIFs()"></select>
             </div>
-            <div>
-                <label for="thermoSelect">Thermodynamics</label>
-                <select id="thermoSelect" onchange="displayGIF('thermo')"></select>
+            <div class="panel-control">
+                <label for="panel2Select">Panel 2</label>
+                <select id="panel2Select" onchange="displayAllGIFs()"></select>
             </div>
-            <div>
-                <label for="dynamicSelect">Dynamics</label>
-                <select id="dynamicSelect" onchange="displayGIF('dynamic')"></select>
+            <div class="panel-control">
+                <label for="panel3Select">Panel 3</label>
+                <select id="panel3Select" onchange="displayAllGIFs()"></select>
             </div>
-            <div>
-                <label for="kinematicSelect">Kinematics</label>
-                <select id="kinematicSelect" onchange="displayGIF('kinematic')"></select>
+            <div class="panel-control">
+                <label for="panel4Select">Panel 4</label>
+                <select id="panel4Select" onchange="displayAllGIFs()"></select>
             </div>
         </div>
+    </div>
 
-        <div class="image-container">
-            <img id="gifDisplay" src="" alt="Selected GIF">
+        <div class="image-container" id="imageContainer">
+            <div class="image-panel" id="panel1">
+                <h3>Panel 1</h3>
+                <img id="gifDisplay-1" src="" alt="Panel 1">
+            </div>
+            <div class="image-panel" id="panel2">
+                <h3>Panel 2</h3>
+                <img id="gifDisplay-2" src="" alt="Panel 2">
+            </div>
+            <div class="image-panel" id="panel3">
+                <h3>Panel 3</h3>
+                <img id="gifDisplay-3" src="" alt="Panel 3">
+            </div>
+            <div class="image-panel" id="panel4">
+                <h3>Panel 4</h3>
+                <img id="gifDisplay-4" src="" alt="Panel 4">
+            </div>
         </div>
     </div>
 
@@ -168,20 +239,10 @@
             pchg: 'Two-Hour Pressure Change'
         };
 
-        const parameters = {
-            s19: {
-                sfc: ['mcon', 'pmsl', 'mxth', 'mixr', 'pchg'],
-                thermo: ['mlcp', 'sbcp', 'mucp','dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv_925', 'tadv', '7tad', '925f', '98ft', '857f', '75ft'],
-                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
-            },
-            s21: {
-                sfc: ['mcon', 'pmsl', 'mxth', 'mixr', 'pchg'],
-                thermo: ['mlcp', 'sbcp', 'mucp', 'dcape','lllr','laps','lclh', 'lfch', 'skewt'],
-                dynamic: ['vadv', 'padv', 'tadv_925', 'tadv', '7tad', '925f', '98ft', '857f', '75ft'],
-                kinematic: ['300mb', '500mb', '700mb', '850mb2', '925mb']
-            }
-        };
+        // All variables available across all categories
+        const allVariables = Object.keys(parameterNames).sort((a, b) => 
+            parameterNames[a].localeCompare(parameterNames[b])
+        );
 
         const urlPatterns = {
             default: '/${parameterCode}/${parameterCode}_sf.gif',
@@ -198,34 +259,59 @@
             '75ft': '/${parameterCode}/${parameterCode}.gif'
         };
 
-        function updateParameters() {
-            const sectorSelect = document.getElementById('sectorSelect');
-            const selectedSector = sectorSelect.value;
+        let currentMode = 'single';
+        let imageCount = 1;
 
-            updateCategoryDropdown('sfc', parameters[selectedSector].sfc);
-            updateCategoryDropdown('thermo', parameters[selectedSector].thermo);
-            updateCategoryDropdown('dynamic', parameters[selectedSector].dynamic);
-            updateCategoryDropdown('kinematic', parameters[selectedSector].kinematic);
-
-            document.getElementById('sfcSelect').value = 'pmsl';
-            displayGIF('sfc');
-        }
-
-        function updateCategoryDropdown(category, params) {
-            const select = document.getElementById(`${category}Select`);
-            select.innerHTML = '';
-            params.forEach(param => {
-                const option = document.createElement('option');
-                option.value = param;
-                option.textContent = parameterNames[param];
-                select.appendChild(option);
+        function setMode(mode) {
+            currentMode = mode;
+            imageCount = mode === 'single' ? 1 : 4;
+            
+            // Update button styles
+            document.querySelectorAll('.mode-selector button').forEach(btn => {
+                btn.classList.remove('active');
             });
+            event.target.classList.add('active');
+            
+            // Update display
+            const container = document.getElementById('imageContainer');
+            const panels = document.querySelectorAll('.image-panel');
+            
+            if (mode === 'single') {
+                container.style.gridTemplateColumns = '1fr';
+                panels.forEach((p, i) => {
+                    p.style.display = i === 0 ? 'block' : 'none';
+                });
+                document.getElementById('controls').style.gridTemplateColumns = '1fr';
+            } else {
+                container.style.gridTemplateColumns = '1fr 1fr';
+                panels.forEach(p => {
+                    p.style.display = 'block';
+                });
+                document.getElementById('controls').style.gridTemplateColumns = 'repeat(4, 1fr)';
+            }
+            
+            displayAllGIFs();
         }
 
-        function displayGIF(category) {
+        function initializeSelectDropdowns() {
+            for (let i = 1; i <= 4; i++) {
+                const select = document.getElementById(`panel${i}Select`);
+                select.innerHTML = '';
+                allVariables.forEach(param => {
+                    const option = document.createElement('option');
+                    option.value = param;
+                    option.textContent = parameterNames[param];
+                    select.appendChild(option);
+                });
+            }
+        }
+
+        function displayGIF(panelNumber) {
             const sectorSelect = document.getElementById('sectorSelect');
-            const select = document.getElementById(`${category}Select`);
-            const gifDisplay = document.getElementById('gifDisplay');
+            const select = document.getElementById(`panel${panelNumber}Select`);
+            const gifDisplay = document.getElementById(`gifDisplay-${panelNumber}`);
+
+            if (!select.value) return;
 
             const baseUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
             const sectorCode = sectorSelect.value;
@@ -237,7 +323,25 @@
             gifDisplay.src = gifUrl;
         }
 
-        window.onload = updateParameters;
+        function displayAllGIFs() {
+            for (let i = 1; i <= 4; i++) {
+                if (currentMode === 'single') {
+                    if (i === 1) displayGIF(1);
+                } else {
+                    displayGIF(i);
+                }
+            }
+        }
+
+        window.onload = function() {
+            initializeSelectDropdowns();
+            // Set default selections
+            document.getElementById('panel1Select').value = 'pmsl';
+            document.getElementById('panel2Select').value = 'mlcp';
+            document.getElementById('panel3Select').value = 'vadv';
+            document.getElementById('panel4Select').value = '300mb';
+            displayAllGIFs();
+        };
     </script>
 </body>
 </html>
