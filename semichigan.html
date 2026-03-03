@@ -92,6 +92,23 @@
         <a href="https://anthony-illenden.github.io/winter.html">Winter</a>
         <a href="https://anthony-illenden.github.io/about.html">About</a>
     </nav>
+    
+    <section class="container" id="afd-top">
+        <h1>NWS Area Forecast Discussion</h1>
+        <div class="controls">
+            <label for="forecastOfficeSelect">Select Forecast Office:</label>
+            <select id="forecastOfficeSelect">
+                <option value="DTX" selected>Detroit, MI</option>
+                <option value="GRR">Grand Rapids, MI</option>
+                <option value="APX">Gaylord, MI</option>
+                <option value="MQT">Marquette, MI</option>
+            </select>
+        </div>
+        <div class="forecast-text" id="forecast-text">
+            <p>Loading forecast...</p>
+        </div>
+    </section>
+
     <div class="container">
         <h1>Temperature Forecasts</h1>
         <label for="citySelect">Select a City:</label>
@@ -144,21 +161,7 @@
         </div>
     </div>
 
-    <section class="container">
-        <h1>NWS Area Forecast Discussion</h1>
-        <div class="controls">
-            <label for="forecastOfficeSelect">Select Forecast Office:</label>
-            <select id="forecastOfficeSelect">
-                <option value="DTX" selected>Detroit, MI</option>
-                <option value="GRR">Grand Rapids, MI</option>
-                <option value="APX">Gaylord, MI</option>
-                <option value="MQT">Marquette, MI</option>
-            </select>
-        </div>
-        <div class="forecast-text" id="forecast-text">
-            <p>Loading forecast...</p>
-        </div>
-    </section>
+    
 
     <div class="container twitter-container">
         <a class="twitter-timeline" href="https://twitter.com/tonesweatherbot?ref_src=twsrc%5Etfw">Tweets by tonesweatherbot</a> 

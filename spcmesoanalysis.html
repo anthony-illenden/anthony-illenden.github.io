@@ -83,7 +83,7 @@
         .controls {
             margin-bottom: 20px;
             display: grid;
-            grid-template-columns: repeat(4, 1fr);
+            grid-template-columns: repeat(2, 1fr);
             gap: 15px;
         }
         .panel-control {
@@ -119,7 +119,7 @@
             font-size: 1em;
         }
         img {
-            max-width: 100%;
+            max-width: 75%;
             height: auto;
             border: 1px solid #ddd;
             border-radius: 4px;
@@ -161,8 +161,8 @@
     <div class="container">
         <div class="mode-selector">
             <label>Display Mode:</label>
-            <button class="active" onclick="setMode('single')">Single Panel</button>
-            <button onclick="setMode('grid')">4 Panel</button>
+            <button data-mode="single" onclick="setMode('single', event)">Single Panel</button>
+            <button class="active" data-mode="grid" onclick="setMode('grid', event)">4 Panel</button>
         </div>
     </div>
 
@@ -236,10 +236,27 @@
             pmsl: 'MSLP and Winds',
             mxth: 'Surface Mixing Ratio',
             mixr: 'Mean Mixing Ratio',
-            pchg: 'Two-Hour Pressure Change'
+            pchg: 'Two-Hour Pressure Change',
+            cpsh: 'MUCAPE / Effective Bulk Shear',
+            mlcp_eshr: 'MLCAPE / Effective Bulk Shear',
+            '3cvr': '3CAPE & Surface Vorticity',
+            hail: 'Hail',
+            tran_925: '925mb Moisture Transport',
+            tran: '850mb Moisture Transport'
         };
 
-        // All variables available across all categories
+        // Group variables into categories
+        const parameterCategories = {
+            'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch','skewt'],
+            'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
+            'Frontogenesis': ['925f','98ft','857f','75ft'],
+            'Advection / Vorticity': ['vadv','padv','tadv_925','tadv','7tad'],
+            'Surface / Pressure': ['pmsl','pchg'],
+            'Moisture': ['mcon','mxth','mixr','tran_925','tran'],
+            'Shear / Severe': ['cpsh','mlcp_eshr','3cvr','hail']
+        };
+
+        // All variables available
         const allVariables = Object.keys(parameterNames).sort((a, b) => 
             parameterNames[a].localeCompare(parameterNames[b])
         );
@@ -256,26 +273,37 @@
             '925f': '/${parameterCode}/${parameterCode}.gif',
             '98ft': '/${parameterCode}/${parameterCode}.gif',
             '857f': '/${parameterCode}/${parameterCode}.gif',
-            '75ft': '/${parameterCode}/${parameterCode}.gif'
+            '75ft': '/${parameterCode}/${parameterCode}.gif',
+            cpsh: '/${parameterCode}/${parameterCode}.gif',
+            mlcp_eshr: '/${parameterCode}/${parameterCode}.gif',
+            '3cvr': '/${parameterCode}/${parameterCode}.gif',
+            hail: '/${parameterCode}/${parameterCode}.gif',
+            tran_925: '/${parameterCode}/${parameterCode}.gif',
+            tran: '/${parameterCode}/${parameterCode}.gif'
         };
 
-        let currentMode = 'single';
-        let imageCount = 1;
+        let currentMode = 'grid';
+        let imageCount = 4;
 
-        function setMode(mode) {
+        function setMode(mode, evt) {
             currentMode = mode;
             imageCount = mode === 'single' ? 1 : 4;
-            
+
             // Update button styles
             document.querySelectorAll('.mode-selector button').forEach(btn => {
                 btn.classList.remove('active');
             });
-            event.target.classList.add('active');
-            
+            if (evt && evt.target) {
+                evt.target.classList.add('active');
+            } else {
+                const btn = document.querySelector(`.mode-selector button[data-mode="${mode}"]`);
+                if (btn) btn.classList.add('active');
+            }
+
             // Update display
             const container = document.getElementById('imageContainer');
             const panels = document.querySelectorAll('.image-panel');
-            
+
             if (mode === 'single') {
                 container.style.gridTemplateColumns = '1fr';
                 panels.forEach((p, i) => {
@@ -287,9 +315,9 @@
                 panels.forEach(p => {
                     p.style.display = 'block';
                 });
-                document.getElementById('controls').style.gridTemplateColumns = 'repeat(4, 1fr)';
+                document.getElementById('controls').style.gridTemplateColumns = 'repeat(2, 1fr)';
             }
-            
+
             displayAllGIFs();
         }
 
@@ -297,11 +325,22 @@
             for (let i = 1; i <= 4; i++) {
                 const select = document.getElementById(`panel${i}Select`);
                 select.innerHTML = '';
-                allVariables.forEach(param => {
-                    const option = document.createElement('option');
-                    option.value = param;
-                    option.textContent = parameterNames[param];
-                    select.appendChild(option);
+
+                // Populate by category with optgroup headings
+                Object.keys(parameterCategories).forEach(category => {
+                    const codes = parameterCategories[category].slice();
+                    // sort codes by their display name
+                    codes.sort((a, b) => parameterNames[a].localeCompare(parameterNames[b]));
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = category;
+                    codes.forEach(code => {
+                        if (!(code in parameterNames)) return;
+                        const option = document.createElement('option');
+                        option.value = code;
+                        option.textContent = parameterNames[code];
+                        optgroup.appendChild(option);
+                    });
+                    select.appendChild(optgroup);
                 });
             }
         }
@@ -333,14 +372,17 @@
             }
         }
 
+        function updateParameters() {
+            displayAllGIFs();
+        }
+
         window.onload = function() {
             initializeSelectDropdowns();
-            // Set default selections
             document.getElementById('panel1Select').value = 'pmsl';
             document.getElementById('panel2Select').value = 'mlcp';
             document.getElementById('panel3Select').value = 'vadv';
             document.getElementById('panel4Select').value = '300mb';
-            displayAllGIFs();
+            setMode('grid');
         };
     </script>
 </body>
