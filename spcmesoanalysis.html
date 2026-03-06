@@ -13,7 +13,7 @@
             padding: 0;
             width: 100%;
             height: 100%;
-            font-family: 'Roboto', sans-serif; /* Update font-family */
+            font-family: 'Roboto', sans-serif;
         }
         nav {
             background-color: #333;
@@ -55,7 +55,7 @@
             font-size: 2em;
         }
         .container {
-            max-width: 800px;
+            max-width: 1600px;
             margin: auto;
             margin-top: 40px;
         }
@@ -91,6 +91,10 @@
             flex-direction: column;
             gap: 5px;
         }
+        .panel-control select {
+            width: 100%;
+            box-sizing: border-box;
+        }
         .panel-control label {
             margin-right: 0;
             font-weight: bold;
@@ -119,10 +123,41 @@
             font-size: 1em;
         }
         img {
-            max-width: 75%;
+            max-width: 100%;
             height: auto;
             border: 1px solid #ddd;
             border-radius: 4px;
+        }
+        .sounding-datetime-row {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+            margin-bottom: 15px;
+        }
+        .sounding-datetime-row label {
+            font-weight: bold;
+        }
+        .sounding-datetime-row #s_datetime {
+            min-width: 200px;
+            padding: 8px;
+        }
+        .sounding-datetime-row #s_datetime_slider {
+            width: 300px;
+        }
+        .sounding-datetime-row #s_datetime_label {
+            font-weight: 600;
+        }
+        .sounding-station-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 15px;
+            margin-bottom: 20px;
+        }
+        .sounding-station-grid .panel-control select {
+            width: 100%;
+            box-sizing: border-box;
+            padding: 8px;
         }
     </style>
 </head>
@@ -187,30 +222,77 @@
         </div>
     </div>
 
-        <div class="image-container" id="imageContainer">
-            <div class="image-panel" id="panel1">
-                <h3>Panel 1</h3>
-                <img id="gifDisplay-1" src="" alt="Panel 1">
+    <div class="image-container" id="imageContainer">
+        <div class="image-panel" id="panel1">
+            <h3>Panel 1</h3>
+            <img id="gifDisplay-1" src="" alt="Panel 1">
+        </div>
+        <div class="image-panel" id="panel2">
+            <h3>Panel 2</h3>
+            <img id="gifDisplay-2" src="" alt="Panel 2">
+        </div>
+        <div class="image-panel" id="panel3">
+            <h3>Panel 3</h3>
+            <img id="gifDisplay-3" src="" alt="Panel 3">
+        </div>
+        <div class="image-panel" id="panel4">
+            <h3>Panel 4</h3>
+            <img id="gifDisplay-4" src="" alt="Panel 4">
+        </div>
+    </div>
+
+    <div class="container">
+        <h2>SPC Soundings</h2>
+        <div class="sounding-datetime-row">
+            <label for="s_datetime">Select DateTime:</label>
+            <select id="s_datetime"></select>
+            <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
+            <span id="s_datetime_label"></span>
+        </div>
+        <div class="sounding-station-grid">
+            <div class="panel-control">
+                <label for="station1">Station 1</label>
+                <select id="station1"></select>
             </div>
-            <div class="image-panel" id="panel2">
-                <h3>Panel 2</h3>
-                <img id="gifDisplay-2" src="" alt="Panel 2">
+            <div class="panel-control">
+                <label for="station2">Station 2</label>
+                <select id="station2"></select>
             </div>
-            <div class="image-panel" id="panel3">
-                <h3>Panel 3</h3>
-                <img id="gifDisplay-3" src="" alt="Panel 3">
+            <div class="panel-control">
+                <label for="station3">Station 3</label>
+                <select id="station3"></select>
             </div>
-            <div class="image-panel" id="panel4">
-                <h3>Panel 4</h3>
-                <img id="gifDisplay-4" src="" alt="Panel 4">
+            <div class="panel-control">
+                <label for="station4">Station 4</label>
+                <select id="station4"></select>
+            </div>
+        </div>
+        <div class="image-container" id="soundingsContainer">
+            <div class="image-panel">
+                <h3>Sounding 1</h3>
+                <img id="sounding1" src="" alt="Sounding 1">
+                <p id="serror1" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 2</h3>
+                <img id="sounding2" src="" alt="Sounding 2">
+                <p id="serror2" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 3</h3>
+                <img id="sounding3" src="" alt="Sounding 3">
+                <p id="serror3" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 4</h3>
+                <img id="sounding4" src="" alt="Sounding 4">
+                <p id="serror4" class="error" style="display:none;">Image not available.</p>
             </div>
         </div>
     </div>
 
     <script>
-        // Parameter display names
         const parameterNames = {
-            // Thermodynamics
             mlcp: 'Mixed-Layer CAPE',
             sbcp: 'Surface-Based CAPE',
             mucp: 'Most-Unstable CAPE',
@@ -219,26 +301,18 @@
             laps: 'Mid-Level Lapse Rates',
             lclh: 'Lifted Condensation Height',
             lfch: 'Level of Free Convection Height',
-
-            // Soundings
             skewt: 'Skew-T Log-P',
             hodo: 'Hodographs',
-
-            // Wind Fields
             '300mb': '300mb Wind',
             '500mb': '500mb Wind',
             '700mb': '700mb Wind',
             '850mb2': '850mb Wind',
             '925mb': '925mb Wind',
-
-            // Shear / Kinematics
             eshr: 'Effective Bulk Shear',
             shr1: 'Bulk Shear 0-1 km',
             shr3: 'Bulk Shear 0-6 km',
             srh1: 'SRH 0-1 km',
             srh3: 'SRH 0-3 km',
-
-            // Composite Severe Parameters
             cpsh: 'MUCAPE / Effective Bulk Shear',
             mlcp_eshr: 'MLCAPE / Effective Bulk Shear',
             '3cvr': '3CAPE & Surface Vorticity',
@@ -246,77 +320,49 @@
             scp: 'Supercell Composite (SCP)',
             stpc: 'Significant Tornado Parameter (effective inflow)',
             vtp3: 'Violent Tornado Parameter',
-
-            // Advection
             vadv: 'Differential Vorticity Advection',
             padv: 'Potential Vorticity Advection',
             tadv_925: '925mb Temperature Advection',
             tadv: '850mb Temperature Advection',
             '7tad': '700mb Temperature Advection',
             thea: 'Surface Theta-E Advection',
-
-            // Frontogenesis
             '925f': '1000-925mb Frontogenesis',
             '98ft': '925-850mb Frontogenesis',
             '857f': '850-700mb Frontogenesis',
             '75ft': '700-500mb Frontogenesis',
-
-            // Moisture
             mcon: 'Moisture Convergence',
             mxth: 'Surface Mixing Ratio',
             mixr: 'Mean Mixing Ratio',
             tran_925: '925mb Moisture Transport',
             tran: '850mb Moisture Transport',
-
-            // Surface / Pressure
             pmsl: 'MSLP and Winds',
             pchg: 'Two-Hour Pressure Change',
             '500mb_chg': '12hr Height Falls (500mb)',
-            dwpt_chg: '3 Hour Dewpoint Change'
+            dwpt_chg: '3 Hour Dewpoint Change',
+            ddiv: 'Differential Divergence',
+            dlcp: 'Deep Moist Convergence',
+            ttd: 'Surface Temperature, Dewpoint, MSLP, and Winds'
         };
 
+        const stationNames = {
+            OUN: 'Norman, OK',
+            FWD: 'Dallas, TX',
+            DTX: 'Detroit, MI',
+            ILX: 'Lincoln, IL'
+        };
 
-        
         const parameterCategories = {
-            'Thermodynamics': [
-                'mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'
-            ],
-
-            'Soundings': [
-                'skewt','hodo'
-            ],
-
-            'Winds': [
-                '300mb','500mb','700mb','850mb2','925mb'
-            ],
-
-            'Wind Shear': [
-                'eshr','shr1','shr3','srh1','srh3'
-            ],
-
-            'Composite Parameters': [
-                'cpsh','mlcp_eshr','3cvr','hail','scp', 'stpc','vtp3'
-            ],
-
-            'Advection': [
-                'vadv','padv','tadv_925','tadv','7tad','thea'
-            ],
-
-            'Frontogenesis': [
-                '925f','98ft','857f','75ft'
-            ],
-
-            'Moisture': [
-                'mcon','mxth','mixr','tran_925','tran'
-            ],
-
-            'Surface / Pressure': [
-                'pmsl','pchg','500mb_chg','dwpt_chg'
-            ]
+            'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'],
+            'Soundings': ['skewt','hodo'],
+            'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
+            'Wind Shear': ['eshr','shr1','shr3','srh1','srh3'],
+            'Composite Parameters': ['cpsh','mlcp_eshr','3cvr','hail','scp','stpc','vtp3'],
+            'Advection': ['vadv','padv','tadv_925','tadv','7tad','thea','ddiv'],
+            'Frontogenesis': ['925f','98ft','857f','75ft'],
+            'Moisture': ['mcon','mxth','mixr','tran_925','tran','dlcp'],
+            'Surface / Pressure': ['pmsl','pchg','500mb_chg','dwpt_chg','ddiv','dlcp','ttd']
         };
 
-
-        // All variables sorted alphabetically by display name
         const allVariables = Object.keys(parameterNames).sort((a, b) =>
             parameterNames[a].localeCompare(parameterNames[b])
         );
@@ -339,21 +385,22 @@
             '3cvr': '/${parameterCode}/${parameterCode}.gif',
             hail: '/${parameterCode}/${parameterCode}.gif',
             tran_925: '/${parameterCode}/${parameterCode}.gif',
-            tran: '/${parameterCode}/${parameterCode}.gif'
-            ,
-            // SPC mesoanalysis specific patterns
+            tran: '/${parameterCode}/${parameterCode}.gif',
             '500mb_chg': '/${parameterCode}/${parameterCode}.gif',
-            'scp': '/${parameterCode}/${parameterCode}.gif',
-            'stpc': '/${parameterCode}/${parameterCode}.gif',
-            'vtp3': '/${parameterCode}/${parameterCode}.gif',
-            'hodo': '/${parameterCode}/${parameterCode}.gif',
-            'eshr': '/${parameterCode}/${parameterCode}.gif',
-            'shr1': '/${parameterCode}/${parameterCode}.gif',
-            'shr3': '/${parameterCode}/${parameterCode}.gif',
-            'srh1': '/${parameterCode}/${parameterCode}.gif',
-            'srh3': '/${parameterCode}/${parameterCode}.gif',
-            'dwpt_chg': '/${parameterCode}/${parameterCode}.gif',
-            'thea': '/${parameterCode}/${parameterCode}.gif'
+            scp: '/${parameterCode}/${parameterCode}.gif',
+            stpc: '/${parameterCode}/${parameterCode}.gif',
+            vtp3: '/${parameterCode}/${parameterCode}.gif',
+            hodo: '/${parameterCode}/${parameterCode}.gif',
+            eshr: '/${parameterCode}/${parameterCode}.gif',
+            shr1: '/${parameterCode}/${parameterCode}.gif',
+            shr3: '/${parameterCode}/${parameterCode}.gif',
+            srh1: '/${parameterCode}/${parameterCode}.gif',
+            srh3: '/${parameterCode}/${parameterCode}.gif',
+            dwpt_chg: '/${parameterCode}/${parameterCode}.gif',
+            thea: '/${parameterCode}/${parameterCode}.gif',
+            ddiv: '/${parameterCode}/${parameterCode}.gif',
+            dlcp: '/${parameterCode}/${parameterCode}.gif',
+            ttd: '/${parameterCode}/${parameterCode}.gif'
         };
 
         let currentMode = 'grid';
@@ -363,7 +410,6 @@
             currentMode = mode;
             imageCount = mode === 'single' ? 1 : 4;
 
-            // Update button styles
             document.querySelectorAll('.mode-selector button').forEach(btn => {
                 btn.classList.remove('active');
             });
@@ -374,9 +420,8 @@
                 if (btn) btn.classList.add('active');
             }
 
-            // Update display
             const container = document.getElementById('imageContainer');
-            const panels = document.querySelectorAll('.image-panel');
+            const panels = document.querySelectorAll('#imageContainer .image-panel');
 
             if (mode === 'single') {
                 container.style.gridTemplateColumns = '1fr';
@@ -400,10 +445,8 @@
                 const select = document.getElementById(`panel${i}Select`);
                 select.innerHTML = '';
 
-                // Populate by category with optgroup headings
                 Object.keys(parameterCategories).forEach(category => {
                     const codes = parameterCategories[category].slice();
-                    // sort codes by their display name
                     codes.sort((a, b) => parameterNames[a].localeCompare(parameterNames[b]));
                     const optgroup = document.createElement('optgroup');
                     optgroup.label = category;
@@ -452,11 +495,146 @@
 
         window.onload = function() {
             initializeSelectDropdowns();
-            document.getElementById('panel1Select').value = 'pmsl';
-            document.getElementById('panel2Select').value = 'mlcp';
-            document.getElementById('panel3Select').value = 'vadv';
-            document.getElementById('panel4Select').value = '300mb';
+            document.getElementById('panel1Select').value = 'ttd';
+            document.getElementById('panel2Select').value = '850mb2';
+            document.getElementById('panel3Select').value = 'mlcp_eshr';
+            document.getElementById('panel4Select').value = 'vadv';
             setMode('grid');
+
+            const sDatetime = document.getElementById('s_datetime');
+            const stationIds = ['station1','station2','station3','station4'];
+
+            function generateDatetimes() {
+                const now = new Date();
+                const currentUTCHour = now.getUTCHours();
+                const datetimes = [];
+                for (let i = 0; i < 9; i++) {
+                    const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
+                    const yy = date.getUTCFullYear().toString().slice(2);
+                    const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
+                    const dd = date.getUTCDate().toString().padStart(2, '0');
+
+                    if (currentUTCHour >= 12 || i > 0) {
+                        datetimes.push(`${yy}${mm}${dd}12`);
+                    }
+                    datetimes.push(`${yy}${mm}${dd}00`);
+                }
+                return datetimes;
+            }
+
+            const datetimes = generateDatetimes();
+
+            function formatDatetimeLabel(dt) {
+                const yy = dt.slice(0, 2);
+                const mm = dt.slice(2, 4);
+                const dd = dt.slice(4, 6);
+                const hh = dt.slice(6, 8);
+                const year = 2000 + parseInt(yy, 10);
+                const month = parseInt(mm, 10) - 1;
+                const day = parseInt(dd, 10);
+                const hour = parseInt(hh, 10);
+                const d = new Date(Date.UTC(year, month, day, hour));
+                const formatted = d.toLocaleString('en-US', {
+                    month: 'long',
+                    day: 'numeric',
+                    year: 'numeric',
+                    hour: 'numeric',
+                    minute: '2-digit',
+                    hour12: false,
+                    timeZone: 'UTC'
+                });
+                return `${formatted} UTC`;
+            }
+
+            datetimes.forEach(dt => {
+                const opt = document.createElement('option');
+                opt.value = dt;
+                opt.textContent = formatDatetimeLabel(dt);
+                sDatetime.appendChild(opt);
+            });
+
+            // Setup slider to navigate datetimes
+            const slider = document.getElementById('s_datetime_slider');
+            const sLabel = document.getElementById('s_datetime_label');
+            if (slider) {
+                slider.max = Math.max(0, datetimes.length - 1);
+                slider.value = 0;
+            }
+            if (sLabel) {
+                sLabel.textContent = datetimes.length ? formatDatetimeLabel(datetimes[0]) : '';
+            }
+
+            const stationCodes = Object.keys(stationNames).sort((a, b) => stationNames[a].localeCompare(stationNames[b]));
+            stationIds.forEach(id => {
+                const sel = document.getElementById(id);
+                sel.innerHTML = '';
+                stationCodes.forEach(code => {
+                    const opt = document.createElement('option');
+                    opt.value = code;
+                    opt.textContent = stationNames[code];
+                    sel.appendChild(opt);
+                });
+            });
+
+            document.getElementById('station1').value = 'OUN';
+            document.getElementById('station2').value = 'FWD';
+            document.getElementById('station3').value = 'DTX';
+            document.getElementById('station4').value = 'ILX';
+            if (sDatetime.options.length > 0) sDatetime.selectedIndex = 0;
+
+            function updateSoundingPanel(i) {
+                const datetime = sDatetime.value;
+                const station = document.getElementById(stationIds[i-1]).value.trim().toUpperCase();
+                const img = document.getElementById(`sounding${i}`);
+                const err = document.getElementById(`serror${i}`);
+                if (!station) {
+                    img.style.display = 'none';
+                    err.style.display = 'block';
+                    return;
+                }
+                const url = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
+                img.src = url;
+                img.onerror = function() {
+                    err.style.display = 'block';
+                    img.style.display = 'none';
+                };
+                img.onload = function() {
+                    err.style.display = 'none';
+                    img.style.display = 'block';
+                };
+            }
+
+            function updateAllSoundings() {
+                for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
+            }
+
+            // sync select <-> slider and update on changes
+            const sliderEl = document.getElementById('s_datetime_slider');
+            if (sliderEl) {
+                sliderEl.addEventListener('input', function() {
+                    const idx = parseInt(this.value, 10);
+                    if (!isNaN(idx) && sDatetime.options[idx]) {
+                        sDatetime.selectedIndex = idx;
+                        const dt = datetimes[idx];
+                        const lbl = document.getElementById('s_datetime_label');
+                        if (lbl) lbl.textContent = formatDatetimeLabel(dt);
+                        updateAllSoundings();
+                    }
+                });
+            }
+
+            sDatetime.addEventListener('change', function() {
+                const idx = sDatetime.selectedIndex;
+                if (sliderEl) sliderEl.value = idx;
+                const dt = datetimes[idx];
+                const lbl = document.getElementById('s_datetime_label');
+                if (lbl) lbl.textContent = formatDatetimeLabel(dt);
+                updateAllSoundings();
+            });
+
+            stationIds.forEach(id => document.getElementById(id).addEventListener('change', updateAllSoundings));
+
+            updateAllSoundings();
         };
     </script>
 </body>
