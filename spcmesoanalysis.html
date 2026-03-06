@@ -208,7 +208,9 @@
     </div>
 
     <script>
+        // Parameter display names
         const parameterNames = {
+            // Thermodynamics
             mlcp: 'Mixed-Layer CAPE',
             sbcp: 'Surface-Based CAPE',
             mucp: 'Most-Unstable CAPE',
@@ -217,47 +219,105 @@
             laps: 'Mid-Level Lapse Rates',
             lclh: 'Lifted Condensation Height',
             lfch: 'Level of Free Convection Height',
+
+            // Soundings
             skewt: 'Skew-T Log-P',
-            vadv: 'Differential Vorticity Advection',
-            padv: 'Potential Vorticity Advection',
-            'tadv_925': '925mb Temperature Advection',
-            tadv: '850mb Temperature Advection',
-            '7tad': '700mb Temperature Advection',
-            '925f': '1000-925mb Frontogenesis',
-            '98ft': '925-850mb Frontogenesis',
-            '857f': '850-700mb Frontogenesis',
-            '75ft': '700-500mb Frontogenesis',
+            hodo: 'Hodographs',
+
+            // Wind Fields
             '300mb': '300mb Wind',
             '500mb': '500mb Wind',
             '700mb': '700mb Wind',
             '850mb2': '850mb Wind',
             '925mb': '925mb Wind',
-            mcon: 'Moisture Convergence',
-            pmsl: 'MSLP and Winds',
-            mxth: 'Surface Mixing Ratio',
-            mixr: 'Mean Mixing Ratio',
-            pchg: 'Two-Hour Pressure Change',
+
+            // Shear / Kinematics
+            eshr: 'Effective Bulk Shear',
+            shr1: 'Bulk Shear 0-1 km',
+            shr3: 'Bulk Shear 0-6 km',
+            srh1: 'SRH 0-1 km',
+            srh3: 'SRH 0-3 km',
+
+            // Composite Severe Parameters
             cpsh: 'MUCAPE / Effective Bulk Shear',
             mlcp_eshr: 'MLCAPE / Effective Bulk Shear',
             '3cvr': '3CAPE & Surface Vorticity',
             hail: 'Hail',
+            scp: 'Supercell Composite (SCP)',
+            stpc: 'Significant Tornado Parameter (effective inflow)',
+            vtp3: 'Violent Tornado Parameter',
+
+            // Advection
+            vadv: 'Differential Vorticity Advection',
+            padv: 'Potential Vorticity Advection',
+            tadv_925: '925mb Temperature Advection',
+            tadv: '850mb Temperature Advection',
+            '7tad': '700mb Temperature Advection',
+            thea: 'Surface Theta-E Advection',
+
+            // Frontogenesis
+            '925f': '1000-925mb Frontogenesis',
+            '98ft': '925-850mb Frontogenesis',
+            '857f': '850-700mb Frontogenesis',
+            '75ft': '700-500mb Frontogenesis',
+
+            // Moisture
+            mcon: 'Moisture Convergence',
+            mxth: 'Surface Mixing Ratio',
+            mixr: 'Mean Mixing Ratio',
             tran_925: '925mb Moisture Transport',
-            tran: '850mb Moisture Transport'
+            tran: '850mb Moisture Transport',
+
+            // Surface / Pressure
+            pmsl: 'MSLP and Winds',
+            pchg: 'Two-Hour Pressure Change',
+            '500mb_chg': '12hr Height Falls (500mb)',
+            dwpt_chg: '3 Hour Dewpoint Change'
         };
 
-        // Group variables into categories
+
+        
         const parameterCategories = {
-            'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch','skewt'],
-            'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
-            'Frontogenesis': ['925f','98ft','857f','75ft'],
-            'Advection / Vorticity': ['vadv','padv','tadv_925','tadv','7tad'],
-            'Surface / Pressure': ['pmsl','pchg'],
-            'Moisture': ['mcon','mxth','mixr','tran_925','tran'],
-            'Shear / Severe': ['cpsh','mlcp_eshr','3cvr','hail']
+            'Thermodynamics': [
+                'mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'
+            ],
+
+            'Soundings': [
+                'skewt','hodo'
+            ],
+
+            'Winds': [
+                '300mb','500mb','700mb','850mb2','925mb'
+            ],
+
+            'Wind Shear': [
+                'eshr','shr1','shr3','srh1','srh3'
+            ],
+
+            'Composite Parameters': [
+                'cpsh','mlcp_eshr','3cvr','hail','scp', 'stpc','vtp3'
+            ],
+
+            'Advection': [
+                'vadv','padv','tadv_925','tadv','7tad','thea'
+            ],
+
+            'Frontogenesis': [
+                '925f','98ft','857f','75ft'
+            ],
+
+            'Moisture': [
+                'mcon','mxth','mixr','tran_925','tran'
+            ],
+
+            'Surface / Pressure': [
+                'pmsl','pchg','500mb_chg','dwpt_chg'
+            ]
         };
 
-        // All variables available
-        const allVariables = Object.keys(parameterNames).sort((a, b) => 
+
+        // All variables sorted alphabetically by display name
+        const allVariables = Object.keys(parameterNames).sort((a, b) =>
             parameterNames[a].localeCompare(parameterNames[b])
         );
 
@@ -280,6 +340,20 @@
             hail: '/${parameterCode}/${parameterCode}.gif',
             tran_925: '/${parameterCode}/${parameterCode}.gif',
             tran: '/${parameterCode}/${parameterCode}.gif'
+            ,
+            // SPC mesoanalysis specific patterns
+            '500mb_chg': '/${parameterCode}/${parameterCode}.gif',
+            'scp': '/${parameterCode}/${parameterCode}.gif',
+            'stpc': '/${parameterCode}/${parameterCode}.gif',
+            'vtp3': '/${parameterCode}/${parameterCode}.gif',
+            'hodo': '/${parameterCode}/${parameterCode}.gif',
+            'eshr': '/${parameterCode}/${parameterCode}.gif',
+            'shr1': '/${parameterCode}/${parameterCode}.gif',
+            'shr3': '/${parameterCode}/${parameterCode}.gif',
+            'srh1': '/${parameterCode}/${parameterCode}.gif',
+            'srh3': '/${parameterCode}/${parameterCode}.gif',
+            'dwpt_chg': '/${parameterCode}/${parameterCode}.gif',
+            'thea': '/${parameterCode}/${parameterCode}.gif'
         };
 
         let currentMode = 'grid';
