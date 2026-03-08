@@ -148,6 +148,11 @@
         .sounding-datetime-row #s_datetime_label {
             font-weight: 600;
         }
+        .sounding-note {
+            font-style: italic;
+            color: #555;
+            margin-bottom: 12px;
+        }
         .sounding-station-grid {
             display: grid;
             grid-template-columns: repeat(2, 1fr);
@@ -243,8 +248,15 @@
 
     <div class="container">
         <h2>SPC Soundings</h2>
+        <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
         <div class="sounding-datetime-row">
             <label for="s_datetime">Select DateTime:</label>
+            <label for="s_timefilter">Time Filter:</label>
+            <select id="s_timefilter">
+                <option value="both">Both (00/12z)</option>
+                <option value="00">00z only</option>
+                <option value="12">12z only</option>
+            </select>
             <select id="s_datetime"></select>
             <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
             <span id="s_datetime_label"></span>
@@ -344,11 +356,80 @@
             ttd: 'Surface Temperature, Dewpoint, MSLP, and Winds'
         };
 
-        const stationNames = {
-            OUN: 'Norman, OK',
-            FWD: 'Dallas, TX',
-            DTX: 'Detroit, MI',
-            ILX: 'Lincoln, IL'
+        // region codes from NCEP: E=Eastern, S=Southern, C=Central, W=Western, L=Military, F=Profiler, P=Pacific 
+        const stationData = {
+            OUN: { name: 'Norman, OK', region: 'S' },
+            FWD: { name: 'Dallas, TX', region: 'S' },
+            DTX: { name: 'Detroit, MI', region: 'C' },
+            ILX: { name: 'Lincoln, IL', region: 'C' },
+            APX: { name: 'Gaylord, MI', region: 'C' },
+            DRT: { name: 'Del Rio, TX', region: 'S' },
+            BRO: { name: 'Brownsville, TX', region: 'S' },
+            TOP: { name: 'Topeka, KS', region: 'C' },
+            EPZ: { name: 'El Paso, TX', region: 'S' },
+            KEY: { name: 'Key West, FL', region: 'S' },
+            MFL: { name: 'Miami, FL', region: 'S' },
+            JAX: { name: 'Jacksonville, FL', region: 'S' },
+            CHS: { name: 'Charleston, SC', region: 'E' },
+            TBW: { name: 'Tampa, FL', region: 'S' },
+            TAE: { name: 'Tallahassee, FL', region: 'S' },
+            FFC: { name: 'Peachtree, GA', region: 'S' },
+            VPS: { name: 'Valparaiso, FL', region: 'S' },
+            BMX: { name: 'Shelby Co, AL', region: 'S' },
+            LIX: { name: 'Slidell, LA', region: 'S' },
+            JAN: { name: 'Jackson, MS', region: 'S' },
+            LCH: { name: 'Lake Charles, LA', region: 'S' },
+            SHV: { name: 'Shreveport, LA', region: 'S' },
+            CRP: { name: 'Corpus Christi, TX', region: 'S' },
+            MAF: { name: 'Midland, TX', region: 'S' },
+            TWC: { name: 'Tucson, AZ', region: 'W' },
+            NKX: { name: 'San Diego, CA', region: 'W' },
+            MHX: { name: 'Morehead City, NC', region: 'E' },
+            GSO: { name: 'Greensboro, NC', region: 'E' },
+            RNK: { name: 'Blacksburg, VA', region: 'E' },
+            OHX: { name: 'Nashville, TN', region: 'S' },
+            LZK: { name: 'Little Rock, AR', region: 'S' },
+            AMA: { name: 'Amarillo, TX', region: 'S' },
+            ABQ: { name: 'Albuquerque, NM', region: 'S' },
+            FGZ: { name: 'Flagstaff, AZ', region: 'W' },
+            EDW: { name: 'Edwards AFB, CA', region: 'L' },
+            VEF: { name: 'Las Vegas, NV', region: 'W' },
+            WAL: { name: 'Wallops Island, VA', region: 'E' },
+            LWX: { name: 'Sterling, VA', region: 'E' },
+            ILN: { name: 'Wilmington, OH', region: 'E' },
+            SGF: { name: 'Springfield, MO', region: 'C' },
+            DDC: { name: 'Dodge City, KS', region: 'C' },
+            DNR: { name: 'Denver, CO', region: 'C' },
+            GJT: { name: 'Grand Junction, CO', region: 'C' },
+            REV: { name: 'Reno, NV', region: 'W' },
+            OAK: { name: 'Oakland, CA', region: 'W' },
+            OKX: { name: 'Brookhaven, NY', region: 'E' },
+            ALY: { name: 'Albany, NY', region: 'E' },
+            PBZ: { name: 'Pittsburgh, PA', region: 'E' },
+            BUF: { name: 'Buffalo, NY', region: 'E' },
+            OAX: { name: 'Omaha Valley, NE', region: 'C' },
+            LBF: { name: 'North Platte, NE', region: 'C' },
+            SLC: { name: 'Salt Lake City, UT', region: 'W' },
+            LKN: { name: 'Elko, NV', region: 'W' },
+            MFR: { name: 'Medford, OR', region: 'W' },
+            GRB: { name: 'Green Bay, WI', region: 'C' },
+            MPX: { name: 'Chanhassen, MN', region: 'C' },
+            ABR: { name: 'Aberdeen, SD', region: 'C' },
+            UNR: { name: 'Rapid City, SD', region: 'C' },
+            RIW: { name: 'Riverton, WY', region: 'C' },
+            BOI: { name: 'Boise, ID', region: 'W' },
+            SLE: { name: 'Salem, OR', region: 'W' },
+            CAR: { name: 'Caribou, ME', region: 'E' },
+            INL: { name: 'International Falls, MN', region: 'C' },
+            BIS: { name: 'Bismarck, ND', region: 'C' },
+            GGW: { name: 'Glasgow, MT', region: 'W' },
+            TFX: { name: 'Great Falls, MT', region: 'W' },
+            OTX: { name: 'Spokane (OTX), WA', region: 'W' },
+            UIL: { name: 'Quillayute, WA', region: 'W' },
+            DVN: { name: 'Davenport, IA', region: 'C' },
+            CHH: { name: 'Chatham, MA', region: 'E' },
+            LMN: { name: 'Lamont, OK', region: 'F' },
+            XMR: { name: 'Cape Canaveral, FL', region: 'L' }
         };
 
         const parameterCategories = {
@@ -522,7 +603,8 @@
                 return datetimes;
             }
 
-            const datetimes = generateDatetimes();
+            const fullDatetimes = generateDatetimes();
+            let datetimes = fullDatetimes.slice();
 
             function formatDatetimeLabel(dt) {
                 const yy = dt.slice(0, 2);
@@ -546,33 +628,81 @@
                 return `${formatted} UTC`;
             }
 
-            datetimes.forEach(dt => {
-                const opt = document.createElement('option');
-                opt.value = dt;
-                opt.textContent = formatDatetimeLabel(dt);
-                sDatetime.appendChild(opt);
+            function populateDatetimes() {
+                const filterEl = document.getElementById('s_timefilter');
+                const filter = filterEl ? filterEl.value : 'both';
+
+                if (filter === '00') {
+                    datetimes = fullDatetimes.filter(d => d.endsWith('00'));
+                } else if (filter === '12') {
+                    datetimes = fullDatetimes.filter(d => d.endsWith('12'));
+                } else {
+                    datetimes = fullDatetimes.slice();
+                }
+
+                sDatetime.innerHTML = '';
+                datetimes.forEach(dt => {
+                    const opt = document.createElement('option');
+                    opt.value = dt;
+                    opt.textContent = formatDatetimeLabel(dt);
+                    sDatetime.appendChild(opt);
+                });
+
+                const slider = document.getElementById('s_datetime_slider');
+                const sLabel = document.getElementById('s_datetime_label');
+                if (slider) {
+                    slider.max = Math.max(0, datetimes.length - 1);
+                    slider.value = 0;
+                }
+                if (sLabel) {
+                    sLabel.textContent = datetimes.length ? formatDatetimeLabel(datetimes[0]) : '';
+                }
+            }
+
+            
+            populateDatetimes();
+
+            
+            const timeFilterEl = document.getElementById('s_timefilter');
+            if (timeFilterEl) {
+                timeFilterEl.addEventListener('change', function() {
+                    populateDatetimes();
+                    if (sDatetime.options.length > 0) sDatetime.selectedIndex = 0;
+                    updateAllSoundings();
+                });
+            }
+
+            
+            const regionNames = {
+                E: 'Eastern', S: 'Southern', C: 'Central', W: 'Western',
+                L: 'Military', F: 'Profiler', P: 'Pacific', A: 'Alaska',
+                M: 'Mexico', N: 'Canada', B: 'Caribbean', G: 'Greenland/Iceland'
+            };
+
+            const stationsByRegion = {};
+            Object.keys(stationData).forEach(code => {
+                const r = stationData[code].region || 'C';
+                if (!stationsByRegion[r]) stationsByRegion[r] = [];
+                stationsByRegion[r].push(code);
             });
 
-            // Setup slider to navigate datetimes
-            const slider = document.getElementById('s_datetime_slider');
-            const sLabel = document.getElementById('s_datetime_label');
-            if (slider) {
-                slider.max = Math.max(0, datetimes.length - 1);
-                slider.value = 0;
-            }
-            if (sLabel) {
-                sLabel.textContent = datetimes.length ? formatDatetimeLabel(datetimes[0]) : '';
-            }
+            const regionOrder = ['E','S','C','W','L','F','P','A','M','N','B','G'];
 
-            const stationCodes = Object.keys(stationNames).sort((a, b) => stationNames[a].localeCompare(stationNames[b]));
             stationIds.forEach(id => {
                 const sel = document.getElementById(id);
                 sel.innerHTML = '';
-                stationCodes.forEach(code => {
-                    const opt = document.createElement('option');
-                    opt.value = code;
-                    opt.textContent = stationNames[code];
-                    sel.appendChild(opt);
+                regionOrder.forEach(r => {
+                    const codes = stationsByRegion[r];
+                    if (!codes || codes.length === 0) return;
+                    const optgroup = document.createElement('optgroup');
+                    optgroup.label = `${regionNames[r] || r} (${r})`;
+                    codes.sort((a,b) => stationData[a].name.localeCompare(stationData[b].name)).forEach(code => {
+                        const opt = document.createElement('option');
+                        opt.value = code;
+                        opt.textContent = stationData[code].name;
+                        optgroup.appendChild(opt);
+                    });
+                    sel.appendChild(optgroup);
                 });
             });
 
@@ -608,7 +738,7 @@
                 for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
             }
 
-            // sync select <-> slider and update on changes
+            
             const sliderEl = document.getElementById('s_datetime_slider');
             if (sliderEl) {
                 sliderEl.addEventListener('input', function() {
