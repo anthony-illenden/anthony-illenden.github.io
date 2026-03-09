@@ -6,1045 +6,562 @@
     <title>SPC Mesoscale Analysis</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
     <style>
-        html, body {
-            margin: 0;
-            padding: 0;
-            width: 100%;
-            height: 100%;
-            font-family: 'Roboto', sans-serif;
-        }
-        nav {
-            background-color: #333;
-            overflow: hidden;
-            text-align: center;
-        }
-        nav a {
-            display: inline-block;
-            color: #f2f2f2;
-            text-align: center;
-            padding: 14px 16px;
-            text-decoration: none;
-        }
-        nav a:hover {
-            background-color: #ddd;
-            color: black;
-        }
+        html, body { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Roboto', sans-serif; }
+        nav { background-color: #333; overflow: hidden; text-align: center; }
+        nav a { display: inline-block; color: #f2f2f2; text-align: center; padding: 14px 16px; text-decoration: none; }
+        nav a:hover { background-color: #ddd; color: black; }
         .hero-section {
             background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
-            background-size: cover;
-            background-position: center;
-            height: 400px;
-            position: relative;
-            width: 100vw;
+            background-size: cover; background-position: center; height: 400px; position: relative; width: 100vw;
         }
         .hero-text {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            color: white;
-            background-color: rgba(0, 0, 0, 0.5);
-            padding: 20px;
-            border-radius: 5px;
-            text-align: center;
+            position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
+            color: white; background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 5px; text-align: center;
         }
-        .hero-text h1 {
-            margin: 0;
-            font-size: 2em;
+        .hero-text h1 { margin: 0; font-size: 2em; }
+        .container { max-width: 1600px; margin: auto; margin-top: 40px; }
+        .mode-selector { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
+        .mode-selector button {
+            padding: 10px 15px; margin: 0 5px; cursor: pointer;
+            border: 2px solid #333; background-color: white; border-radius: 4px;
         }
-        .container {
-            max-width: 1600px;
-            margin: auto;
-            margin-top: 40px;
-        }
-        .mode-selector {
-            margin-bottom: 20px;
+        .mode-selector button.active { background-color: #333; color: white; }
+        .controls { margin-bottom: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
+        .panel-control { display: flex; flex-direction: column; gap: 5px; }
+        .panel-control select { width: 100%; box-sizing: border-box; }
+        .panel-control label { font-weight: bold; font-size: 0.9em; }
+        .controls select, .controls input { padding: 8px; }
+        .error { color: red; font-weight: bold; }
+        .image-container { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
+        .image-panel { text-align: center; }
+        .image-panel h3 { margin: 0 0 10px 0; font-size: 1em; }
+        img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }
+        .sounding-datetime-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
+        .sounding-datetime-row label { font-weight: bold; }
+        .sounding-datetime-row #s_datetime { min-width: 200px; padding: 8px; }
+        .sounding-datetime-row #s_datetime_slider { width: 300px; }
+        .sounding-datetime-row #s_datetime_label { font-weight: 600; }
+        .sounding-note { font-style: italic; color: #555; margin-bottom: 12px; }
+        .sounding-station-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
+        .sounding-station-grid .panel-control select { width: 100%; box-sizing: border-box; padding: 8px; }
+
+        /* Forecast slider bar */
+        .forecast-bar {
             display: flex;
             align-items: center;
-            gap: 15px;
+            gap: 14px;
+            padding: 10px 16px;
+            background: #f0f4ff;
+            border: 1px solid #b0c4de;
+            border-radius: 6px;
+            flex-wrap: wrap;
+            margin-bottom: 6px;
         }
-        .mode-selector label {
-            margin-right: 0;
-        }
-        .mode-selector button {
-            padding: 10px 15px;
-            margin: 0 5px;
-            cursor: pointer;
-            border: 2px solid #333;
-            background-color: white;
-            border-radius: 4px;
-        }
-        .mode-selector button.active {
-            background-color: #333;
-            color: white;
-        }
-        .controls {
-            margin-bottom: 20px;
-            display: grid;
-            grid-template-columns: repeat(2, 1fr);
-            gap: 15px;
-        }
-        .panel-control {
-            display: flex;
-            flex-direction: column;
-            gap: 5px;
-        }
-        .panel-control select {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .panel-control label {
-            margin-right: 0;
-            font-weight: bold;
-            font-size: 0.9em;
-        }
-        .controls select,
-        .controls input {
-            padding: 8px;
-            margin-right: 0;
-        }
-        .error {
-            color: red;
-            font-weight: bold;
-        }
-        .image-container {
-            margin-top: 20px;
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 0px;
-        }
-        .image-panel {
-            text-align: center;
-        }
-        .image-panel h3 {
-            margin: 0 0 10px 0;
-            font-size: 1em;
-        }
-        img {
-            max-width: 100%;
-            height: auto;
-            border: 1px solid #ddd;
-            border-radius: 4px;
-        }
-        .sounding-datetime-row {
+        .forecast-bar label { font-weight: bold; font-size: 0.9em; white-space: nowrap; }
+        .forecast-bar .fcst-track {
             display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
-            margin-bottom: 15px;
+            flex: 1;
+            min-width: 260px;
         }
-        .sounding-datetime-row label {
-            font-weight: bold;
+        .forecast-bar input[type=range] {
+            flex: 1;
+            cursor: pointer;
+            accent-color: #336;
         }
-        .sounding-datetime-row #s_datetime {
-            min-width: 200px;
-            padding: 8px;
+        .fcst-value-label {
+            font-weight: 700;
+            font-size: 0.95em;
+            color: #336;
+            min-width: 48px;
+            text-align: left;
         }
-        .sounding-datetime-row #s_datetime_slider {
-            width: 300px;
-        }
-        .sounding-datetime-row #s_datetime_label {
-            font-weight: 600;
-        }
-        .sounding-note {
-            font-style: italic;
+        .fcst-tick-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72em;
             color: #555;
-            margin-bottom: 12px;
+            padding: 0 2px;
+            margin-top: -4px;
+            width: 100%;
         }
-        .sounding-station-grid {
-            <!DOCTYPE html>
-            <html lang="en">
-            <head>
-                <meta charset="UTF-8">
-                <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                <title>SPC Mesoscale Analysis</title>
-                <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
-                <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
-    
-                <style>
-                    html, body {
-                        margin: 0;
-                        padding: 0;
-                        width: 100%;
-                        height: 100%;
-                        font-family: 'Roboto', sans-serif;
-                    }
-                    nav {
-                        background-color: #333;
-                        overflow: hidden;
-                        text-align: center;
-                    }
-                    nav a {
-                        display: inline-block;
-                        color: #f2f2f2;
-                        text-align: center;
-                        padding: 14px 16px;
-                        text-decoration: none;
-                    }
-                    nav a:hover {
-                        background-color: #ddd;
-                        color: black;
-                    }
-                    .hero-section {
-                        background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
-                        background-size: cover;
-                        background-position: center;
-                        height: 400px;
-                        position: relative;
-                        width: 100vw;
-                    }
-                    .hero-text {
-                        position: absolute;
-                        top: 50%;
-                        left: 50%;
-                        transform: translate(-50%, -50%);
-                        color: white;
-                        background-color: rgba(0, 0, 0, 0.5);
-                        padding: 20px;
-                        border-radius: 5px;
-                        text-align: center;
-                    }
-                    .hero-text h1 {
-                        margin: 0;
-                        font-size: 2em;
-                    }
-                    .container {
-                        max-width: 1600px;
-                        margin: auto;
-                        margin-top: 40px;
-                    }
-                    .mode-selector {
-                        margin-bottom: 20px;
-                        display: flex;
-                        align-items: center;
-                        gap: 15px;
-                    }
-                    .mode-selector label {
-                        margin-right: 0;
-                    }
-                    .mode-selector button {
-                        padding: 10px 15px;
-                        margin: 0 5px;
-                        cursor: pointer;
-                        border: 2px solid #333;
-                        background-color: white;
-                        border-radius: 4px;
-                    }
-                    .mode-selector button.active {
-                        background-color: #333;
-                        color: white;
-                    }
-                    .controls {
-                        margin-bottom: 20px;
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 15px;
-                    }
-                    .panel-control {
-                        display: flex;
-                        flex-direction: column;
-                        gap: 5px;
-                    }
-                    .panel-control select {
-                        width: 100%;
-                        box-sizing: border-box;
-                    }
-                    .panel-control label {
-                        margin-right: 0;
-                        font-weight: bold;
-                        font-size: 0.9em;
-                    }
-                    .controls select,
-                    .controls input {
-                        padding: 8px;
-                        margin-right: 0;
-                    }
-                    .error {
-                        color: red;
-                        font-weight: bold;
-                    }
-                    .image-container {
-                        margin-top: 20px;
-                        display: grid;
-                        grid-template-columns: 1fr 1fr;
-                        gap: 0px;
-                    }
-                    .image-panel {
-                        text-align: center;
-                    }
-                    .image-panel h3 {
-                        margin: 0 0 10px 0;
-                        font-size: 1em;
-                    }
-                    img {
-                        max-width: 100%;
-                        height: auto;
-                        border: 1px solid #ddd;
-                        border-radius: 4px;
-                    }
-                    .sounding-datetime-row {
-                        display: flex;
-                        align-items: center;
-                        gap: 10px;
-                        flex-wrap: wrap;
-                        margin-bottom: 15px;
-                    }
-                    .sounding-datetime-row label {
-                        font-weight: bold;
-                    }
-                    .sounding-datetime-row #s_datetime {
-                        min-width: 200px;
-                        padding: 8px;
-                    }
-                    .sounding-datetime-row #s_datetime_slider {
-                        width: 300px;
-                    }
-                    .sounding-datetime-row #s_datetime_label {
-                        font-weight: 600;
-                    }
-                    .sounding-note {
-                        font-style: italic;
-                        color: #555;
-                        margin-bottom: 12px;
-                    }
-                    .sounding-station-grid {
-                        display: grid;
-                        grid-template-columns: repeat(2, 1fr);
-                        gap: 15px;
-                        margin-bottom: 20px;
-                    }
-                    .sounding-station-grid .panel-control select {
-                        width: 100%;
-                        box-sizing: border-box;
-                        padding: 8px;
-                    }
-                </style>
-            </head>
-            <body>
-                <div class="hero-section">
-                    <div class="hero-text">
-                        <h1>SPC Mesoscale Analysis</h1>
-                    </div>
-                </div>
-                <nav>
-                    <a href="https://anthony-illenden.github.io/index.html">Home</a>
-                    <a href="https://anthony-illenden.github.io/semichigan.html">SE Michigan</a>
-                    <a href="https://anthony-illenden.github.io/snowdaycalc.html">Snow Day Calculator</a>
-                    <a href="https://anthony-illenden.github.io/spcmesoanalysis.html">SPC Mesoanalysis</a>
-                    <a href="https://anthony-illenden.github.io/models.html">Models</a>
-                    <a href="https://anthony-illenden.github.io/winter.html">Winter</a>
-                    <a href="https://anthony-illenden.github.io/about.html">About</a>
-                </nav>
-                <div class="container">
-                    <h1>SPC Mesoscale Analysis</h1>
-                </div>
-                <div class="container">
-                    <label for="sectorSelect">Select Sector:</label>
-                    <select id="sectorSelect" onchange="updateParameters()">
-                        <option value="s19">CONUS</option>
-                        <option value="s13">Northern Great Plains</option>
-                        <option value="s14">Central Great Plains</option>
-                        <option value="s15">Southern Great Plains</option>
-                        <option value="s16">Northeast</option>
-                        <option value="s17">Southeast</option>
-                        <option value="s20">Midwest</option>
-                        <option value="s21">Great Lakes</option>
-                    </select>
-                </div>
+        .fcst-note { font-size: 0.78em; color: #666; font-style: italic; }
+        .forecast-badge {
+            display: inline-block; margin-left: 6px; padding: 1px 7px;
+            background: #336; color: white; border-radius: 10px;
+            font-size: 0.7em; font-weight: 700; vertical-align: middle;
+        }
+    </style>
+</head>
+<body>
+    <div class="hero-section">
+        <div class="hero-text"><h1>SPC Mesoscale Analysis</h1></div>
+    </div>
+    <nav>
+        <a href="https://anthony-illenden.github.io/index.html">Home</a>
+        <a href="https://anthony-illenden.github.io/semichigan.html">SE Michigan</a>
+        <a href="https://anthony-illenden.github.io/snowdaycalc.html">Snow Day Calculator</a>
+        <a href="https://anthony-illenden.github.io/spcmesoanalysis.html">SPC Mesoanalysis</a>
+        <a href="https://anthony-illenden.github.io/models.html">Models</a>
+        <a href="https://anthony-illenden.github.io/winter.html">Winter</a>
+        <a href="https://anthony-illenden.github.io/about.html">About</a>
+    </nav>
 
-                <div class="container">
-                    <div class="mode-selector">
-                        <label>Display Mode:</label>
-                        <button data-mode="single" onclick="setMode('single', event)">Single Panel</button>
-                        <button class="active" data-mode="grid" onclick="setMode('grid', event)">4 Panel</button>
-                    </div>
-                </div>
+    <div class="container"><h1>SPC Mesoscale Analysis</h1></div>
 
-                <div class="container">
-                    <div id="globalForecastBar" class="forecast-bar visible">
-                        <label>Forecast:</label>
-                        <input type="range" id="globalFcstSlider" min="0" max="4" step="1" value="0">
-                        <span id="globalFcstLabel">Obs</span>
-                    </div>
-                </div>
+    <div class="container">
+        <label for="sectorSelect">Select Sector:</label>
+        <select id="sectorSelect" onchange="displayAllGIFs()">
+            <option value="s19">CONUS</option>
+            <option value="s13">Northern Great Plains</option>
+            <option value="s14">Central Great Plains</option>
+            <option value="s15">Southern Great Plains</option>
+            <option value="s16">Northeast</option>
+            <option value="s17">Southeast</option>
+            <option value="s20">Midwest</option>
+            <option value="s21">Great Lakes</option>
+        </select>
+    </div>
 
-                <div class="container">
-                    <div class="controls" id="controls">
-                        <div class="panel-control">
-                            <label for="panel1Select">Panel 1</label>
-                            <select id="panel1Select" onchange="displayAllGIFs()"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="panel2Select">Panel 2</label>
-                            <select id="panel2Select" onchange="displayAllGIFs()"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="panel3Select">Panel 3</label>
-                            <select id="panel3Select" onchange="displayAllGIFs()"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="panel4Select">Panel 4</label>
-                            <select id="panel4Select" onchange="displayAllGIFs()"></select>
-                        </div>
-                    </div>
-                </div>
+    <div class="container">
+        <div class="mode-selector">
+            <label>Display Mode:</label>
+            <button data-mode="single" onclick="setMode('single',event)">Single Panel</button>
+            <button class="active" data-mode="grid" onclick="setMode('grid',event)">4 Panel</button>
+        </div>
+    </div>
 
-                <div class="image-container" id="imageContainer">
-                    <div class="image-panel" id="panel1">
-                        <h3>Panel 1 <span id="panelFcstLabel1" class="forecast-badge">Obs</span></h3>
-                        <img id="gifDisplay-1" src="" alt="Panel 1">
-                    </div>
-                    <div class="image-panel" id="panel2">
-                        <h3>Panel 2 <span id="panelFcstLabel2" class="forecast-badge">Obs</span></h3>
-                        <img id="gifDisplay-2" src="" alt="Panel 2">
-                    </div>
-                    <div class="image-panel" id="panel3">
-                        <h3>Panel 3 <span id="panelFcstLabel3" class="forecast-badge">Obs</span></h3>
-                        <img id="gifDisplay-3" src="" alt="Panel 3">
-                    </div>
-                    <div class="image-panel" id="panel4">
-                        <h3>Panel 4 <span id="panelFcstLabel4" class="forecast-badge">Obs</span></h3>
-                        <img id="gifDisplay-4" src="" alt="Panel 4">
-                    </div>
-                </div>
+    <!-- Single global forecast slider for all panels -->
+    <div class="container">
+        <div class="forecast-bar">
+            <label>⚡ RAP Forecast:</label>
+            <div class="fcst-track">
+                <input type="range" id="globalFcstSlider" min="0" max="4" step="1" value="0">
+                <span class="fcst-value-label" id="globalFcstLabel">Obs</span>
+            </div>
+            <div class="fcst-tick-row" style="width:100%; padding-left:132px;">
+                <span>Obs</span><span>+0h</span><span>+2h</span><span>+4h</span><span>+6h</span>
+            </div>
+            <span class="fcst-note">⚡ params only · RAP updated ~every 3h</span>
+        </div>
+    </div>
 
-                <div class="container">
-                    <h2>SPC Soundings</h2>
-                    <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
-                    <div class="sounding-datetime-row">
-                        <label for="s_datetime">Select DateTime:</label>
-                        <label for="s_timefilter">Time Filter:</label>
-                        <select id="s_timefilter">
-                            <option value="both">Both (00/12z)</option>
-                            <option value="00">00z only</option>
-                            <option value="12">12z only</option>
-                        </select>
-                        <select id="s_datetime"></select>
-                        <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
-                        <span id="s_datetime_label"></span>
-                    </div>
-                    <div class="sounding-station-grid">
-                        <div class="panel-control">
-                            <label for="station1">Sounding 1</label>
-                            <select id="station1"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="station2">Sounding 2</label>
-                            <select id="station2"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="station3">Sounding 3</label>
-                            <select id="station3"></select>
-                        </div>
-                        <div class="panel-control">
-                            <label for="station4">Sounding 4</label>
-                            <select id="station4"></select>
-                        </div>
-                    </div>
-                    <div class="image-container" id="soundingsContainer">
-                        <div class="image-panel">
-                            <h3>Sounding 1</h3>
-                            <img id="sounding1" src="" alt="Sounding 1">
-                            <p id="serror1" class="error" style="display:none;">Image not available.</p>
-                        </div>
-                        <div class="image-panel">
-                            <h3>Sounding 2</h3>
-                            <img id="sounding2" src="" alt="Sounding 2">
-                            <p id="serror2" class="error" style="display:none;">Image not available.</p>
-                        </div>
-                        <div class="image-panel">
-                            <h3>Sounding 3</h3>
-                            <img id="sounding3" src="" alt="Sounding 3">
-                            <p id="serror3" class="error" style="display:none;">Image not available.</p>
-                        </div>
-                        <div class="image-panel">
-                            <h3>Sounding 4</h3>
-                            <img id="sounding4" src="" alt="Sounding 4">
-                            <p id="serror4" class="error" style="display:none;">Image not available.</p>
-                        </div>
-                    </div>
-                </div>
+    <div class="container">
+        <div class="controls" id="controls">
+            <div class="panel-control">
+                <label for="panel1Select">Panel 1</label>
+                <select id="panel1Select" onchange="displayAllGIFs()"></select>
+            </div>
+            <div class="panel-control">
+                <label for="panel2Select">Panel 2</label>
+                <select id="panel2Select" onchange="displayAllGIFs()"></select>
+            </div>
+            <div class="panel-control">
+                <label for="panel3Select">Panel 3</label>
+                <select id="panel3Select" onchange="displayAllGIFs()"></select>
+            </div>
+            <div class="panel-control">
+                <label for="panel4Select">Panel 4</label>
+                <select id="panel4Select" onchange="displayAllGIFs()"></select>
+            </div>
+        </div>
+    </div>
 
-                <script>
-                    const parameterNames = {
-                        mlcp: 'Mixed-Layer CAPE',
-                        sbcp: 'Surface-Based CAPE',
-                        mucp: 'Most-Unstable CAPE',
-                        dcape: 'Downdraft CAPE',
-                        lllr: 'Low-Level Lapse Rates',
-                        laps: 'Mid-Level Lapse Rates',
-                        lclh: 'Lifted Condensation Height',
-                        lfch: 'Level of Free Convection Height',
-                        skewt: 'Skew-T Log-P',
-                        hodo: 'Hodographs',
-                        '300mb': '300mb Wind',
-                        '500mb': '500mb Wind',
-                        '700mb': '700mb Wind',
-                        '850mb2': '850mb Wind',
-                        '925mb': '925mb Wind',
-                        eshr: 'Effective Bulk Shear',
-                        shr1: 'Bulk Shear 0-1 km',
-                        shr3: 'Bulk Shear 0-6 km',
-                        srh1: 'SRH 0-1 km',
-                        srh3: 'SRH 0-3 km',
-                        cpsh: 'MUCAPE / Effective Bulk Shear',
-                        mlcp_eshr: 'MLCAPE / Effective Bulk Shear',
-                        '3cvr': '3CAPE & Surface Vorticity',
-                        hail: 'Hail',
-                        scp: 'Supercell Composite (SCP)',
-                        stpc: 'Significant Tornado Parameter (effective inflow)',
-                        vtp3: 'Violent Tornado Parameter',
-                        vadv: 'Differential Vorticity Advection',
-                        padv: 'Potential Vorticity Advection',
-                        tadv_925: '925mb Temperature Advection',
-                        tadv: '850mb Temperature Advection',
-                        '7tad': '700mb Temperature Advection',
-                        thea: 'Surface Theta-E Advection',
-                        '925f': '1000-925mb Frontogenesis',
-                        '98ft': '925-850mb Frontogenesis',
-                        '857f': '850-700mb Frontogenesis',
-                        '75ft': '700-500mb Frontogenesis',
-                        mcon: 'Moisture Convergence',
-                        mxth: 'Surface Mixing Ratio',
-                        mixr: 'Mean Mixing Ratio',
-                        tran_925: '925mb Moisture Transport',
-                        tran: '850mb Moisture Transport',
-                        pmsl: 'MSLP and Winds',
-                        pchg: 'Two-Hour Pressure Change',
-                        '500mb_chg': '12hr Height Falls (500mb)',
-                        dwpt_chg: '3 Hour Dewpoint Change',
-                        ddiv: 'Differential Divergence',
-                        dlcp: 'Deep Moist Convergence',
-                        ttd: 'Surface Temperature, Dewpoint, MSLP, and Winds'
-                    };
+    <div class="image-container" id="imageContainer">
+        <div class="image-panel" id="panel1">
+            <h3 id="panelTitle1">Panel 1</h3>
+            <img id="gifDisplay-1" src="" alt="Panel 1">
+        </div>
+        <div class="image-panel" id="panel2">
+            <h3 id="panelTitle2">Panel 2</h3>
+            <img id="gifDisplay-2" src="" alt="Panel 2">
+        </div>
+        <div class="image-panel" id="panel3">
+            <h3 id="panelTitle3">Panel 3</h3>
+            <img id="gifDisplay-3" src="" alt="Panel 3">
+        </div>
+        <div class="image-panel" id="panel4">
+            <h3 id="panelTitle4">Panel 4</h3>
+            <img id="gifDisplay-4" src="" alt="Panel 4">
+        </div>
+    </div>
 
-                    // region codes from NCEP: E=Eastern, S=Southern, C=Central, W=Western, L=Military, F=Profiler, P=Pacific 
-                    const stationData = {
-                        OUN: { name: 'Norman, OK', region: 'S' },
-                        FWD: { name: 'Dallas, TX', region: 'S' },
-                        DTX: { name: 'Detroit, MI', region: 'C' },
-                        ILX: { name: 'Lincoln, IL', region: 'C' },
-                        APX: { name: 'Gaylord, MI', region: 'C' },
-                        DRT: { name: 'Del Rio, TX', region: 'S' },
-                        BRO: { name: 'Brownsville, TX', region: 'S' },
-                        TOP: { name: 'Topeka, KS', region: 'C' },
-                        EPZ: { name: 'El Paso, TX', region: 'S' },
-                        KEY: { name: 'Key West, FL', region: 'S' },
-                        MFL: { name: 'Miami, FL', region: 'S' },
-                        JAX: { name: 'Jacksonville, FL', region: 'S' },
-                        CHS: { name: 'Charleston, SC', region: 'E' },
-                        TBW: { name: 'Tampa, FL', region: 'S' },
-                        TAE: { name: 'Tallahassee, FL', region: 'S' },
-                        FFC: { name: 'Peachtree, GA', region: 'S' },
-                        VPS: { name: 'Valparaiso, FL', region: 'S' },
-                        BMX: { name: 'Shelby Co, AL', region: 'S' },
-                        LIX: { name: 'Slidell, LA', region: 'S' },
-                        JAN: { name: 'Jackson, MS', region: 'S' },
-                        LCH: { name: 'Lake Charles, LA', region: 'S' },
-                        SHV: { name: 'Shreveport, LA', region: 'S' },
-                        CRP: { name: 'Corpus Christi, TX', region: 'S' },
-                        MAF: { name: 'Midland, TX', region: 'S' },
-                        TWC: { name: 'Tucson, AZ', region: 'W' },
-                        NKX: { name: 'San Diego, CA', region: 'W' },
-                        MHX: { name: 'Morehead City, NC', region: 'E' },
-                        GSO: { name: 'Greensboro, NC', region: 'E' },
-                        RNK: { name: 'Blacksburg, VA', region: 'E' },
-                        OHX: { name: 'Nashville, TN', region: 'S' },
-                        LZK: { name: 'Little Rock, AR', region: 'S' },
-                        AMA: { name: 'Amarillo, TX', region: 'S' },
-                        ABQ: { name: 'Albuquerque, NM', region: 'S' },
-                        FGZ: { name: 'Flagstaff, AZ', region: 'W' },
-                        EDW: { name: 'Edwards AFB, CA', region: 'L' },
-                        VEF: { name: 'Las Vegas, NV', region: 'W' },
-                        WAL: { name: 'Wallops Island, VA', region: 'E' },
-                        LWX: { name: 'Sterling, VA', region: 'E' },
-                        ILN: { name: 'Wilmington, OH', region: 'E' },
-                        SGF: { name: 'Springfield, MO', region: 'C' },
-                        DDC: { name: 'Dodge City, KS', region: 'C' },
-                        DNR: { name: 'Denver, CO', region: 'C' },
-                        GJT: { name: 'Grand Junction, CO', region: 'C' },
-                        REV: { name: 'Reno, NV', region: 'W' },
-                        OAK: { name: 'Oakland, CA', region: 'W' },
-                        OKX: { name: 'Brookhaven, NY', region: 'E' },
-                        ALY: { name: 'Albany, NY', region: 'E' },
-                        PBZ: { name: 'Pittsburgh, PA', region: 'E' },
-                        BUF: { name: 'Buffalo, NY', region: 'E' },
-                        OAX: { name: 'Omaha Valley, NE', region: 'C' },
-                        LBF: { name: 'North Platte, NE', region: 'C' },
-                        SLC: { name: 'Salt Lake City, UT', region: 'W' },
-                        LKN: { name: 'Elko, NV', region: 'W' },
-                        MFR: { name: 'Medford, OR', region: 'W' },
-                        GRB: { name: 'Green Bay, WI', region: 'C' },
-                        MPX: { name: 'Chanhassen, MN', region: 'C' },
-                        ABR: { name: 'Aberdeen, SD', region: 'C' },
-                        UNR: { name: 'Rapid City, SD', region: 'C' },
-                        RIW: { name: 'Riverton, WY', region: 'C' },
-                        BOI: { name: 'Boise, ID', region: 'W' },
-                        SLE: { name: 'Salem, OR', region: 'W' },
-                        CAR: { name: 'Caribou, ME', region: 'E' },
-                        INL: { name: 'International Falls, MN', region: 'C' },
-                        BIS: { name: 'Bismarck, ND', region: 'C' },
-                        GGW: { name: 'Glasgow, MT', region: 'W' },
-                        TFX: { name: 'Great Falls, MT', region: 'W' },
-                        OTX: { name: 'Spokane (OTX), WA', region: 'W' },
-                        UIL: { name: 'Quillayute, WA', region: 'W' },
-                        DVN: { name: 'Davenport, IA', region: 'C' },
-                        CHH: { name: 'Chatham, MA', region: 'E' },
-                        LMN: { name: 'Lamont, OK', region: 'F' },
-                        XMR: { name: 'Cape Canaveral, FL', region: 'L' }
-                    };
+    <div class="container">
+        <h2>SPC Soundings</h2>
+        <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
+        <div class="sounding-datetime-row">
+            <label for="s_datetime">Select DateTime:</label>
+            <label for="s_timefilter">Time Filter:</label>
+            <select id="s_timefilter">
+                <option value="both">Both (00/12z)</option>
+                <option value="00">00z only</option>
+                <option value="12">12z only</option>
+            </select>
+            <select id="s_datetime"></select>
+            <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
+            <span id="s_datetime_label"></span>
+        </div>
+        <div class="sounding-station-grid">
+            <div class="panel-control"><label for="station1">Sounding 1</label><select id="station1"></select></div>
+            <div class="panel-control"><label for="station2">Sounding 2</label><select id="station2"></select></div>
+            <div class="panel-control"><label for="station3">Sounding 3</label><select id="station3"></select></div>
+            <div class="panel-control"><label for="station4">Sounding 4</label><select id="station4"></select></div>
+        </div>
+        <div class="image-container" id="soundingsContainer">
+            <div class="image-panel">
+                <h3>Sounding 1</h3>
+                <img id="sounding1" src="" alt="Sounding 1">
+                <p id="serror1" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 2</h3>
+                <img id="sounding2" src="" alt="Sounding 2">
+                <p id="serror2" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 3</h3>
+                <img id="sounding3" src="" alt="Sounding 3">
+                <p id="serror3" class="error" style="display:none;">Image not available.</p>
+            </div>
+            <div class="image-panel">
+                <h3>Sounding 4</h3>
+                <img id="sounding4" src="" alt="Sounding 4">
+                <p id="serror4" class="error" style="display:none;">Image not available.</p>
+            </div>
+        </div>
+    </div>
 
-                    const parameterCategories = {
-                        'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'],
-                        'Soundings': ['skewt','hodo'],
-                        'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
-                        'Wind Shear': ['eshr','shr1','shr3','srh1','srh3'],
-                        'Composite Parameters': ['cpsh','mlcp_eshr','3cvr','hail','scp','stpc','vtp3'],
-                        'Advection': ['vadv','padv','tadv_925','tadv','7tad','thea','ddiv'],
-                        'Frontogenesis': ['925f','98ft','857f','75ft'],
-                        'Moisture': ['mcon','mxth','mixr','tran_925','tran','dlcp'],
-                        'Surface / Pressure': ['pmsl','pchg','500mb_chg','dwpt_chg','ddiv','dlcp','ttd']
-                    };
+<script>
+// ── Parameter metadata ────────────────────────────────────────────────────────
+const parameterNames = {
+    mlcp:'Mixed-Layer CAPE', sbcp:'Surface-Based CAPE', mucp:'Most-Unstable CAPE',
+    dcape:'Downdraft CAPE', lllr:'Low-Level Lapse Rates', laps:'Mid-Level Lapse Rates',
+    lclh:'Lifted Condensation Height', lfch:'Level of Free Convection Height',
+    skewt:'Skew-T Log-P', hodo:'Hodographs',
+    '300mb':'300mb Wind', '500mb':'500mb Wind', '700mb':'700mb Wind',
+    '850mb2':'850mb Wind', '925mb':'925mb Wind',
+    eshr:'Effective Bulk Shear', shr1:'Bulk Shear 0-1 km', shr3:'Bulk Shear 0-6 km',
+    srh1:'SRH 0-1 km', srh3:'SRH 0-3 km',
+    cpsh:'MUCAPE / Effective Bulk Shear', mlcp_eshr:'MLCAPE / Effective Bulk Shear',
+    '3cvr':'3CAPE & Surface Vorticity', hail:'Hail',
+    scp:'Supercell Composite (SCP)', stpc:'Significant Tornado Parameter (effective inflow)',
+    vtp3:'Violent Tornado Parameter', vadv:'Differential Vorticity Advection',
+    padv:'Potential Vorticity Advection', tadv_925:'925mb Temperature Advection',
+    tadv:'850mb Temperature Advection', '7tad':'700mb Temperature Advection',
+    thea:'Surface Theta-E Advection', '925f':'1000-925mb Frontogenesis',
+    '98ft':'925-850mb Frontogenesis', '857f':'850-700mb Frontogenesis',
+    '75ft':'700-500mb Frontogenesis', mcon:'Moisture Convergence',
+    mxth:'Surface Mixing Ratio', mixr:'Mean Mixing Ratio',
+    tran_925:'925mb Moisture Transport', tran:'850mb Moisture Transport',
+    pmsl:'MSLP and Winds', pchg:'Two-Hour Pressure Change',
+    '500mb_chg':'12hr Height Falls (500mb)', dwpt_chg:'3 Hour Dewpoint Change',
+    ddiv:'Differential Divergence', dlcp:'Deep Moist Convergence',
+    ttd:'Surface Temperature, Dewpoint, MSLP, and Winds'
+};
 
-                    const urlPatterns = {
-                        default: '/${parameterCode}/${parameterCode}_sf.gif',
-                        skewt: '/${parameterCode}/${parameterCode}.gif',
-                        dcape: '/${parameterCode}/${parameterCode}.gif',
-                        mcon: '/${parameterCode}/${parameterCode}.gif',
-                        pmsl: '/${parameterCode}/${parameterCode}.gif',
-                        mxth: '/${parameterCode}/${parameterCode}.gif',
-                        mixr: '/${parameterCode}/${parameterCode}.gif',
-                        pchg: '/${parameterCode}/${parameterCode}.gif',
-                        '925f': '/${parameterCode}/${parameterCode}.gif',
-                        '98ft': '/${parameterCode}/${parameterCode}.gif',
-                        '857f': '/${parameterCode}/${parameterCode}.gif',
-                        '75ft': '/${parameterCode}/${parameterCode}.gif',
-                        cpsh: '/${parameterCode}/${parameterCode}.gif',
-                        mlcp_eshr: '/${parameterCode}/${parameterCode}.gif',
-                        '3cvr': '/${parameterCode}/${parameterCode}.gif',
-                        hail: '/${parameterCode}/${parameterCode}.gif',
-                        tran_925: '/${parameterCode}/${parameterCode}.gif',
-                        tran: '/${parameterCode}/${parameterCode}.gif',
-                        '500mb_chg': '/${parameterCode}/${parameterCode}.gif',
-                        scp: '/${parameterCode}/${parameterCode}.gif',
-                        stpc: '/${parameterCode}/${parameterCode}.gif',
-                        vtp3: '/${parameterCode}/${parameterCode}.gif',
-                        hodo: '/${parameterCode}/${parameterCode}.gif',
-                        eshr: '/${parameterCode}/${parameterCode}.gif',
-                        shr1: '/${parameterCode}/${parameterCode}.gif',
-                        shr3: '/${parameterCode}/${parameterCode}.gif',
-                        srh1: '/${parameterCode}/${parameterCode}.gif',
-                        srh3: '/${parameterCode}/${parameterCode}.gif',
-                        dwpt_chg: '/${parameterCode}/${parameterCode}.gif',
-                        thea: '/${parameterCode}/${parameterCode}.gif',
-                        ddiv: '/${parameterCode}/${parameterCode}.gif',
-                        dlcp: '/${parameterCode}/${parameterCode}.gif',
-                        ttd: '/${parameterCode}/${parameterCode}.gif'
-                    };
+// Parameters that have RAP forecast imagery
+const forecastParams = new Set([
+    'pmsl','sbcp','scp','stpc','effh','ttd','mlcp','lllr','fosb','3cvr',
+    'dcape','thea','cbsig','eshr','srh1','brns','snsq','lr3c','sigh',
+    '500mb','700mb','850mb2','925mb','dlcp','dvvr','lfrh','laps',
+    'moshe','hodo','skewt'
+]);
 
-                    
-                    let currentMode = 'grid';
-                    let imageCount = 4;
+// Slider positions → forecast offset hours ('obs' = analysis)
+const FCST_STOPS = ['obs', 0, 2, 4, 6];
 
-                    
-                    const panelForecastHour = { 1: 'obs', 2: 'obs', 3: 'obs', 4: 'obs' };
+const stationData = {
+    OUN:{name:'Norman, OK',region:'S'}, FWD:{name:'Dallas, TX',region:'S'},
+    DTX:{name:'Detroit, MI',region:'C'}, ILX:{name:'Lincoln, IL',region:'C'},
+    APX:{name:'Gaylord, MI',region:'C'}, DRT:{name:'Del Rio, TX',region:'S'},
+    BRO:{name:'Brownsville, TX',region:'S'}, TOP:{name:'Topeka, KS',region:'C'},
+    EPZ:{name:'El Paso, TX',region:'S'}, KEY:{name:'Key West, FL',region:'S'},
+    MFL:{name:'Miami, FL',region:'S'}, JAX:{name:'Jacksonville, FL',region:'S'},
+    CHS:{name:'Charleston, SC',region:'E'}, TBW:{name:'Tampa, FL',region:'S'},
+    TAE:{name:'Tallahassee, FL',region:'S'}, FFC:{name:'Peachtree, GA',region:'S'},
+    VPS:{name:'Valparaiso, FL',region:'S'}, BMX:{name:'Shelby Co, AL',region:'S'},
+    LIX:{name:'Slidell, LA',region:'S'}, JAN:{name:'Jackson, MS',region:'S'},
+    LCH:{name:'Lake Charles, LA',region:'S'}, SHV:{name:'Shreveport, LA',region:'S'},
+    CRP:{name:'Corpus Christi, TX',region:'S'}, MAF:{name:'Midland, TX',region:'S'},
+    TWC:{name:'Tucson, AZ',region:'W'}, NKX:{name:'San Diego, CA',region:'W'},
+    MHX:{name:'Morehead City, NC',region:'E'}, GSO:{name:'Greensboro, NC',region:'E'},
+    RNK:{name:'Blacksburg, VA',region:'E'}, OHX:{name:'Nashville, TN',region:'S'},
+    LZK:{name:'Little Rock, AR',region:'S'}, AMA:{name:'Amarillo, TX',region:'S'},
+    ABQ:{name:'Albuquerque, NM',region:'S'}, FGZ:{name:'Flagstaff, AZ',region:'W'},
+    EDW:{name:'Edwards AFB, CA',region:'L'}, VEF:{name:'Las Vegas, NV',region:'W'},
+    WAL:{name:'Wallops Island, VA',region:'E'}, LWX:{name:'Sterling, VA',region:'E'},
+    ILN:{name:'Wilmington, OH',region:'E'}, SGF:{name:'Springfield, MO',region:'C'},
+    DDC:{name:'Dodge City, KS',region:'C'}, DNR:{name:'Denver, CO',region:'C'},
+    GJT:{name:'Grand Junction, CO',region:'C'}, REV:{name:'Reno, NV',region:'W'},
+    OAK:{name:'Oakland, CA',region:'W'}, OKX:{name:'Brookhaven, NY',region:'E'},
+    ALY:{name:'Albany, NY',region:'E'}, PBZ:{name:'Pittsburgh, PA',region:'E'},
+    BUF:{name:'Buffalo, NY',region:'E'}, OAX:{name:'Omaha Valley, NE',region:'C'},
+    LBF:{name:'North Platte, NE',region:'C'}, SLC:{name:'Salt Lake City, UT',region:'W'},
+    LKN:{name:'Elko, NV',region:'W'}, MFR:{name:'Medford, OR',region:'W'},
+    GRB:{name:'Green Bay, WI',region:'C'}, MPX:{name:'Chanhassen, MN',region:'C'},
+    ABR:{name:'Aberdeen, SD',region:'C'}, UNR:{name:'Rapid City, SD',region:'C'},
+    RIW:{name:'Riverton, WY',region:'C'}, BOI:{name:'Boise, ID',region:'W'},
+    SLE:{name:'Salem, OR',region:'W'}, CAR:{name:'Caribou, ME',region:'E'},
+    INL:{name:'International Falls, MN',region:'C'}, BIS:{name:'Bismarck, ND',region:'C'},
+    GGW:{name:'Glasgow, MT',region:'W'}, TFX:{name:'Great Falls, MT',region:'W'},
+    OTX:{name:'Spokane (OTX), WA',region:'W'}, UIL:{name:'Quillayute, WA',region:'W'},
+    DVN:{name:'Davenport, IA',region:'C'}, CHH:{name:'Chatham, MA',region:'E'},
+    LMN:{name:'Lamont, OK',region:'F'}, XMR:{name:'Cape Canaveral, FL',region:'L'}
+};
 
-                    
-                    let globalForecastHour = 'obs';
+const parameterCategories = {
+    'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'],
+    'Soundings': ['skewt','hodo'],
+    'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
+    'Wind Shear': ['eshr','shr1','shr3','srh1','srh3'],
+    'Composite Parameters': ['cpsh','mlcp_eshr','3cvr','hail','scp','stpc','vtp3'],
+    'Advection': ['vadv','padv','tadv_925','tadv','7tad','thea','ddiv'],
+    'Frontogenesis': ['925f','98ft','857f','75ft'],
+    'Moisture': ['mcon','mxth','mixr','tran_925','tran','dlcp'],
+    'Surface / Pressure': ['pmsl','pchg','500mb_chg','dwpt_chg','ddiv','dlcp','ttd']
+};
 
-                    
-                    function pad2(n) { return String(n).padStart(2, '0'); }
+const noSuffix = new Set([
+    'skewt','dcape','mcon','pmsl','mxth','mixr','pchg',
+    '925f','98ft','857f','75ft','cpsh','mlcp_eshr','3cvr','hail',
+    'tran_925','tran','500mb_chg','scp','stpc','vtp3','hodo',
+    'eshr','shr1','shr3','srh1','srh3','dwpt_chg','thea','ddiv','dlcp','ttd'
+]);
 
-                    function getTargetUTCHour(offsetHours) {
-                        const d = new Date();
-                        d.setHours(d.getUTCHours() + offsetHours);
-                        return pad2(d.getUTCHours());
-                    }
+// ── State ─────────────────────────────────────────────────────────────────────
+let currentMode = 'grid';
+let globalFcstHour = 'obs'; // shared by all panels
 
-                    
-                    function buildGifUrl(sectorCode, parameterCode, forecastHour) {
-                        const baseUrl = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
+// ── URL builder ───────────────────────────────────────────────────────────────
+function pad2(n) { return String(n).padStart(2, '0'); }
 
-                        if (forecastHour !== 'obs' && forecastParams.has(parameterCode)) {
-                            // Forecast image: fcst/s{sector}/{param}_{fhr}_trans.gif
-                            const sectorNum = sectorCode.replace('s', '');
-                            const fhr = getTargetUTCHour(forecastHour);
-                            return `${baseUrl}fcst/${sectorCode}/${parameterCode}_${fhr}_trans.gif`;
-                        }
+function buildGifUrl(sectorCode, paramCode, fcstHour) {
+    const base = 'https://www.spc.noaa.gov/exper/mesoanalysis/';
+    if (fcstHour !== 'obs' && forecastParams.has(paramCode)) {
+        const targetMs = Date.now() + fcstHour * 3600 * 1000;
+        const fhr = pad2(new Date(targetMs).getUTCHours());
+        return `${base}fcst/${sectorCode}/${paramCode}_${fhr}_trans.gif`;
+    }
+    const suffix = noSuffix.has(paramCode) ? '' : '_sf';
+    return `${base}${sectorCode}/${paramCode}/${paramCode}${suffix}.gif`;
+}
 
-                        
-                        const pattern = urlPatterns[parameterCode] || urlPatterns.default;
-                        return `${baseUrl}${sectorCode}${pattern.replace(/\${parameterCode}/g, parameterCode)}`;
-                    }
+// ── Panel title updater ───────────────────────────────────────────────────────
+function updatePanelTitle(n) {
+    const param = document.getElementById(`panel${n}Select`).value;
+    const isFcst = globalFcstHour !== 'obs' && forecastParams.has(param);
+    const label  = isFcst ? `+${globalFcstHour}h RAP` : 'Obs';
+    const badge  = isFcst ? ` <span class="forecast-badge">${label}</span>` : '';
+    document.getElementById(`panelTitle${n}`).innerHTML = `Panel ${n}${badge}`;
+}
 
-                    
-                    function updateForecastBarVisibility(panelNumber) {
-                        const select = document.getElementById(`panel${panelNumber}Select`);
-                        const bar = document.getElementById(`forecastBar${panelNumber}`);
-                        if (!select || !bar) return;
-                        const isFcstCapable = forecastParams.has(select.value);
-                        bar.classList.toggle('visible', isFcstCapable && currentMode === 'grid');
-                    }
+// ── Display ───────────────────────────────────────────────────────────────────
+function displayGIF(n) {
+    const sector = document.getElementById('sectorSelect').value;
+    const param  = document.getElementById(`panel${n}Select`).value;
+    if (!param) return;
+    document.getElementById(`gifDisplay-${n}`).src = buildGifUrl(sector, param, globalFcstHour);
+    updatePanelTitle(n);
+}
 
-                    function updateGlobalForecastBarVisibility() {
-                        const select = document.getElementById('panel1Select');
-                        const bar = document.getElementById('globalForecastBar');
-                        if (!select || !bar) return;
-                        const isFcstCapable = forecastParams.has(select.value);
-                        bar.classList.toggle('visible', isFcstCapable && currentMode === 'single');
-                    }
+function displayAllGIFs() {
+    const count = currentMode === 'single' ? 1 : 4;
+    for (let i = 1; i <= count; i++) displayGIF(i);
+}
 
-                    
-                    function setPanelForecastHour(panelNumber, hr, evt) {
-                        applyPanelForecastHour(panelNumber, hr);
-                    }
+// ── Forecast slider ───────────────────────────────────────────────────────────
+function onFcstSliderChange(val) {
+    globalFcstHour = FCST_STOPS[parseInt(val, 10)];
+    const lbl = globalFcstHour === 'obs' ? 'Obs' : `+${globalFcstHour}h`;
+    document.getElementById('globalFcstLabel').textContent = lbl;
+    displayAllGIFs();
+}
 
-                    function applyPanelForecastHour(panelNumber, hr) {
-                        panelForecastHour[panelNumber] = hr;
+// ── Mode ──────────────────────────────────────────────────────────────────────
+function setMode(mode, evt) {
+    currentMode = mode;
+    document.querySelectorAll('.mode-selector button').forEach(b => b.classList.remove('active'));
+    (evt ? evt.target : document.querySelector(`.mode-selector button[data-mode="${mode}"]`))
+        .classList.add('active');
 
-                        
-                        const label = document.getElementById(`panelFcstLabel${panelNumber}`);
-                        if (label) label.textContent = (hr === 'obs') ? 'Obs' : `+${hr}h`;
+    const container = document.getElementById('imageContainer');
+    const panels    = document.querySelectorAll('#imageContainer .image-panel');
 
-                        
-                        const bar = document.getElementById(`forecastBar${panelNumber}`);
-                        if (bar) {
-                            const btns = bar.querySelectorAll('.fcst-btn');
-                            btns.forEach(btn => {
-                                btn.classList.toggle('active', String(btn.dataset.hr) === String(hr));
-                            });
-                        }
+    if (mode === 'single') {
+        container.style.gridTemplateColumns = '1fr';
+        panels.forEach((p, i) => { p.style.display = i === 0 ? 'block' : 'none'; });
+        document.getElementById('controls').style.gridTemplateColumns = '1fr';
+    } else {
+        container.style.gridTemplateColumns = '1fr 1fr';
+        panels.forEach(p => { p.style.display = 'block'; });
+        document.getElementById('controls').style.gridTemplateColumns = 'repeat(2, 1fr)';
+    }
+    displayAllGIFs();
+}
 
-                        
-                        displayGIF(panelNumber);
-                    }
+// ── Dropdowns ─────────────────────────────────────────────────────────────────
+function initDropdowns() {
+    for (let i = 1; i <= 4; i++) {
+        const sel = document.getElementById(`panel${i}Select`);
+        sel.innerHTML = '';
+        Object.keys(parameterCategories).forEach(cat => {
+            const codes = parameterCategories[cat].slice()
+                .sort((a, b) => parameterNames[a].localeCompare(parameterNames[b]));
+            const grp = document.createElement('optgroup');
+            grp.label = cat;
+            codes.forEach(code => {
+                if (!(code in parameterNames)) return;
+                const opt = document.createElement('option');
+                opt.value = code;
+                opt.textContent = parameterNames[code] + (forecastParams.has(code) ? ' ⚡' : '');
+                grp.appendChild(opt);
+            });
+            sel.appendChild(grp);
+        });
+    }
+}
 
-                    function setGlobalForecastHour(hr, evt) {
-                        
-                        applyGlobalForecastHour(hr);
-                    }
+// ── On load ───────────────────────────────────────────────────────────────────
+window.onload = function () {
+    initDropdowns();
+    document.getElementById('panel1Select').value = 'ttd';
+    document.getElementById('panel2Select').value = '850mb2';
+    document.getElementById('panel3Select').value = 'mlcp_eshr';
+    document.getElementById('panel4Select').value = '500mb';
 
-                    function applyGlobalForecastHour(hr) {
-                        globalForecastHour = hr;
-                        
-                        const globalBtns = document.getElementById('globalForecastBar').querySelectorAll('.fcst-btn');
-                        globalBtns.forEach(btn => btn.classList.toggle('active', String(btn.dataset.hr) === String(hr)));
+    document.getElementById('globalFcstSlider').addEventListener('input', function () {
+        onFcstSliderChange(this.value);
+    });
 
-                        
-                        const slider = document.getElementById('globalFcstSlider');
-                        const label = document.getElementById('globalFcstLabel');
-                        if (label) {
-                            label.textContent = (hr === 'obs') ? 'Obs' : `+${hr}h`;
-                        }
-                        if (slider) {
-                            const idx = fcstIndexMap.indexOf(hr);
-                            slider.value = idx >= 0 ? idx : 0;
-                        }
+    setMode('grid');
 
-                        
-                        for (let i = 1; i <= 4; i++) {
-                            panelForecastHour[i] = hr;
-                            const bar = document.getElementById(`forecastBar${i}`);
-                            if (!bar) continue;
-                            bar.querySelectorAll('.fcst-btn').forEach(btn => {
-                                btn.classList.toggle('active', String(btn.dataset.hr) === String(hr));
-                            });
-                        }
+    // ── Soundings ──────────────────────────────────────────────────────────────
+    const sDatetime  = document.getElementById('s_datetime');
+    const stationIds = ['station1','station2','station3','station4'];
 
-                        
-                        displayAllGIFs();
-                    }
+    function generateDatetimes() {
+        const now = new Date();
+        const utcHour = now.getUTCHours();
+        const list = [];
+        for (let i = 0; i < 9; i++) {
+            const d = new Date(now.getTime() - i * 86400000);
+            const yy = d.getUTCFullYear().toString().slice(2);
+            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+            const dd = String(d.getUTCDate()).padStart(2, '0');
+            if (utcHour >= 12 || i > 0) list.push(`${yy}${mm}${dd}12`);
+            list.push(`${yy}${mm}${dd}00`);
+        }
+        return list;
+    }
 
-                    
-                    function onPanelSelectChange(panelNumber) {
-                        
-                        panelForecastHour[panelNumber] = 'obs';
-                        const bar = document.getElementById(`forecastBar${panelNumber}`);
-                        if (bar) {
-                            bar.querySelectorAll('.fcst-btn').forEach(btn => {
-                                btn.classList.toggle('active', btn.dataset.hr === 'obs');
-                            });
-                        }
-                        updateForecastBarVisibility(panelNumber);
-                        if (currentMode === 'single') updateGlobalForecastBarVisibility();
-                        displayGIF(panelNumber);
-                    }
+    const fullDatetimes = generateDatetimes();
+    let datetimes = fullDatetimes.slice();
 
-                    
-                    function setMode(mode, evt) {
-                        currentMode = mode;
-                        imageCount = mode === 'single' ? 1 : 4;
+    function fmtDt(dt) {
+        const d = new Date(Date.UTC(
+            2000 + +dt.slice(0,2), +dt.slice(2,4) - 1,
+            +dt.slice(4,6), +dt.slice(6,8)
+        ));
+        return d.toLocaleString('en-US', {
+            month:'long', day:'numeric', year:'numeric',
+            hour:'numeric', minute:'2-digit', hour12:false, timeZone:'UTC'
+        }) + ' UTC';
+    }
 
-                        document.querySelectorAll('.mode-selector button').forEach(btn => {
-                            btn.classList.remove('active');
-                        });
-                        if (evt && evt.target) {
-                            evt.target.classList.add('active');
-                        } else {
-                            const btn = document.querySelector(`.mode-selector button[data-mode="${mode}"]`);
-                            if (btn) btn.classList.add('active');
-                        }
+    function populateDatetimes() {
+        const f = document.getElementById('s_timefilter').value;
+        datetimes = f === '00' ? fullDatetimes.filter(d => d.endsWith('00'))
+                  : f === '12' ? fullDatetimes.filter(d => d.endsWith('12'))
+                  : fullDatetimes.slice();
+        sDatetime.innerHTML = '';
+        datetimes.forEach(dt => {
+            const o = document.createElement('option');
+            o.value = dt; o.textContent = fmtDt(dt);
+            sDatetime.appendChild(o);
+        });
+        const sl = document.getElementById('s_datetime_slider');
+        if (sl) { sl.max = Math.max(0, datetimes.length - 1); sl.value = 0; }
+        const lb = document.getElementById('s_datetime_label');
+        if (lb) lb.textContent = datetimes.length ? fmtDt(datetimes[0]) : '';
+    }
 
-                        const container = document.getElementById('imageContainer');
-                        const panels = document.querySelectorAll('#imageContainer .image-panel');
+    populateDatetimes();
+    document.getElementById('s_timefilter').addEventListener('change', () => {
+        populateDatetimes();
+        sDatetime.selectedIndex = 0;
+        updateAllSoundings();
+    });
 
-                        if (mode === 'single') {
-                            container.style.gridTemplateColumns = '1fr';
-                            panels.forEach((p, i) => {
-                                p.style.display = i === 0 ? 'block' : 'none';
-                            });
-                            document.getElementById('controls').style.gridTemplateColumns = '1fr';
-                            
-                            for (let i = 1; i <= 4; i++) {
-                                const bar = document.getElementById(`forecastBar${i}`);
-                                if (bar) bar.classList.remove('visible');
-                            }
-                            updateGlobalForecastBarVisibility();
-                        } else {
-                            container.style.gridTemplateColumns = '1fr 1fr';
-                            panels.forEach(p => { p.style.display = 'block'; });
-                            document.getElementById('controls').style.gridTemplateColumns = 'repeat(2, 1fr)';
-                            
-                            document.getElementById('globalForecastBar').classList.remove('visible');
-                            for (let i = 1; i <= 4; i++) updateForecastBarVisibility(i);
-                        }
+    const regionNames = {
+        E:'Eastern', S:'Southern', C:'Central', W:'Western',
+        L:'Military', F:'Profiler', P:'Pacific', A:'Alaska',
+        M:'Mexico', N:'Canada', B:'Caribbean', G:'Greenland/Iceland'
+    };
+    const byRegion = {};
+    Object.keys(stationData).forEach(code => {
+        const r = stationData[code].region || 'C';
+        (byRegion[r] = byRegion[r] || []).push(code);
+    });
+    const regionOrder = ['E','S','C','W','L','F','P','A','M','N','B','G'];
 
-                        displayAllGIFs();
-                    }
+    stationIds.forEach(id => {
+        const sel = document.getElementById(id);
+        sel.innerHTML = '';
+        regionOrder.forEach(r => {
+            if (!byRegion[r]) return;
+            const grp = document.createElement('optgroup');
+            grp.label = `${regionNames[r] || r} (${r})`;
+            byRegion[r].sort((a, b) => stationData[a].name.localeCompare(stationData[b].name))
+                       .forEach(code => {
+                const o = document.createElement('option');
+                o.value = code; o.textContent = stationData[code].name;
+                grp.appendChild(o);
+            });
+            sel.appendChild(grp);
+        });
+    });
 
-                    
-                    function initializeSelectDropdowns() {
-                        for (let i = 1; i <= 4; i++) {
-                            const select = document.getElementById(`panel${i}Select`);
-                            select.innerHTML = '';
+    document.getElementById('station1').value = 'OUN';
+    document.getElementById('station2').value = 'FWD';
+    document.getElementById('station3').value = 'DTX';
+    document.getElementById('station4').value = 'ILX';
 
-                            Object.keys(parameterCategories).forEach(category => {
-                                const codes = parameterCategories[category].slice();
-                                codes.sort((a, b) => parameterNames[a].localeCompare(parameterNames[b]));
-                                const optgroup = document.createElement('optgroup');
-                                optgroup.label = category;
-                                codes.forEach(code => {
-                                    if (!(code in parameterNames)) return;
-                                    const option = document.createElement('option');
-                                    option.value = code;
-                                    option.textContent = parameterNames[code];
-                                    optgroup.appendChild(option);
-                                });
-                                select.appendChild(optgroup);
-                            });
-                        }
-                    }
+    function updateSoundingPanel(i) {
+        const datetime = sDatetime.value;
+        const station  = document.getElementById(stationIds[i-1]).value.trim().toUpperCase();
+        const img = document.getElementById(`sounding${i}`);
+        const err = document.getElementById(`serror${i}`);
+        if (!station) { img.style.display = 'none'; err.style.display = 'block'; return; }
+        img.src = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
+        img.onerror = () => { err.style.display = 'block'; img.style.display = 'none'; };
+        img.onload  = () => { err.style.display = 'none';  img.style.display = 'block'; };
+    }
 
-                    
-                    function displayGIF(panelNumber) {
-                        const sectorSelect = document.getElementById('sectorSelect');
-                        const select = document.getElementById(`panel${panelNumber}Select`);
-                        const gifDisplay = document.getElementById(`gifDisplay-${panelNumber}`);
-                        if (!select.value) return;
+    function updateAllSoundings() {
+        for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
+    }
 
-                        const sectorCode = sectorSelect.value;
-                        const parameterCode = select.value;
-                        const fhr = currentMode === 'single' ? globalForecastHour : panelForecastHour[panelNumber];
-
-                        gifDisplay.src = buildGifUrl(sectorCode, parameterCode, fhr);
-                    }
-
-                    function displayAllGIFs() {
-                        for (let i = 1; i <= 4; i++) {
-                            if (currentMode === 'single') {
-                                if (i === 1) displayGIF(1);
-                            } else {
-                                displayGIF(i);
-                            }
-                        }
-                    }
-
-                    function updateParameters() {
-                        displayAllGIFs();
-                    }
-
-                    
-                    window.onload = function() {
-                        initializeSelectDropdowns();
-                        document.getElementById('panel1Select').value = 'ttd';
-                        document.getElementById('panel2Select').value = '850mb2';
-                        document.getElementById('panel3Select').value = 'mlcp_eshr';
-                        document.getElementById('panel4Select').value = '500mb';
-                        setMode('grid');
-
-                        
-                        const fcstStops = ['obs', 0, 2, 4, 6];
-                        const globalSlider = document.getElementById('globalFcstSlider');
-                        if (globalSlider) {
-                            globalSlider.addEventListener('input', function() {
-                                const idx = parseInt(this.value, 10) || 0;
-                                const hr = fcstStops[idx];
-                                applyGlobalForecastHour(hr);
-                            });
-                        }
-
-            
-                        for (let i = 1; i <= 4; i++) {
-                            const lbl = document.getElementById(`panelFcstLabel${i}`);
-                            if (lbl) lbl.textContent = 'Obs';
-                        }
-                        const sDatetime = document.getElementById('s_datetime');
-                        const stationIds = ['station1','station2','station3','station4'];
-
-                        function generateDatetimes() {
-                            const now = new Date();
-                            const currentUTCHour = now.getUTCHours();
-                            const datetimes = [];
-                            for (let i = 0; i < 9; i++) {
-                                const date = new Date(now.getTime() - i * 24 * 60 * 60 * 1000);
-                                const yy = date.getUTCFullYear().toString().slice(2);
-                                const mm = (date.getUTCMonth() + 1).toString().padStart(2, '0');
-                                const dd = date.getUTCDate().toString().padStart(2, '0');
-                                if (currentUTCHour >= 12 || i > 0) {
-                                    datetimes.push(`${yy}${mm}${dd}12`);
-                                }
-                                datetimes.push(`${yy}${mm}${dd}00`);
-                            }
-                            return datetimes;
-                        }
-
-                        const fullDatetimes = generateDatetimes();
-                        let datetimes = fullDatetimes.slice();
-
-                        function formatDatetimeLabel(dt) {
-                            const yy = dt.slice(0, 2);
-                            const mm = dt.slice(2, 4);
-                            const dd = dt.slice(4, 6);
-                            const hh = dt.slice(6, 8);
-                            const year = 2000 + parseInt(yy, 10);
-                            const month = parseInt(mm, 10) - 1;
-                            const day = parseInt(dd, 10);
-                            const hour = parseInt(hh, 10);
-                            const d = new Date(Date.UTC(year, month, day, hour));
-                            const formatted = d.toLocaleString('en-US', {
-                                month: 'long', day: 'numeric', year: 'numeric',
-                                hour: 'numeric', minute: '2-digit', hour12: false, timeZone: 'UTC'
-                            });
-                            return `${formatted} UTC`;
-                        }
-
-                        function populateDatetimes() {
-                            const filterEl = document.getElementById('s_timefilter');
-                            const filter = filterEl ? filterEl.value : 'both';
-                            if (filter === '00') {
-                                datetimes = fullDatetimes.filter(d => d.endsWith('00'));
-                            } else if (filter === '12') {
-                                datetimes = fullDatetimes.filter(d => d.endsWith('12'));
-                            } else {
-                                datetimes = fullDatetimes.slice();
-                            }
-                            sDatetime.innerHTML = '';
-                            datetimes.forEach(dt => {
-                                const opt = document.createElement('option');
-                                opt.value = dt;
-                                opt.textContent = formatDatetimeLabel(dt);
-                                sDatetime.appendChild(opt);
-                            });
-                            const slider = document.getElementById('s_datetime_slider');
-                            const sLabel = document.getElementById('s_datetime_label');
-                            if (slider) { slider.max = Math.max(0, datetimes.length - 1); slider.value = 0; }
-                            if (sLabel) { sLabel.textContent = datetimes.length ? formatDatetimeLabel(datetimes[0]) : ''; }
-                        }
-
-                        populateDatetimes();
-
-                        const timeFilterEl = document.getElementById('s_timefilter');
-                        if (timeFilterEl) {
-                            timeFilterEl.addEventListener('change', function() {
-                                populateDatetimes();
-                                if (sDatetime.options.length > 0) sDatetime.selectedIndex = 0;
-                                updateAllSoundings();
-                            });
-                        }
-
-                        const regionNames = {
-                            E: 'Eastern', S: 'Southern', C: 'Central', W: 'Western',
-                            L: 'Military', F: 'Profiler', P: 'Pacific', A: 'Alaska',
-                            M: 'Mexico', N: 'Canada', B: 'Caribbean', G: 'Greenland/Iceland'
-                        };
-
-                        const stationsByRegion = {};
-                        Object.keys(stationData).forEach(code => {
-                            const r = stationData[code].region || 'C';
-                            if (!stationsByRegion[r]) stationsByRegion[r] = [];
-                            stationsByRegion[r].push(code);
-                        });
-
-                        const regionOrder = ['E','S','C','W','L','F','P','A','M','N','B','G'];
-
-                        stationIds.forEach(id => {
-                            const sel = document.getElementById(id);
-                            sel.innerHTML = '';
-                            regionOrder.forEach(r => {
-                                const codes = stationsByRegion[r];
-                                if (!codes || codes.length === 0) return;
-                                const optgroup = document.createElement('optgroup');
-                                optgroup.label = `${regionNames[r] || r} (${r})`;
-                                codes.sort((a,b) => stationData[a].name.localeCompare(stationData[b].name)).forEach(code => {
-                                    const opt = document.createElement('option');
-                                    opt.value = code;
-                                    opt.textContent = stationData[code].name;
-                                    optgroup.appendChild(opt);
-                                });
-                                sel.appendChild(optgroup);
-                            });
-                        });
-
-                        document.getElementById('station1').value = 'OUN';
-                        document.getElementById('station2').value = 'FWD';
-                        document.getElementById('station3').value = 'DTX';
-                        document.getElementById('station4').value = 'ILX';
-                        if (sDatetime.options.length > 0) sDatetime.selectedIndex = 0;
-
-                        function updateSoundingPanel(i) {
-                            const datetime = sDatetime.value;
-                            const station = document.getElementById(stationIds[i-1]).value.trim().toUpperCase();
-                            const img = document.getElementById(`sounding${i}`);
-                            const err = document.getElementById(`serror${i}`);
-                            if (!station) { img.style.display = 'none'; err.style.display = 'block'; return; }
-                            const url = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
-                            img.src = url;
-                            img.onerror = function() { err.style.display = 'block'; img.style.display = 'none'; };
-                            img.onload  = function() { err.style.display = 'none';  img.style.display = 'block'; };
-                        }
-
-                        function updateAllSoundings() {
-                            for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
-                        }
-
-                        const sliderEl = document.getElementById('s_datetime_slider');
-                        if (sliderEl) {
-                            sliderEl.addEventListener('input', function() {
-                                const idx = parseInt(this.value, 10);
-                                if (!isNaN(idx) && sDatetime.options[idx]) {
-                                    sDatetime.selectedIndex = idx;
-                                    const dt = datetimes[idx];
-                                    const lbl = document.getElementById('s_datetime_label');
-                                    if (lbl) lbl.textContent = formatDatetimeLabel(dt);
-                                    updateAllSoundings();
-                                }
-                            });
-                        }
-
-                        sDatetime.addEventListener('change', function() {
-                            const idx = sDatetime.selectedIndex;
-                            if (sliderEl) sliderEl.value = idx;
-                            const dt = datetimes[idx];
-                            const lbl = document.getElementById('s_datetime_label');
-                            if (lbl) lbl.textContent = formatDatetimeLabel(dt);
-                            updateAllSoundings();
-                        });
-
-                        stationIds.forEach(id => document.getElementById(id).addEventListener('change', updateAllSoundings));
-                        updateAllSoundings();
-                    };
-                </script>
-            </body>
-            </html>
+    const sliderEl = document.getElementById('s_datetime_slider');
+    if (sliderEl) {
+        sliderEl.addEventListener('input', function () {
+            const idx = parseInt(this.value, 10);
+            if (!isNaN(idx) && sDatetime.options[idx]) {
+                sDatetime.selectedIndex = idx;
+                document.getElementById('s_datetime_label').textContent = fmtDt(datetimes[idx]);
+                updateAllSoundings();
+            }
+        });
+    }
+    sDatetime.addEventListener('change', function () {
+        if (sliderEl) sliderEl.value = sDatetime.selectedIndex;
+        document.getElementById('s_datetime_label').textContent = fmtDt(datetimes[sDatetime.selectedIndex]);
+        updateAllSoundings();
+    });
+    stationIds.forEach(id => document.getElementById(id).addEventListener('change', updateAllSoundings));
+    updateAllSoundings();
+};
+</script>
+</body>
+</html>
