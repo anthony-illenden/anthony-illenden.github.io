@@ -322,9 +322,22 @@ const parameterNames = {
     mxth:'Surface Mixing Ratio', mixr:'Mean Mixing Ratio',
     tran_925:'925mb Moisture Transport', tran:'850mb Moisture Transport',
     pmsl:'MSLP and Winds', pchg:'Two-Hour Pressure Change',
+    temp_chg: '3 Hour Temperature Change',
     '500mb_chg':'12hr Height Falls (500mb)', dwpt_chg:'3 Hour Dewpoint Change',
     ddiv:'Differential Divergence', dlcp:'Deep Moist Convergence',
-    ttd:'Surface Temperature, Dewpoint, MSLP, and Winds'
+    ttd:'Surface Temperature, Dewpoint, MSLP, and Winds',
+    mucp_chg:'3 Hour MUCAPE Change', thte_chg:'3 Hour Theta-E Change',
+    mixr_chg:'3 Hour Mixing Ratio Change',
+    bigsfc: 'Surface Composite',
+    sbcp_chg:'3 Hour Surface-Based CAPE Change', 
+    sbcn_chg:'3 Hour Surface-Based CIN Change',
+    mlcp_chg:'3 Hour Mixed-Layer CAPE Change',
+    lllr_chg:'3 Hour Low-Level Lapse Rate Change',
+    laps_chg: '3 Hour Mid-Level Lapse Rate Change',
+    sfnt: 'Surface Frontogenesis',
+    '9fnt': '925mb Frontogenesis',
+    '8fnt': '850mb Frontogenesis',
+    '7fnt': '700mb Frontogenesis'
 };
 
 const forecastParams = new Set([
@@ -376,15 +389,15 @@ const stationData = {
 };
 
 const parameterCategories = {
-    'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch'],
+    'Thermodynamics': ['mlcp','sbcp','mucp','dcape','lllr','laps','lclh','lfch', 'mucp_chg', 'sbcp_chg', 'sbcn_chg', 'mlcp_chg', 'lllr_chg', 'laps_chg'],
     'Soundings': ['skewt','hodo'],
     'Winds': ['300mb','500mb','700mb','850mb2','925mb'],
     'Wind Shear': ['eshr','shr1','shr3','srh1','srh3'],
     'Composite Parameters': ['cpsh','mlcp_eshr','3cvr','hail','scp','stpc','vtp3'],
     'Advection': ['vadv','padv','tadv_925','tadv','7tad','thea','ddiv'],
-    'Frontogenesis': ['925f','98ft','857f','75ft'],
+    'Frontogenesis': ['925f','98ft','857f','75ft','sfnt', '9fnt', '8fnt', '7fnt'],
     'Moisture': ['mcon','mxth','mixr','tran_925','tran','dlcp'],
-    'Surface / Pressure': ['pmsl','pchg','500mb_chg','dwpt_chg','ddiv','dlcp','ttd']
+    'Surface / Pressure': ['pmsl','temp_chg','thte_chg','mixr_chg','pchg','500mb_chg','dwpt_chg','ddiv','dlcp','ttd', 'bigsfc']
 };
 
 const noSuffix = new Set([
