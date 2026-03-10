@@ -93,6 +93,61 @@
             background: #336; color: white; border-radius: 10px;
             font-size: 0.7em; font-weight: 700; vertical-align: middle;
         }
+
+        /* Time mode toggle */
+        .time-mode-toggle {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .time-mode-toggle label { font-weight: bold; font-size: 0.9em; }
+        .toggle-btn-group { display: flex; gap: 0; border-radius: 4px; overflow: hidden; border: 2px solid #333; }
+        .toggle-btn-group button {
+            padding: 7px 16px;
+            border: none;
+            background: white;
+            cursor: pointer;
+            font-size: 0.88em;
+            font-family: 'Roboto', sans-serif;
+            transition: background 0.15s, color 0.15s;
+            border-right: 1px solid #333;
+        }
+        .toggle-btn-group button:last-child { border-right: none; }
+        .toggle-btn-group button.active { background: #333; color: white; font-weight: bold; }
+        .toggle-btn-group button:hover:not(.active) { background: #eee; }
+
+        /* Shared time row */
+        #sharedTimeRow { margin-bottom: 10px; }
+
+        /* Per-panel datetime controls */
+        .sounding-station-grid.indep-mode .panel-control { gap: 5px; }
+        .indep-datetime-row {
+            display: flex;
+            gap: 6px;
+            align-items: center;
+            flex-wrap: wrap;
+            margin-bottom: 4px;
+        }
+        .indep-datetime-row select {
+            flex: 1;
+            min-width: 140px;
+            padding: 6px;
+            font-size: 0.85em;
+            box-sizing: border-box;
+        }
+        .indep-datetime-row input[type=range] {
+            width: 100%;
+            cursor: pointer;
+            accent-color: #336;
+        }
+        .indep-dt-label {
+            font-size: 0.78em;
+            color: #444;
+            font-style: italic;
+            width: 100%;
+        }
     </style>
 </head>
 <body>
@@ -133,7 +188,7 @@
         </div>
     </div>
 
-    <!-- Single global forecast slider for all panels -->
+    
     <div class="container">
         <div class="forecast-bar">
             <label>⚡ RAP Forecast:</label>
@@ -191,24 +246,35 @@
     <div class="container">
         <h2>SPC Soundings</h2>
         <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
-        <div class="sounding-datetime-row">
-            <label for="s_datetime">Select DateTime:</label>
-            <label for="s_timefilter">Time Filter:</label>
-            <select id="s_timefilter">
-                <option value="both">Both (00/12z)</option>
-                <option value="00">00z only</option>
-                <option value="12">12z only</option>
-            </select>
-            <select id="s_datetime"></select>
-            <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
-            <span id="s_datetime_label"></span>
+
+        <!-- Time mode toggle -->
+        <div class="time-mode-toggle">
+            <label>Sounding Time Mode:</label>
+            <div class="toggle-btn-group">
+                <button id="btnSharedTime" class="active" onclick="setSoundingTimeMode('shared')">Shared Time</button>
+                <button id="btnIndepTime" onclick="setSoundingTimeMode('independent')">Independent Times</button>
+            </div>
         </div>
-        <div class="sounding-station-grid">
-            <div class="panel-control"><label for="station1">Sounding 1</label><select id="station1"></select></div>
-            <div class="panel-control"><label for="station2">Sounding 2</label><select id="station2"></select></div>
-            <div class="panel-control"><label for="station3">Sounding 3</label><select id="station3"></select></div>
-            <div class="panel-control"><label for="station4">Sounding 4</label><select id="station4"></select></div>
+
+        
+        <div id="sharedTimeRow">
+            <div class="sounding-datetime-row">
+                <label for="s_datetime">Select DateTime:</label>
+                <label for="s_timefilter">Time Filter:</label>
+                <select id="s_timefilter">
+                    <option value="both">Both (00/12z)</option>
+                    <option value="00">00z only</option>
+                    <option value="12">12z only</option>
+                </select>
+                <select id="s_datetime"></select>
+                <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
+                <span id="s_datetime_label"></span>
+            </div>
         </div>
+
+        <div class="sounding-station-grid" id="soundingStationGrid">
+        </div>
+
         <div class="image-container" id="soundingsContainer">
             <div class="image-panel">
                 <h3>Sounding 1</h3>
@@ -234,7 +300,7 @@
     </div>
 
 <script>
-// ── Parameter metadata ────────────────────────────────────────────────────────
+
 const parameterNames = {
     mlcp:'Mixed-Layer CAPE', sbcp:'Surface-Based CAPE', mucp:'Most-Unstable CAPE',
     dcape:'Downdraft CAPE', lllr:'Low-Level Lapse Rates', laps:'Mid-Level Lapse Rates',
@@ -261,7 +327,6 @@ const parameterNames = {
     ttd:'Surface Temperature, Dewpoint, MSLP, and Winds'
 };
 
-// Parameters that have RAP forecast imagery
 const forecastParams = new Set([
     'pmsl','sbcp','scp','stpc','effh','ttd','mlcp','lllr','fosb','3cvr',
     'dcape','thea','cbsig','eshr','srh1','brns','snsq','lr3c','sigh',
@@ -269,7 +334,6 @@ const forecastParams = new Set([
     'moshe','hodo','skewt'
 ]);
 
-// Slider positions → forecast offset hours ('obs' = analysis)
 const FCST_STOPS = ['obs', 0, 2, 4, 6];
 
 const stationData = {
@@ -330,11 +394,12 @@ const noSuffix = new Set([
     'eshr','shr1','shr3','srh1','srh3','dwpt_chg','thea','ddiv','dlcp','ttd'
 ]);
 
-// ── State ─────────────────────────────────────────────────────────────────────
-let currentMode = 'grid';
-let globalFcstHour = 'obs'; // shared by all panels
 
-// ── URL builder ───────────────────────────────────────────────────────────────
+let currentMode = 'grid';
+let globalFcstHour = 'obs';
+let soundingTimeMode = 'shared';
+
+
 function pad2(n) { return String(n).padStart(2, '0'); }
 
 function buildGifUrl(sectorCode, paramCode, fcstHour) {
@@ -348,7 +413,6 @@ function buildGifUrl(sectorCode, paramCode, fcstHour) {
     return `${base}${sectorCode}/${paramCode}/${paramCode}${suffix}.gif`;
 }
 
-// ── Panel title updater ───────────────────────────────────────────────────────
 function updatePanelTitle(n) {
     const param = document.getElementById(`panel${n}Select`).value;
     const isFcst = globalFcstHour !== 'obs' && forecastParams.has(param);
@@ -357,7 +421,6 @@ function updatePanelTitle(n) {
     document.getElementById(`panelTitle${n}`).innerHTML = `Panel ${n}${badge}`;
 }
 
-// ── Display ───────────────────────────────────────────────────────────────────
 function displayGIF(n) {
     const sector = document.getElementById('sectorSelect').value;
     const param  = document.getElementById(`panel${n}Select`).value;
@@ -371,7 +434,6 @@ function displayAllGIFs() {
     for (let i = 1; i <= count; i++) displayGIF(i);
 }
 
-// ── Forecast slider ───────────────────────────────────────────────────────────
 function onFcstSliderChange(val) {
     globalFcstHour = FCST_STOPS[parseInt(val, 10)];
     const lbl = globalFcstHour === 'obs' ? 'Obs' : `+${globalFcstHour}h`;
@@ -379,7 +441,6 @@ function onFcstSliderChange(val) {
     displayAllGIFs();
 }
 
-// ── Mode ──────────────────────────────────────────────────────────────────────
 function setMode(mode, evt) {
     currentMode = mode;
     document.querySelectorAll('.mode-selector button').forEach(b => b.classList.remove('active'));
@@ -401,7 +462,6 @@ function setMode(mode, evt) {
     displayAllGIFs();
 }
 
-// ── Dropdowns ─────────────────────────────────────────────────────────────────
 function initDropdowns() {
     for (let i = 1; i <= 4; i++) {
         const sel = document.getElementById(`panel${i}Select`);
@@ -423,7 +483,215 @@ function initDropdowns() {
     }
 }
 
-// ── On load ───────────────────────────────────────────────────────────────────
+
+function setSoundingTimeMode(mode) {
+    soundingTimeMode = mode;
+    document.getElementById('btnSharedTime').classList.toggle('active', mode === 'shared');
+    document.getElementById('btnIndepTime').classList.toggle('active', mode === 'independent');
+    document.getElementById('sharedTimeRow').style.display = mode === 'shared' ? '' : 'none';
+
+    
+    buildStationGrid();
+    updateAllSoundings();
+}
+
+
+function generateDatetimes() {
+    const now = new Date();
+    const utcHour = now.getUTCHours();
+    const list = [];
+    for (let i = 0; i < 9; i++) {
+        const d = new Date(now.getTime() - i * 86400000);
+        const yy = d.getUTCFullYear().toString().slice(2);
+        const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(d.getUTCDate()).padStart(2, '0');
+        if (utcHour >= 12 || i > 0) list.push(`${yy}${mm}${dd}12`);
+        list.push(`${yy}${mm}${dd}00`);
+    }
+    return list;
+}
+
+function fmtDt(dt) {
+    const d = new Date(Date.UTC(
+        2000 + +dt.slice(0,2), +dt.slice(2,4) - 1,
+        +dt.slice(4,6), +dt.slice(6,8)
+    ));
+    return d.toLocaleString('en-US', {
+        month:'long', day:'numeric', year:'numeric',
+        hour:'numeric', minute:'2-digit', hour12:false, timeZone:'UTC'
+    }) + ' UTC';
+}
+
+let fullDatetimes = [];
+let sharedDatetimes = [];
+
+function buildDatetimeOptions(selectEl, datetimes, selectedVal) {
+    selectEl.innerHTML = '';
+    datetimes.forEach(dt => {
+        const o = document.createElement('option');
+        o.value = dt; o.textContent = fmtDt(dt);
+        selectEl.appendChild(o);
+    });
+    if (selectedVal && datetimes.includes(selectedVal)) {
+        selectEl.value = selectedVal;
+    }
+}
+
+function getFilteredDatetimes() {
+    const f = document.getElementById('s_timefilter').value;
+    return f === '00' ? fullDatetimes.filter(d => d.endsWith('00'))
+         : f === '12' ? fullDatetimes.filter(d => d.endsWith('12'))
+         : fullDatetimes.slice();
+}
+
+function populateSharedDatetimes() {
+    sharedDatetimes = getFilteredDatetimes();
+    const sDt = document.getElementById('s_datetime');
+    buildDatetimeOptions(sDt, sharedDatetimes);
+    const sl = document.getElementById('s_datetime_slider');
+    if (sl) { sl.max = Math.max(0, sharedDatetimes.length - 1); sl.value = 0; }
+    const lb = document.getElementById('s_datetime_label');
+    if (lb) lb.textContent = sharedDatetimes.length ? fmtDt(sharedDatetimes[0]) : '';
+}
+
+const regionNames = {
+    E:'Eastern', S:'Southern', C:'Central', W:'Western',
+    L:'Military', F:'Profiler', P:'Pacific', A:'Alaska',
+    M:'Mexico', N:'Canada', B:'Caribbean', G:'Greenland/Iceland'
+};
+const byRegion = {};
+
+function ensureByRegion() {
+    if (Object.keys(byRegion).length) return;
+    Object.keys(stationData).forEach(code => {
+        const r = stationData[code].region || 'C';
+        (byRegion[r] = byRegion[r] || []).push(code);
+    });
+}
+
+const regionOrder = ['E','S','C','W','L','F','P','A','M','N','B','G'];
+const defaultStations = ['OUN','FWD','DTX','ILX'];
+
+function buildStationSelect(sel) {
+    ensureByRegion();
+    sel.innerHTML = '';
+    regionOrder.forEach(r => {
+        if (!byRegion[r]) return;
+        const grp = document.createElement('optgroup');
+        grp.label = `${regionNames[r] || r} (${r})`;
+        byRegion[r].sort((a, b) => stationData[a].name.localeCompare(stationData[b].name))
+                   .forEach(code => {
+            const o = document.createElement('option');
+            o.value = code; o.textContent = stationData[code].name;
+            grp.appendChild(o);
+        });
+        sel.appendChild(grp);
+    });
+}
+
+
+function buildStationGrid() {
+    const grid = document.getElementById('soundingStationGrid');
+    grid.innerHTML = '';
+    const filteredDts = getFilteredDatetimes();
+
+    for (let i = 1; i <= 4; i++) {
+        const div = document.createElement('div');
+        div.className = 'panel-control';
+
+        if (soundingTimeMode === 'independent') {
+            // DateTime select for this panel
+            const dtRow = document.createElement('div');
+            dtRow.className = 'indep-datetime-row';
+
+            const dtLabel = document.createElement('label');
+            dtLabel.htmlFor = `indep_dt_${i}`;
+            dtLabel.style.fontWeight = 'bold';
+            dtLabel.style.fontSize = '0.9em';
+            dtLabel.textContent = `Sounding ${i}`;
+            div.appendChild(dtLabel);
+
+            const dtSel = document.createElement('select');
+            dtSel.id = `indep_dt_${i}`;
+            buildDatetimeOptions(dtSel, filteredDts);
+            dtSel.addEventListener('change', () => updateSoundingPanel(i));
+            dtRow.appendChild(dtSel);
+            div.appendChild(dtRow);
+
+            // Slider
+            const slider = document.createElement('input');
+            slider.type = 'range';
+            slider.id = `indep_slider_${i}`;
+            slider.min = 0;
+            slider.max = Math.max(0, filteredDts.length - 1);
+            slider.value = 0;
+            slider.className = 'indep-datetime-row';
+            slider.style.width = '100%';
+            slider.addEventListener('input', function() {
+                const idx = parseInt(this.value, 10);
+                if (!isNaN(idx) && dtSel.options[idx]) {
+                    dtSel.selectedIndex = idx;
+                    updateSoundingPanel(i);
+                }
+            });
+            dtSel.addEventListener('change', function() {
+                slider.value = dtSel.selectedIndex;
+            });
+            div.appendChild(slider);
+
+            
+            const stLabel = document.createElement('label');
+            stLabel.htmlFor = `station${i}`;
+            stLabel.style.fontWeight = 'bold';
+            stLabel.style.fontSize = '0.85em';
+            stLabel.textContent = 'Station';
+            div.appendChild(stLabel);
+        } else {
+            const lbl = document.createElement('label');
+            lbl.htmlFor = `station${i}`;
+            lbl.textContent = `Sounding ${i}`;
+            div.appendChild(lbl);
+        }
+
+        
+        const stSel = document.createElement('select');
+        stSel.id = `station${i}`;
+        stSel.style.padding = '8px';
+        buildStationSelect(stSel);
+        stSel.value = defaultStations[i - 1];
+        stSel.addEventListener('change', () => updateSoundingPanel(i));
+        div.appendChild(stSel);
+
+        grid.appendChild(div);
+    }
+}
+
+
+function getSoundingDatetime(i) {
+    if (soundingTimeMode === 'independent') {
+        const sel = document.getElementById(`indep_dt_${i}`);
+        return sel ? sel.value : '';
+    }
+    return document.getElementById('s_datetime').value;
+}
+
+function updateSoundingPanel(i) {
+    const datetime = getSoundingDatetime(i);
+    const stEl = document.getElementById(`station${i}`);
+    const station = stEl ? stEl.value.trim().toUpperCase() : '';
+    const img = document.getElementById(`sounding${i}`);
+    const err = document.getElementById(`serror${i}`);
+    if (!station || !datetime) { img.style.display = 'none'; err.style.display = 'block'; return; }
+    img.src = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
+    img.onerror = () => { err.style.display = 'block'; img.style.display = 'none'; };
+    img.onload  = () => { err.style.display = 'none';  img.style.display = 'block'; };
+}
+
+function updateAllSoundings() {
+    for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
+}
+
+
 window.onload = function () {
     initDropdowns();
     document.getElementById('panel1Select').value = 'ttd';
@@ -437,129 +705,38 @@ window.onload = function () {
 
     setMode('grid');
 
-    // ── Soundings ──────────────────────────────────────────────────────────────
-    const sDatetime  = document.getElementById('s_datetime');
-    const stationIds = ['station1','station2','station3','station4'];
+    
+    fullDatetimes = generateDatetimes();
+    populateSharedDatetimes();
 
-    function generateDatetimes() {
-        const now = new Date();
-        const utcHour = now.getUTCHours();
-        const list = [];
-        for (let i = 0; i < 9; i++) {
-            const d = new Date(now.getTime() - i * 86400000);
-            const yy = d.getUTCFullYear().toString().slice(2);
-            const mm = String(d.getUTCMonth() + 1).padStart(2, '0');
-            const dd = String(d.getUTCDate()).padStart(2, '0');
-            if (utcHour >= 12 || i > 0) list.push(`${yy}${mm}${dd}12`);
-            list.push(`${yy}${mm}${dd}00`);
-        }
-        return list;
-    }
-
-    const fullDatetimes = generateDatetimes();
-    let datetimes = fullDatetimes.slice();
-
-    function fmtDt(dt) {
-        const d = new Date(Date.UTC(
-            2000 + +dt.slice(0,2), +dt.slice(2,4) - 1,
-            +dt.slice(4,6), +dt.slice(6,8)
-        ));
-        return d.toLocaleString('en-US', {
-            month:'long', day:'numeric', year:'numeric',
-            hour:'numeric', minute:'2-digit', hour12:false, timeZone:'UTC'
-        }) + ' UTC';
-    }
-
-    function populateDatetimes() {
-        const f = document.getElementById('s_timefilter').value;
-        datetimes = f === '00' ? fullDatetimes.filter(d => d.endsWith('00'))
-                  : f === '12' ? fullDatetimes.filter(d => d.endsWith('12'))
-                  : fullDatetimes.slice();
-        sDatetime.innerHTML = '';
-        datetimes.forEach(dt => {
-            const o = document.createElement('option');
-            o.value = dt; o.textContent = fmtDt(dt);
-            sDatetime.appendChild(o);
-        });
-        const sl = document.getElementById('s_datetime_slider');
-        if (sl) { sl.max = Math.max(0, datetimes.length - 1); sl.value = 0; }
-        const lb = document.getElementById('s_datetime_label');
-        if (lb) lb.textContent = datetimes.length ? fmtDt(datetimes[0]) : '';
-    }
-
-    populateDatetimes();
     document.getElementById('s_timefilter').addEventListener('change', () => {
-        populateDatetimes();
-        sDatetime.selectedIndex = 0;
+        populateSharedDatetimes();
+        if (soundingTimeMode === 'independent') buildStationGrid();
+        document.getElementById('s_datetime').selectedIndex = 0;
         updateAllSoundings();
     });
 
-    const regionNames = {
-        E:'Eastern', S:'Southern', C:'Central', W:'Western',
-        L:'Military', F:'Profiler', P:'Pacific', A:'Alaska',
-        M:'Mexico', N:'Canada', B:'Caribbean', G:'Greenland/Iceland'
-    };
-    const byRegion = {};
-    Object.keys(stationData).forEach(code => {
-        const r = stationData[code].region || 'C';
-        (byRegion[r] = byRegion[r] || []).push(code);
-    });
-    const regionOrder = ['E','S','C','W','L','F','P','A','M','N','B','G'];
-
-    stationIds.forEach(id => {
-        const sel = document.getElementById(id);
-        sel.innerHTML = '';
-        regionOrder.forEach(r => {
-            if (!byRegion[r]) return;
-            const grp = document.createElement('optgroup');
-            grp.label = `${regionNames[r] || r} (${r})`;
-            byRegion[r].sort((a, b) => stationData[a].name.localeCompare(stationData[b].name))
-                       .forEach(code => {
-                const o = document.createElement('option');
-                o.value = code; o.textContent = stationData[code].name;
-                grp.appendChild(o);
-            });
-            sel.appendChild(grp);
-        });
-    });
-
-    document.getElementById('station1').value = 'OUN';
-    document.getElementById('station2').value = 'FWD';
-    document.getElementById('station3').value = 'DTX';
-    document.getElementById('station4').value = 'ILX';
-
-    function updateSoundingPanel(i) {
-        const datetime = sDatetime.value;
-        const station  = document.getElementById(stationIds[i-1]).value.trim().toUpperCase();
-        const img = document.getElementById(`sounding${i}`);
-        const err = document.getElementById(`serror${i}`);
-        if (!station) { img.style.display = 'none'; err.style.display = 'block'; return; }
-        img.src = `https://www.spc.noaa.gov/exper/soundings/${datetime}_OBS/${station}.gif`;
-        img.onerror = () => { err.style.display = 'block'; img.style.display = 'none'; };
-        img.onload  = () => { err.style.display = 'none';  img.style.display = 'block'; };
-    }
-
-    function updateAllSoundings() {
-        for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
-    }
-
+    
     const sliderEl = document.getElementById('s_datetime_slider');
     if (sliderEl) {
         sliderEl.addEventListener('input', function () {
             const idx = parseInt(this.value, 10);
-            if (!isNaN(idx) && sDatetime.options[idx]) {
-                sDatetime.selectedIndex = idx;
-                document.getElementById('s_datetime_label').textContent = fmtDt(datetimes[idx]);
+            const sDt = document.getElementById('s_datetime');
+            if (!isNaN(idx) && sDt.options[idx]) {
+                sDt.selectedIndex = idx;
+                document.getElementById('s_datetime_label').textContent = fmtDt(sharedDatetimes[idx]);
                 updateAllSoundings();
             }
         });
     }
-    sDatetime.addEventListener('change', function () {
-        if (sliderEl) sliderEl.value = sDatetime.selectedIndex;
-        document.getElementById('s_datetime_label').textContent = fmtDt(datetimes[sDatetime.selectedIndex]);
+    document.getElementById('s_datetime').addEventListener('change', function () {
+        if (sliderEl) sliderEl.value = this.selectedIndex;
+        document.getElementById('s_datetime_label').textContent = fmtDt(sharedDatetimes[this.selectedIndex]);
         updateAllSoundings();
     });
-    stationIds.forEach(id => document.getElementById(id).addEventListener('change', updateAllSoundings));
+
+    
+    buildStationGrid();
     updateAllSoundings();
 };
 </script>
