@@ -6,6 +6,7 @@
     <title>SPC Mesoscale Analysis</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <style>
         html, body { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Roboto', sans-serif; }
         nav { background-color: #333; overflow: hidden; text-align: center; }
@@ -46,7 +47,7 @@
         .sounding-station-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
         .sounding-station-grid .panel-control select { width: 100%; box-sizing: border-box; padding: 8px; }
 
-        /* Forecast slider bar */
+        
         .forecast-bar {
             display: flex;
             align-items: center;
@@ -94,7 +95,7 @@
             font-size: 0.7em; font-weight: 700; vertical-align: middle;
         }
 
-        /* Time mode toggle */
+        
         .time-mode-toggle {
             display: flex;
             align-items: center;
@@ -118,10 +119,10 @@
         .toggle-btn-group button.active { background: #333; color: white; font-weight: bold; }
         .toggle-btn-group button:hover:not(.active) { background: #eee; }
 
-        /* Shared time row */
+        
         #sharedTimeRow { margin-bottom: 10px; }
 
-        /* Per-panel datetime controls */
+        
         .sounding-station-grid.indep-mode .panel-control { gap: 5px; }
         .indep-datetime-row {
             display: flex;
@@ -148,6 +149,116 @@
             font-style: italic;
             width: 100%;
         }
+
+        /* ── Map Toggle ── */
+        .map-toggle-row {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 14px;
+            flex-wrap: wrap;
+        }
+        .map-toggle-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 16px;
+            border: 2px solid #336;
+            border-radius: 6px;
+            background: white;
+            color: #336;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.9em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background 0.15s, color 0.15s;
+        }
+        .map-toggle-btn.active {
+            background: #336;
+            color: white;
+        }
+        .map-toggle-btn svg {
+            flex-shrink: 0;
+        }
+        .map-hint {
+            font-size: 0.8em;
+            color: #555;
+            font-style: italic;
+        }
+
+        
+        #soundingMapWrapper {
+            display: none;
+            border: 2px solid #b0c4de;
+            border-radius: 8px;
+            overflow: hidden;
+            margin-bottom: 18px;
+            background: #e8f0fe;
+        }
+        #soundingMapWrapper.visible {
+            display: block;
+        }
+        #soundingMap {
+            height: 420px;
+            width: 100%;
+        }
+
+        
+        .map-panel-bar {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 14px;
+            background: #f7f9ff;
+            border-bottom: 1px solid #c8d8f0;
+            flex-wrap: wrap;
+        }
+        .map-panel-bar label {
+            font-weight: bold;
+            font-size: 0.85em;
+            white-space: nowrap;
+        }
+        .map-panel-bar .panel-chip {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: 700;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.15s;
+            user-select: none;
+        }
+        .map-panel-bar .panel-chip.p1 { background: #ffe0e0; color: #900; border-color: #900; }
+        .map-panel-bar .panel-chip.p2 { background: #e0edff; color: #005; border-color: #005; }
+        .map-panel-bar .panel-chip.p3 { background: #e0ffe0; color: #060; border-color: #060; }
+        .map-panel-bar .panel-chip.p4 { background: #fff4e0; color: #760; border-color: #760; }
+        .map-panel-bar .panel-chip.selected { opacity: 1; box-shadow: 0 0 0 3px rgba(0,0,0,0.25); }
+        .map-panel-bar .panel-chip:not(.selected) { opacity: 0.55; }
+        .map-panel-bar .map-bar-hint {
+            margin-left: auto;
+            font-size: 0.76em;
+            color: #666;
+            font-style: italic;
+        }
+
+    
+        .station-dot {
+            width: 10px; height: 10px;
+            border-radius: 50%;
+            background: #336;
+            border: 2px solid white;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
+            cursor: pointer;
+            transition: transform 0.1s;
+        }
+        .station-dot:hover { transform: scale(1.5); }
+        .station-dot.assigned-p1 { background: #cc0000; }
+        .station-dot.assigned-p2 { background: #0000cc; }
+        .station-dot.assigned-p3 { background: #006600; }
+        .station-dot.assigned-p4 { background: #cc7700; }
     </style>
 </head>
 <body>
@@ -188,7 +299,6 @@
         </div>
     </div>
 
-    
     <div class="container">
         <div class="forecast-bar">
             <label>⚡ RAP Forecast:</label>
@@ -247,7 +357,7 @@
         <h2>SPC Soundings</h2>
         <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
 
-        <!-- Time mode toggle -->
+        
         <div class="time-mode-toggle">
             <label>Sounding Time Mode:</label>
             <div class="toggle-btn-group">
@@ -256,7 +366,6 @@
             </div>
         </div>
 
-        
         <div id="sharedTimeRow">
             <div class="sounding-datetime-row">
                 <label for="s_datetime">Select DateTime:</label>
@@ -270,6 +379,32 @@
                 <input type="range" id="s_datetime_slider" min="0" max="0" value="0">
                 <span id="s_datetime_label"></span>
             </div>
+        </div>
+
+        <!-- Map toggle button -->
+        <div class="map-toggle-row">
+            <button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleSoundingMap()">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                    <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                    <line x1="8" y1="2" x2="8" y2="18"></line>
+                    <line x1="16" y1="6" x2="16" y2="22"></line>
+                </svg>
+                Show Station Map
+            </button>
+            <span class="map-hint">Optionally pick stations by clicking on the map</span>
+        </div>
+
+        <!-- Sounding Map (hidden by default) -->
+        <div id="soundingMapWrapper">
+            <div class="map-panel-bar">
+                <label>Assign clicks to:</label>
+                <span class="panel-chip p1 selected" id="chip1" onclick="selectMapPanel(1)">● Sounding 1</span>
+                <span class="panel-chip p2" id="chip2" onclick="selectMapPanel(2)">● Sounding 2</span>
+                <span class="panel-chip p3" id="chip3" onclick="selectMapPanel(3)">● Sounding 3</span>
+                <span class="panel-chip p4" id="chip4" onclick="selectMapPanel(4)">● Sounding 4</span>
+                <span class="map-bar-hint">Click a station marker to assign it to the selected sounding</span>
+            </div>
+            <div id="soundingMap"></div>
         </div>
 
         <div class="sounding-station-grid" id="soundingStationGrid">
@@ -299,6 +434,7 @@
         </div>
     </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
 <script>
 
 const parameterNames = {
@@ -329,7 +465,7 @@ const parameterNames = {
     mucp_chg:'3 Hour MUCAPE Change', thte_chg:'3 Hour Theta-E Change',
     mixr_chg:'3 Hour Mixing Ratio Change',
     bigsfc: 'Surface Composite',
-    sbcp_chg:'3 Hour Surface-Based CAPE Change', 
+    sbcp_chg:'3 Hour Surface-Based CAPE Change',
     sbcn_chg:'3 Hour Surface-Based CIN Change',
     mlcp_chg:'3 Hour Mixed-Layer CAPE Change',
     lllr_chg:'3 Hour Low-Level Lapse Rate Change',
@@ -349,43 +485,80 @@ const forecastParams = new Set([
 
 const FCST_STOPS = ['obs', 0, 2, 4, 6];
 
+
 const stationData = {
-    OUN:{name:'Norman, OK',region:'S'}, FWD:{name:'Dallas, TX',region:'S'},
-    DTX:{name:'Detroit, MI',region:'C'}, ILX:{name:'Lincoln, IL',region:'C'},
-    APX:{name:'Gaylord, MI',region:'C'}, DRT:{name:'Del Rio, TX',region:'S'},
-    BRO:{name:'Brownsville, TX',region:'S'}, TOP:{name:'Topeka, KS',region:'C'},
-    EPZ:{name:'El Paso, TX',region:'S'}, KEY:{name:'Key West, FL',region:'S'},
-    MFL:{name:'Miami, FL',region:'S'}, JAX:{name:'Jacksonville, FL',region:'S'},
-    CHS:{name:'Charleston, SC',region:'E'}, TBW:{name:'Tampa, FL',region:'S'},
-    TAE:{name:'Tallahassee, FL',region:'S'}, FFC:{name:'Peachtree, GA',region:'S'},
-    VPS:{name:'Valparaiso, FL',region:'S'}, BMX:{name:'Shelby Co, AL',region:'S'},
-    LIX:{name:'Slidell, LA',region:'S'}, JAN:{name:'Jackson, MS',region:'S'},
-    LCH:{name:'Lake Charles, LA',region:'S'}, SHV:{name:'Shreveport, LA',region:'S'},
-    CRP:{name:'Corpus Christi, TX',region:'S'}, MAF:{name:'Midland, TX',region:'S'},
-    TWC:{name:'Tucson, AZ',region:'W'}, NKX:{name:'San Diego, CA',region:'W'},
-    MHX:{name:'Morehead City, NC',region:'E'}, GSO:{name:'Greensboro, NC',region:'E'},
-    RNK:{name:'Blacksburg, VA',region:'E'}, OHX:{name:'Nashville, TN',region:'S'},
-    LZK:{name:'Little Rock, AR',region:'S'}, AMA:{name:'Amarillo, TX',region:'S'},
-    ABQ:{name:'Albuquerque, NM',region:'S'}, FGZ:{name:'Flagstaff, AZ',region:'W'},
-    EDW:{name:'Edwards AFB, CA',region:'L'}, VEF:{name:'Las Vegas, NV',region:'W'},
-    WAL:{name:'Wallops Island, VA',region:'E'}, LWX:{name:'Sterling, VA',region:'E'},
-    ILN:{name:'Wilmington, OH',region:'E'}, SGF:{name:'Springfield, MO',region:'C'},
-    DDC:{name:'Dodge City, KS',region:'C'}, DNR:{name:'Denver, CO',region:'C'},
-    GJT:{name:'Grand Junction, CO',region:'C'}, REV:{name:'Reno, NV',region:'W'},
-    OAK:{name:'Oakland, CA',region:'W'}, OKX:{name:'Brookhaven, NY',region:'E'},
-    ALY:{name:'Albany, NY',region:'E'}, PBZ:{name:'Pittsburgh, PA',region:'E'},
-    BUF:{name:'Buffalo, NY',region:'E'}, OAX:{name:'Omaha Valley, NE',region:'C'},
-    LBF:{name:'North Platte, NE',region:'C'}, SLC:{name:'Salt Lake City, UT',region:'W'},
-    LKN:{name:'Elko, NV',region:'W'}, MFR:{name:'Medford, OR',region:'W'},
-    GRB:{name:'Green Bay, WI',region:'C'}, MPX:{name:'Chanhassen, MN',region:'C'},
-    ABR:{name:'Aberdeen, SD',region:'C'}, UNR:{name:'Rapid City, SD',region:'C'},
-    RIW:{name:'Riverton, WY',region:'C'}, BOI:{name:'Boise, ID',region:'W'},
-    SLE:{name:'Salem, OR',region:'W'}, CAR:{name:'Caribou, ME',region:'E'},
-    INL:{name:'International Falls, MN',region:'C'}, BIS:{name:'Bismarck, ND',region:'C'},
-    GGW:{name:'Glasgow, MT',region:'W'}, TFX:{name:'Great Falls, MT',region:'W'},
-    OTX:{name:'Spokane (OTX), WA',region:'W'}, UIL:{name:'Quillayute, WA',region:'W'},
-    DVN:{name:'Davenport, IA',region:'C'}, CHH:{name:'Chatham, MA',region:'E'},
-    LMN:{name:'Lamont, OK',region:'F'}, XMR:{name:'Cape Canaveral, FL',region:'L'}
+    OUN:{name:'Norman, OK',        region:'S', lat:35.22, lon:-97.46},
+    FWD:{name:'Dallas, TX',        region:'S', lat:32.83, lon:-97.30},
+    DTX:{name:'Detroit, MI',       region:'C', lat:42.70, lon:-83.47},
+    ILX:{name:'Lincoln, IL',       region:'C', lat:40.15, lon:-89.34},
+    APX:{name:'Gaylord, MI',       region:'C', lat:44.91, lon:-84.72},
+    DRT:{name:'Del Rio, TX',       region:'S', lat:29.37, lon:-100.92},
+    BRO:{name:'Brownsville, TX',   region:'S', lat:25.92, lon:-97.42},
+    TOP:{name:'Topeka, KS',        region:'C', lat:39.07, lon:-95.62},
+    EPZ:{name:'El Paso, TX',       region:'S', lat:31.87, lon:-106.70},
+    KEY:{name:'Key West, FL',      region:'S', lat:24.55, lon:-81.75},
+    MFL:{name:'Miami, FL',         region:'S', lat:25.75, lon:-80.38},
+    JAX:{name:'Jacksonville, FL',  region:'S', lat:30.49, lon:-81.70},
+    CHS:{name:'Charleston, SC',    region:'E', lat:32.90, lon:-80.03},
+    TBW:{name:'Tampa, FL',         region:'S', lat:27.71, lon:-82.40},
+    TAE:{name:'Tallahassee, FL',   region:'S', lat:30.39, lon:-84.33},
+    FFC:{name:'Peachtree, GA',     region:'S', lat:33.36, lon:-84.57},
+    VPS:{name:'Valparaiso, FL',    region:'S', lat:30.48, lon:-86.52},
+    BMX:{name:'Shelby Co, AL',     region:'S', lat:33.17, lon:-86.77},
+    LIX:{name:'Slidell, LA',       region:'S', lat:30.34, lon:-89.83},
+    JAN:{name:'Jackson, MS',       region:'S', lat:32.32, lon:-90.08},
+    LCH:{name:'Lake Charles, LA',  region:'S', lat:30.12, lon:-93.22},
+    SHV:{name:'Shreveport, LA',    region:'S', lat:32.45, lon:-93.84},
+    CRP:{name:'Corpus Christi, TX',region:'S', lat:27.78, lon:-97.51},
+    MAF:{name:'Midland, TX',       region:'S', lat:31.94, lon:-102.19},
+    TWC:{name:'Tucson, AZ',        region:'W', lat:32.23, lon:-110.83},
+    NKX:{name:'San Diego, CA',     region:'W', lat:32.87, lon:-117.15},
+    MHX:{name:'Morehead City, NC', region:'E', lat:34.78, lon:-76.88},
+    GSO:{name:'Greensboro, NC',    region:'E', lat:36.10, lon:-79.95},
+    RNK:{name:'Blacksburg, VA',    region:'E', lat:37.21, lon:-80.41},
+    OHX:{name:'Nashville, TN',     region:'S', lat:36.25, lon:-86.57},
+    LZK:{name:'Little Rock, AR',   region:'S', lat:34.84, lon:-92.26},
+    AMA:{name:'Amarillo, TX',      region:'S', lat:35.23, lon:-101.71},
+    ABQ:{name:'Albuquerque, NM',   region:'S', lat:35.05, lon:-106.62},
+    FGZ:{name:'Flagstaff, AZ',     region:'W', lat:35.23, lon:-111.82},
+    EDW:{name:'Edwards AFB, CA',   region:'L', lat:34.91, lon:-117.92},
+    VEF:{name:'Las Vegas, NV',     region:'W', lat:36.05, lon:-115.19},
+    WAL:{name:'Wallops Island, VA',region:'E', lat:37.93, lon:-75.47},
+    LWX:{name:'Sterling, VA',      region:'E', lat:38.98, lon:-77.49},
+    ILN:{name:'Wilmington, OH',    region:'E', lat:39.42, lon:-83.82},
+    SGF:{name:'Springfield, MO',   region:'C', lat:37.24, lon:-93.40},
+    DDC:{name:'Dodge City, KS',    region:'C', lat:37.76, lon:-99.97},
+    DNR:{name:'Denver, CO',        region:'C', lat:39.75, lon:-104.87},
+    GJT:{name:'Grand Junction, CO',region:'C', lat:39.12, lon:-108.53},
+    REV:{name:'Reno, NV',          region:'W', lat:39.57, lon:-119.80},
+    OAK:{name:'Oakland, CA',       region:'W', lat:37.72, lon:-122.22},
+    OKX:{name:'Brookhaven, NY',    region:'E', lat:40.87, lon:-72.86},
+    ALY:{name:'Albany, NY',        region:'E', lat:42.70, lon:-73.84},
+    PBZ:{name:'Pittsburgh, PA',    region:'E', lat:40.53, lon:-80.22},
+    BUF:{name:'Buffalo, NY',       region:'E', lat:42.93, lon:-78.74},
+    OAX:{name:'Omaha, NE',         region:'C', lat:41.32, lon:-96.37},
+    LBF:{name:'North Platte, NE',  region:'C', lat:41.13, lon:-100.68},
+    SLC:{name:'Salt Lake City, UT',region:'W', lat:40.77, lon:-111.97},
+    LKN:{name:'Elko, NV',          region:'W', lat:40.88, lon:-115.73},
+    MFR:{name:'Medford, OR',       region:'W', lat:42.37, lon:-122.87},
+    GRB:{name:'Green Bay, WI',     region:'C', lat:44.50, lon:-88.13},
+    MPX:{name:'Chanhassen, MN',    region:'C', lat:44.85, lon:-93.57},
+    ABR:{name:'Aberdeen, SD',      region:'C', lat:45.45, lon:-98.41},
+    UNR:{name:'Rapid City, SD',    region:'C', lat:44.07, lon:-103.21},
+    RIW:{name:'Riverton, WY',      region:'C', lat:43.06, lon:-108.48},
+    BOI:{name:'Boise, ID',         region:'W', lat:43.57, lon:-116.21},
+    SLE:{name:'Salem, OR',         region:'W', lat:44.91, lon:-123.00},
+    CAR:{name:'Caribou, ME',       region:'E', lat:46.87, lon:-68.02},
+    INL:{name:'Intl Falls, MN',    region:'C', lat:48.57, lon:-93.38},
+    BIS:{name:'Bismarck, ND',      region:'C', lat:46.77, lon:-100.77},
+    GGW:{name:'Glasgow, MT',       region:'W', lat:48.21, lon:-106.62},
+    TFX:{name:'Great Falls, MT',   region:'W', lat:47.46, lon:-111.39},
+    OTX:{name:'Spokane, WA',       region:'W', lat:47.68, lon:-117.63},
+    UIL:{name:'Quillayute, WA',    region:'W', lat:47.95, lon:-124.56},
+    DVN:{name:'Davenport, IA',     region:'C', lat:41.61, lon:-90.58},
+    CHH:{name:'Chatham, MA',       region:'E', lat:41.66, lon:-69.96},
+    LMN:{name:'Lamont, OK',        region:'F', lat:36.69, lon:-97.49},
+    XMR:{name:'Cape Canaveral, FL',region:'L', lat:28.47, lon:-80.56}
 };
 
 const parameterCategories = {
@@ -407,11 +580,17 @@ const noSuffix = new Set([
     'eshr','shr1','shr3','srh1','srh3','dwpt_chg','thea','ddiv','dlcp','ttd'
 ]);
 
-
 let currentMode = 'grid';
 let globalFcstHour = 'obs';
 let soundingTimeMode = 'shared';
 
+
+let soundingMap = null;
+let mapVisible = false;
+let activeMapPanel = 1;
+let stationMarkers = {}; 
+const PANEL_COLORS = { 1:'#cc0000', 2:'#0000cc', 3:'#006600', 4:'#cc7700' };
+const PANEL_CLASSES = { 1:'assigned-p1', 2:'assigned-p2', 3:'assigned-p3', 4:'assigned-p4' };
 
 function pad2(n) { return String(n).padStart(2, '0'); }
 
@@ -496,18 +675,14 @@ function initDropdowns() {
     }
 }
 
-
 function setSoundingTimeMode(mode) {
     soundingTimeMode = mode;
     document.getElementById('btnSharedTime').classList.toggle('active', mode === 'shared');
     document.getElementById('btnIndepTime').classList.toggle('active', mode === 'independent');
     document.getElementById('sharedTimeRow').style.display = mode === 'shared' ? '' : 'none';
-
-    
     buildStationGrid();
     updateAllSoundings();
 }
-
 
 function generateDatetimes() {
     const now = new Date();
@@ -602,7 +777,6 @@ function buildStationSelect(sel) {
     });
 }
 
-
 function buildStationGrid() {
     const grid = document.getElementById('soundingStationGrid');
     grid.innerHTML = '';
@@ -613,7 +787,6 @@ function buildStationGrid() {
         div.className = 'panel-control';
 
         if (soundingTimeMode === 'independent') {
-            // DateTime select for this panel
             const dtRow = document.createElement('div');
             dtRow.className = 'indep-datetime-row';
 
@@ -631,7 +804,6 @@ function buildStationGrid() {
             dtRow.appendChild(dtSel);
             div.appendChild(dtRow);
 
-            // Slider
             const slider = document.createElement('input');
             slider.type = 'range';
             slider.id = `indep_slider_${i}`;
@@ -652,7 +824,6 @@ function buildStationGrid() {
             });
             div.appendChild(slider);
 
-            
             const stLabel = document.createElement('label');
             stLabel.htmlFor = `station${i}`;
             stLabel.style.fontWeight = 'bold';
@@ -666,19 +837,20 @@ function buildStationGrid() {
             div.appendChild(lbl);
         }
 
-        
         const stSel = document.createElement('select');
         stSel.id = `station${i}`;
         stSel.style.padding = '8px';
         buildStationSelect(stSel);
         stSel.value = defaultStations[i - 1];
-        stSel.addEventListener('change', () => updateSoundingPanel(i));
+        stSel.addEventListener('change', () => {
+            updateSoundingPanel(i);
+            refreshMapMarkers();
+        });
         div.appendChild(stSel);
 
         grid.appendChild(div);
     }
 }
-
 
 function getSoundingDatetime(i) {
     if (soundingTimeMode === 'independent') {
@@ -704,6 +876,140 @@ function updateAllSoundings() {
     for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
 }
 
+function toggleSoundingMap() {
+    mapVisible = !mapVisible;
+    const wrapper = document.getElementById('soundingMapWrapper');
+    const btn = document.getElementById('mapToggleBtn');
+
+    if (mapVisible) {
+        wrapper.classList.add('visible');
+        btn.classList.add('active');
+        btn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                <line x1="8" y1="2" x2="8" y2="18"></line>
+                <line x1="16" y1="6" x2="16" y2="22"></line>
+            </svg>
+            Hide Station Map`;
+        initOrRefreshMap();
+    } else {
+        wrapper.classList.remove('visible');
+        btn.classList.remove('active');
+        btn.innerHTML = `
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                <polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"></polygon>
+                <line x1="8" y1="2" x2="8" y2="18"></line>
+                <line x1="16" y1="6" x2="16" y2="22"></line>
+            </svg>
+            Show Station Map`;
+    }
+}
+
+function selectMapPanel(n) {
+    activeMapPanel = n;
+    for (let i = 1; i <= 4; i++) {
+        const chip = document.getElementById(`chip${i}`);
+        chip.classList.toggle('selected', i === n);
+    }
+}
+
+function makeMarkerIcon(code, assignedPanel) {
+    const color = assignedPanel ? PANEL_COLORS[assignedPanel] : '#336699';
+    const size = assignedPanel ? 14 : 10;
+    const border = assignedPanel ? 3 : 2;
+
+    return L.divIcon({
+        className: '',
+        html: `<div style="
+            width:${size}px; height:${size}px; border-radius:50%;
+            background:${color}; border:${border}px solid white;
+            box-shadow:0 1px 4px rgba(0,0,0,0.5);
+            cursor:pointer; transition:transform 0.1s;
+            box-sizing:border-box;
+        "></div>`,
+        iconSize: [size, size],
+        iconAnchor: [size/2, size/2]
+    });
+}
+
+function getAssignedPanel(code) {
+    for (let i = 1; i <= 4; i++) {
+        const sel = document.getElementById(`station${i}`);
+        if (sel && sel.value === code) return i;
+    }
+    return null;
+}
+
+function refreshMapMarkers() {
+    Object.keys(stationMarkers).forEach(code => {
+        const assigned = getAssignedPanel(code);
+        stationMarkers[code].setIcon(makeMarkerIcon(code, assigned));
+    });
+}
+
+function initOrRefreshMap() {
+    if (!soundingMap) {
+        soundingMap = L.map('soundingMap', {
+            center: [39.5, -98.5],
+            zoom: 4,
+            zoomControl: true,
+            scrollWheelZoom: true
+        });
+
+        
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
+            attribution: '&copy; OpenStreetMap &copy; CARTO',
+            subdomains: 'abcd',
+            maxZoom: 19
+        }).addTo(soundingMap);
+
+        
+        L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
+            maxZoom: 19,
+            opacity: 0.7,
+            attribution: 'Esri'
+        }).addTo(soundingMap);
+
+        
+        Object.keys(stationData).forEach(code => {
+            const s = stationData[code];
+            if (!s.lat || !s.lon) return;
+
+            const assigned = getAssignedPanel(code);
+            const marker = L.marker([s.lat, s.lon], {
+                icon: makeMarkerIcon(code, assigned),
+                title: `${code} — ${s.name}`
+            }).addTo(soundingMap);
+
+            
+            marker.bindTooltip(`<strong>${code}</strong><br>${s.name}`, {
+                direction: 'top',
+                offset: [0, -8],
+                className: ''
+            });
+
+            
+            marker.on('click', () => {
+                const sel = document.getElementById(`station${activeMapPanel}`);
+                if (sel) {
+                    sel.value = code;
+                    updateSoundingPanel(activeMapPanel);
+                    refreshMapMarkers();
+
+                    // Auto-advance to next panel
+                    const next = (activeMapPanel % 4) + 1;
+                    selectMapPanel(next);
+                }
+            });
+
+            stationMarkers[code] = marker;
+        });
+    } else {
+        
+        soundingMap.invalidateSize();
+        refreshMapMarkers();
+    }
+}
 
 window.onload = function () {
     initDropdowns();
@@ -718,7 +1024,6 @@ window.onload = function () {
 
     setMode('grid');
 
-    
     fullDatetimes = generateDatetimes();
     populateSharedDatetimes();
 
@@ -729,7 +1034,6 @@ window.onload = function () {
         updateAllSoundings();
     });
 
-    
     const sliderEl = document.getElementById('s_datetime_slider');
     if (sliderEl) {
         sliderEl.addEventListener('input', function () {
@@ -748,7 +1052,6 @@ window.onload = function () {
         updateAllSoundings();
     });
 
-    
     buildStationGrid();
     updateAllSoundings();
 };
