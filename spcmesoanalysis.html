@@ -215,6 +215,19 @@
             display: none;
             padding: 10px;
         }
+
+        /* ── Outlook sector selector spacing ── */
+        #outlookSectorControls {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        #stateSelect, #cwaSelect {
+            padding: 8px;
+            border: 2px solid #333;
+            border-radius: 4px;
+        }
     </style>
 </head>
 <body>
@@ -389,15 +402,77 @@
     <div class="container outlook-section">
         <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
             <h2 style="margin: 0;">SPC Outlook</h2>
+
+            <!-- Sector toggle: National / State / CWA -->
             <div class="toggle-btn-group">
                 <button id="nationalSectorBtn" class="active" onclick="switchOutlookSector('national')">National</button>
+                <button id="stateSectorBtn" onclick="switchOutlookSector('state')">State</button>
                 <button id="cwaSectorBtn" onclick="switchOutlookSector('cwa')">CWA</button>
             </div>
+
+            <!-- Day toggle -->
             <div class="toggle-btn-group">
                 <button id="day1OutlookBtn" class="active" onclick="switchOutlookDay(1)">Day 1</button>
                 <button id="day2OutlookBtn" onclick="switchOutlookDay(2)">Day 2</button>
             </div>
-            <select id="cwaSelect" style="display: none; padding: 8px; border: 2px solid #333; border-radius: 4px;">
+
+           
+            <select id="stateSelect" style="display: none;">
+                <option value="AL">AL - Alabama</option>
+                <option value="AK">AK - Alaska</option>
+                <option value="AZ">AZ - Arizona</option>
+                <option value="AR">AR - Arkansas</option>
+                <option value="CA">CA - California</option>
+                <option value="CO">CO - Colorado</option>
+                <option value="CT">CT - Connecticut</option>
+                <option value="DE">DE - Delaware</option>
+                <option value="FL">FL - Florida</option>
+                <option value="GA">GA - Georgia</option>
+                <option value="HI">HI - Hawaii</option>
+                <option value="ID">ID - Idaho</option>
+                <option value="IL">IL - Illinois</option>
+                <option value="IN">IN - Indiana</option>
+                <option value="IA">IA - Iowa</option>
+                <option value="KS">KS - Kansas</option>
+                <option value="KY">KY - Kentucky</option>
+                <option value="LA">LA - Louisiana</option>
+                <option value="ME">ME - Maine</option>
+                <option value="MD">MD - Maryland</option>
+                <option value="MA">MA - Massachusetts</option>
+                <option value="MI">MI - Michigan</option>
+                <option value="MN">MN - Minnesota</option>
+                <option value="MS">MS - Mississippi</option>
+                <option value="MO">MO - Missouri</option>
+                <option value="MT">MT - Montana</option>
+                <option value="NE">NE - Nebraska</option>
+                <option value="NV">NV - Nevada</option>
+                <option value="NH">NH - New Hampshire</option>
+                <option value="NJ">NJ - New Jersey</option>
+                <option value="NM">NM - New Mexico</option>
+                <option value="NY">NY - New York</option>
+                <option value="NC">NC - North Carolina</option>
+                <option value="ND">ND - North Dakota</option>
+                <option value="OH">OH - Ohio</option>
+                <option value="OK" selected>OK - Oklahoma</option>
+                <option value="OR">OR - Oregon</option>
+                <option value="PA">PA - Pennsylvania</option>
+                <option value="RI">RI - Rhode Island</option>
+                <option value="SC">SC - South Carolina</option>
+                <option value="SD">SD - South Dakota</option>
+                <option value="TN">TN - Tennessee</option>
+                <option value="TX">TX - Texas</option>
+                <option value="UT">UT - Utah</option>
+                <option value="VT">VT - Vermont</option>
+                <option value="VA">VA - Virginia</option>
+                <option value="WA">WA - Washington</option>
+                <option value="WV">WV - West Virginia</option>
+                <option value="WI">WI - Wisconsin</option>
+                <option value="WY">WY - Wyoming</option>
+                <option value="DC">DC - Washington D.C.</option>
+            </select>
+
+            <!-- CWA dropdown (shown only when sector = cwa) -->
+            <select id="cwaSelect" style="display: none;">
                 <optgroup label="Northeast">
                     <option value="ALY">ALY - Albany, NY</option>
                     <option value="BGM">BGM - Binghamton, NY</option>
@@ -451,7 +526,7 @@
                     <option value="LCH">LCH - Lake Charles, LA</option>
                     <option value="LIX">LIX - New Orleans, LA</option>
                     <option value="LZK">LZK - Little Rock, AR</option>
-                    <option value="OUN">OUN - Norman, OK</option>
+                    <option value="OUN" selected >OUN - Norman, OK</option>
                     <option value="SGF">SGF - Springfield, MO</option>
                     <option value="SHV">SHV - Shreveport, LA</option>
                     <option value="TSA">TSA - Tulsa, OK</option>
@@ -952,56 +1027,76 @@ function updateAllSoundings() {
     for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
 }
 
-function loadOutlooks(day, sector) {
-    if (!sector) sector = 'national'; // default to national
-    
-    let urls = {};
-    
-    if (sector === 'national') {
-        urls = {
-            'outlookCategorical': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}.png`,
-            'outlookTornado': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_TORN.png`,
-            'outlookHail': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_HAIL.png`,
-            'outlookWind': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_WIND.png`
-        };
-    } else if (sector === 'cwa') {
-        const cwa = document.getElementById('cwaSelect').value.toUpperCase();
-        urls = {
-            'outlookCategorical': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}.png`,
-            'outlookTornado': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_TORN.png`,
-            'outlookHail': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_HAIL.png`,
-            'outlookWind': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_WIND.png`
+let currentOutlookSector = 'national';
+let currentOutlookDay = 1;
+function buildOutlookUrls(day, sector) {
+    const base = 'https://www.spc.noaa.gov/partners/outlooks';
+
+    if (sector === 'state') {
+        const state = document.getElementById('stateSelect').value.toUpperCase();
+        // State outlooks share one combined image per hazard type — same naming as CWA
+        return {
+            outlookCategorical: `${base}/state/images/${state}_swody${day}.png`,
+            outlookTornado:     `${base}/state/images/${state}_swody${day}_TORN.png`,
+            outlookHail:        `${base}/state/images/${state}_swody${day}_HAIL.png`,
+            outlookWind:        `${base}/state/images/${state}_swody${day}_WIND.png`
         };
     }
 
+    if (sector === 'cwa') {
+        const cwa = document.getElementById('cwaSelect').value.toUpperCase();
+        return {
+            outlookCategorical: `${base}/cwa/images/${cwa}_swody${day}.png`,
+            outlookTornado:     `${base}/cwa/images/${cwa}_swody${day}_TORN.png`,
+            outlookHail:        `${base}/cwa/images/${cwa}_swody${day}_HAIL.png`,
+            outlookWind:        `${base}/cwa/images/${cwa}_swody${day}_WIND.png`
+        };
+    }
+
+    
+    return {
+        outlookCategorical: `${base}/national/swody${day}.png`,
+        outlookTornado:     `${base}/national/swody${day}_TORN.png`,
+        outlookHail:        `${base}/national/swody${day}_HAIL.png`,
+        outlookWind:        `${base}/national/swody${day}_WIND.png`
+    };
+}
+
+function loadOutlooks(day, sector) {
+    if (!sector) sector = currentOutlookSector;
+    const urls = buildOutlookUrls(day, sector);
+
     Object.keys(urls).forEach(imgId => {
         const imgEl = document.getElementById(imgId);
+        if (!imgEl) return;
         const errorEl = imgEl.nextElementSibling;
 
-        if (!imgEl) return;
-
-        imgEl.src = urls[imgId];
+        
+        imgEl.src = urls[imgId] + '?' + Date.now();
 
         imgEl.onerror = () => {
-            errorEl.style.display = 'block';
+            if (errorEl) errorEl.style.display = 'block';
             imgEl.style.display = 'none';
         };
-
         imgEl.onload = () => {
-            errorEl.style.display = 'none';
+            if (errorEl) errorEl.style.display = 'none';
             imgEl.style.display = 'block';
         };
     });
 }
 
-let currentOutlookSector = 'national';
-let currentOutlookDay = 1;
-
 function switchOutlookSector(sector) {
     currentOutlookSector = sector;
+
+    
     document.getElementById('nationalSectorBtn').classList.toggle('active', sector === 'national');
-    document.getElementById('cwaSectorBtn').classList.toggle('active', sector === 'cwa');
-    document.getElementById('cwaSelect').style.display = sector === 'cwa' ? '' : 'none';
+    document.getElementById('stateSectorBtn').classList.toggle('active',    sector === 'state');
+    document.getElementById('cwaSectorBtn').classList.toggle('active',      sector === 'cwa');
+
+    
+    document.getElementById('stateSelect').style.display = sector === 'state' ? '' : 'none';
+    document.getElementById('cwaSelect').style.display   = sector === 'cwa'   ? '' : 'none';
+
     loadOutlooks(currentOutlookDay, sector);
 }
 
@@ -1182,9 +1277,12 @@ window.onload = function () {
 
     buildStationGrid();
     updateAllSoundings();
-    loadOutlooks(1);
+    loadOutlooks(1, 'national');
+
     
-    document.getElementById('cwaSelect').value = 'OUN';
+    document.getElementById('stateSelect').addEventListener('change', () => {
+        loadOutlooks(currentOutlookDay, 'state');
+    });
     document.getElementById('cwaSelect').addEventListener('change', () => {
         loadOutlooks(currentOutlookDay, 'cwa');
     });
