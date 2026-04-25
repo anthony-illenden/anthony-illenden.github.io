@@ -8,36 +8,82 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
     <style>
-        html, body { margin: 0; padding: 0; width: 100%; height: 100%; font-family: 'Roboto', sans-serif; }
+        /* ── Reset & base ── */
+        *, *::before, *::after { box-sizing: border-box; }
+        html, body {
+            margin: 0; padding: 0;
+            width: 100%; height: 100%;
+            font-family: 'Roboto', sans-serif;
+            overflow-x: hidden;          /* prevent horizontal scroll */
+        }
+
+        /* ── Nav ── */
         nav { background-color: #333; overflow: hidden; text-align: center; }
         nav a { display: inline-block; color: #f2f2f2; text-align: center; padding: 14px 16px; text-decoration: none; }
         nav a:hover { background-color: #ddd; color: black; }
+
+        /* ── Hero ── */
         .hero-section {
             background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
-            background-size: cover; background-position: center; height: 400px; position: relative; width: 100vw;
+            background-size: cover; background-position: center;
+            height: 300px;              /* slightly shorter hero */
+            position: relative; width: 100%;
         }
         .hero-text {
             position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%);
             color: white; background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 5px; text-align: center;
         }
         .hero-text h1 { margin: 0; font-size: 2em; }
-        .container { max-width: 1600px; margin: auto; margin-top: 40px; }
+
+        /* ── Main container — constrained width ── */
+        .container {
+            max-width: 1200px;          /* was 1600px */
+            margin: 0 auto;
+            margin-top: 20px;
+            padding: 0 16px;            /* side padding so content never touches edge */
+        }
+
+        /* ── Mode selector ── */
         .mode-selector { margin-bottom: 20px; display: flex; align-items: center; gap: 15px; }
         .mode-selector button {
             padding: 10px 15px; margin: 0 5px; cursor: pointer;
             border: 2px solid #333; background-color: white; border-radius: 4px;
         }
         .mode-selector button.active { background-color: #333; color: white; }
+
+        /* ── Panel dropdowns ── */
         .controls { margin-bottom: 20px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; }
         .panel-control { display: flex; flex-direction: column; gap: 5px; }
-        .panel-control select { width: 100%; box-sizing: border-box; }
+        .panel-control select { width: 100%; }
         .panel-control label { font-weight: bold; font-size: 0.9em; }
         .controls select, .controls input { padding: 8px; }
         .error { color: red; font-weight: bold; }
-        .image-container { margin-top: 20px; display: grid; grid-template-columns: 1fr 1fr; gap: 0; }
-        .image-panel { text-align: center; }
-        .image-panel h3 { margin: 0 0 10px 0; font-size: 1em; }
-        img { max-width: 100%; height: auto; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* ── 4-panel image grid ── */
+        .image-container {
+            margin-top: 10px;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4px;
+            max-width: 1700px;
+            margin-left: auto;
+            margin-right: auto;
+            padding: 0 16px;
+            box-sizing: border-box;
+        }
+        .image-panel { text-align: center; min-width: 0; }
+        .image-panel h3 { margin: 0 0 2px 0; font-size: 0.9em; }
+
+        /* Natural aspect ratio — no stretching */
+        .image-panel img {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+        }
+
+        /* ── Sounding section ── */
         .sounding-datetime-row { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 15px; }
         .sounding-datetime-row label { font-weight: bold; }
         .sounding-datetime-row #s_datetime { min-width: 200px; padding: 8px; }
@@ -45,220 +91,130 @@
         .sounding-datetime-row #s_datetime_label { font-weight: 600; }
         .sounding-note { font-style: italic; color: #555; margin-bottom: 12px; }
         .sounding-station-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 15px; margin-bottom: 20px; }
-        .sounding-station-grid .panel-control select { width: 100%; box-sizing: border-box; padding: 8px; }
+        .sounding-station-grid .panel-control select { width: 100%; padding: 8px; }
+        .sounding-station-grid .panel-control {
+            border: 1px solid #e0e0e0;
+            background: #fafafa;
+            padding: 10px;
+            border-radius: 8px;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.03);
+        }
+            .sounding-img-wrap { position: relative; display: inline-block; width: 100%; }
+            .sounding-img-wrap img { display: block; width: 100%; height: auto; }
+            .sounding-badge {
+                position: absolute; top: 8px; right: 8px;
+                background: #333; color: white; padding: 4px 8px; border-radius: 6px;
+                font-size: 0.75em; font-weight: 700; box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+            }
+            .sounding-badge.loading { background: #f0ad4e; color: #222; }
+            .sounding-badge.ok { background: #28a745; }
+            .sounding-badge.fail { background: #dc3545; }
 
-        
+        /* ── Forecast bar ── */
         .forecast-bar {
-            display: flex;
-            align-items: center;
-            gap: 14px;
-            padding: 10px 16px;
-            background: #f0f4ff;
-            border: 1px solid #b0c4de;
-            border-radius: 6px;
-            flex-wrap: wrap;
-            margin-bottom: 6px;
+            display: flex; align-items: center; gap: 14px;
+            padding: 10px 16px; background: #f2f2f2;
+            border: 1px solid #d0d0d0; border-radius: 6px;
+            flex-wrap: wrap; margin-bottom: 6px;
         }
         .forecast-bar label { font-weight: bold; font-size: 0.9em; white-space: nowrap; }
-        .forecast-bar .fcst-track {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            flex: 1;
-            min-width: 260px;
-        }
-        .forecast-bar input[type=range] {
-            flex: 1;
-            cursor: pointer;
-            accent-color: #336;
-        }
-        .fcst-value-label {
-            font-weight: 700;
-            font-size: 0.95em;
-            color: #336;
-            min-width: 48px;
-            text-align: left;
-        }
-        .fcst-tick-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.72em;
-            color: #555;
-            padding: 0 2px;
-            margin-top: -4px;
-            width: 100%;
-        }
+        .forecast-bar .fcst-track { display: flex; align-items: center; gap: 10px; flex: 1; min-width: 260px; }
+        .forecast-bar input[type=range] { flex: 1; cursor: pointer; accent-color: #333; }
+        .fcst-value-label { font-weight: 700; font-size: 0.95em; color: #333; min-width: 48px; text-align: left; }
+        .fcst-tick-row { display: flex; justify-content: space-between; font-size: 0.72em; color: #555; padding: 0 2px; margin-top: -4px; width: 100%; }
         .fcst-note { font-size: 0.78em; color: #666; font-style: italic; }
-        .forecast-badge {
-            display: inline-block; margin-left: 6px; padding: 1px 7px;
-            background: #336; color: white; border-radius: 10px;
-            font-size: 0.7em; font-weight: 700; vertical-align: middle;
-        }
+        .forecast-badge { display: inline-block; margin-left: 6px; padding: 1px 7px; background: #333; color: white; border-radius: 10px; font-size: 0.7em; font-weight: 700; vertical-align: middle; }
 
-        
-        .time-mode-toggle {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
+        /* ── Time mode toggle ── */
+        .time-mode-toggle { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; flex-wrap: wrap; }
         .time-mode-toggle label { font-weight: bold; font-size: 0.9em; }
         .toggle-btn-group { display: flex; gap: 0; border-radius: 4px; overflow: hidden; border: 2px solid #333; }
-        .toggle-btn-group button {
-            padding: 7px 16px;
-            border: none;
-            background: white;
-            cursor: pointer;
-            font-size: 0.88em;
-            font-family: 'Roboto', sans-serif;
-            transition: background 0.15s, color 0.15s;
-            border-right: 1px solid #333;
-        }
+        .toggle-btn-group button { padding: 7px 16px; border: none; background: white; cursor: pointer; font-size: 0.88em; font-family: 'Roboto', sans-serif; transition: background 0.15s, color 0.15s; border-right: 1px solid #333; }
         .toggle-btn-group button:last-child { border-right: none; }
         .toggle-btn-group button.active { background: #333; color: white; font-weight: bold; }
         .toggle-btn-group button:hover:not(.active) { background: #eee; }
 
-        
         #sharedTimeRow { margin-bottom: 10px; }
 
-        
         .sounding-station-grid.indep-mode .panel-control { gap: 5px; }
-        .indep-datetime-row {
-            display: flex;
-            gap: 6px;
-            align-items: center;
-            flex-wrap: wrap;
-            margin-bottom: 4px;
-        }
-        .indep-datetime-row select {
-            flex: 1;
-            min-width: 140px;
-            padding: 6px;
-            font-size: 0.85em;
-            box-sizing: border-box;
-        }
-        .indep-datetime-row input[type=range] {
-            width: 100%;
-            cursor: pointer;
-            accent-color: #336;
-        }
-        .indep-dt-label {
-            font-size: 0.78em;
-            color: #444;
-            font-style: italic;
-            width: 100%;
-        }
+        .indep-datetime-row { display: flex; gap: 6px; align-items: center; flex-wrap: wrap; margin-bottom: 4px; }
+        .indep-datetime-row select { flex: 1; min-width: 140px; padding: 6px; font-size: 0.85em; }
+        .indep-datetime-row input[type=range] { width: 100%; cursor: pointer; accent-color: #333; }
+        .indep-dt-label { font-size: 0.78em; color: #444; font-style: italic; width: 100%; }
 
-        /* ── Map Toggle ── */
-        .map-toggle-row {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            margin-bottom: 14px;
-            flex-wrap: wrap;
-        }
-        .map-toggle-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 16px;
-            border: 2px solid #336;
-            border-radius: 6px;
-            background: white;
-            color: #336;
-            font-family: 'Roboto', sans-serif;
-            font-size: 0.9em;
-            font-weight: 700;
-            cursor: pointer;
-            transition: background 0.15s, color 0.15s;
-        }
-        .map-toggle-btn.active {
-            background: #336;
-            color: white;
-        }
-        .map-toggle-btn svg {
-            flex-shrink: 0;
-        }
-        .map-hint {
-            font-size: 0.8em;
-            color: #555;
-            font-style: italic;
-        }
+        /* ── Map toggle ── */
+        .map-toggle-row { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+        .map-toggle-btn { display: inline-flex; align-items: center; gap: 8px; padding: 8px 16px; border: 2px solid #333; border-radius: 6px; background: white; color: #333; font-family: 'Roboto', sans-serif; font-size: 0.9em; font-weight: 700; cursor: pointer; transition: background 0.15s, color 0.15s; }
+        .map-toggle-btn.active { background: #333; color: white; }
+        .map-toggle-btn svg { flex-shrink: 0; }
+        .map-hint { font-size: 0.8em; color: #555; font-style: italic; }
 
-        
-        #soundingMapWrapper {
-            display: none;
-            border: 2px solid #b0c4de;
-            border-radius: 8px;
-            overflow: hidden;
-            margin-bottom: 18px;
-            background: #e8f0fe;
-        }
-        #soundingMapWrapper.visible {
-            display: block;
-        }
-        #soundingMap {
-            height: 420px;
-            width: 100%;
-        }
+        #soundingMapWrapper { display: none; border: 2px solid #d0d0d0; border-radius: 8px; overflow: hidden; margin-bottom: 18px; background: #f2f2f2 ; }
+        #soundingMapWrapper.visible { display: block; }
+        #soundingMap { height: 420px; width: 100%; }
 
-        
-        .map-panel-bar {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 14px;
-            background: #f7f9ff;
-            border-bottom: 1px solid #c8d8f0;
-            flex-wrap: wrap;
-        }
-        .map-panel-bar label {
-            font-weight: bold;
-            font-size: 0.85em;
-            white-space: nowrap;
-        }
-        .map-panel-bar .panel-chip {
-            display: inline-flex;
-            align-items: center;
-            gap: 5px;
-            padding: 4px 10px;
-            border-radius: 20px;
-            font-size: 0.82em;
-            font-weight: 700;
-            cursor: pointer;
-            border: 2px solid transparent;
-            transition: all 0.15s;
-            user-select: none;
-        }
+        .map-panel-bar { display: flex; align-items: center; gap: 10px; padding: 8px 14px; background: #f2f2f2; border-bottom: 1px solid #d0d0d0; flex-wrap: wrap; }
+        .map-panel-bar label { font-weight: bold; font-size: 0.85em; white-space: nowrap; }
+        .map-panel-bar .panel-chip { display: inline-flex; align-items: center; gap: 5px; padding: 4px 10px; border-radius: 20px; font-size: 0.82em; font-weight: 700; cursor: pointer; border: 2px solid transparent; transition: all 0.15s; user-select: none; }
         .map-panel-bar .panel-chip.p1 { background: #ffe0e0; color: #900; border-color: #900; }
         .map-panel-bar .panel-chip.p2 { background: #e0edff; color: #005; border-color: #005; }
         .map-panel-bar .panel-chip.p3 { background: #e0ffe0; color: #060; border-color: #060; }
         .map-panel-bar .panel-chip.p4 { background: #fff4e0; color: #760; border-color: #760; }
         .map-panel-bar .panel-chip.selected { opacity: 1; box-shadow: 0 0 0 3px rgba(0,0,0,0.25); }
         .map-panel-bar .panel-chip:not(.selected) { opacity: 0.55; }
-        .map-panel-bar .map-bar-hint {
-            margin-left: auto;
-            font-size: 0.76em;
-            color: #666;
-            font-style: italic;
-        }
+        .map-panel-bar .map-bar-hint { margin-left: auto; font-size: 0.76em; color: #666; font-style: italic; }
 
-    
-        .station-dot {
-            width: 10px; height: 10px;
-            border-radius: 50%;
-            background: #336;
-            border: 2px solid white;
-            box-shadow: 0 1px 3px rgba(0,0,0,0.4);
-            cursor: pointer;
-            transition: transform 0.1s;
-        }
+        .station-dot { width: 10px; height: 10px; border-radius: 50%; background: #333; border: 2px solid white; box-shadow: 0 1px 3px rgba(0,0,0,0.4); cursor: pointer; transition: transform 0.1s; }
         .station-dot:hover { transform: scale(1.5); }
         .station-dot.assigned-p1 { background: #cc0000; }
         .station-dot.assigned-p2 { background: #0000cc; }
         .station-dot.assigned-p3 { background: #006600; }
         .station-dot.assigned-p4 { background: #cc7700; }
+
+        /* ── SPC Outlook Section ── */
+        .outlook-section {
+            margin-top: 40px;
+            padding: 20px 0;
+            border-top: 2px solid #d0d0d0;
+        }
+        .outlook-section h2 {
+            font-size: 1.5em;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        .outlook-update-note {
+            font-size: 0.85em;
+            color: #666;
+            font-style: italic;
+            margin-bottom: 12px;
+        }
+        .outlook-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 15px;
+            margin-top: 15px;
+        }
+        .outlook-panel {
+            text-align: center;
+        }
+        .outlook-panel h3 {
+            margin: 0 0 8px 0;
+            font-size: 1em;
+            color: #333;
+        }
+        .outlook-panel img {
+            width: 100%;
+            height: auto;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            display: block;
+        }
+        .outlook-panel .error {
+            color: red;
+            font-weight: bold;
+            display: none;
+            padding: 10px;
+        }
     </style>
 </head>
 <body>
@@ -357,12 +313,11 @@
         <h2>SPC Soundings</h2>
         <p class="sounding-note">Note: Some soundings may not be available every 12 hours.</p>
 
-        
         <div class="time-mode-toggle">
             <label>Sounding Time Mode:</label>
             <div class="toggle-btn-group">
-                <button id="btnSharedTime" class="active" onclick="setSoundingTimeMode('shared')">Shared Time</button>
-                <button id="btnIndepTime" onclick="setSoundingTimeMode('independent')">Independent Times</button>
+                <button id="btnSharedTime" class="active" onclick="setSoundingTimeMode('shared')">Synchronous</button>
+                <button id="btnIndepTime" onclick="setSoundingTimeMode('independent')">Asynchronous</button>
             </div>
         </div>
 
@@ -381,7 +336,6 @@
             </div>
         </div>
 
-        <!-- Map toggle button -->
         <div class="map-toggle-row">
             <button class="map-toggle-btn" id="mapToggleBtn" onclick="toggleSoundingMap()">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -394,7 +348,6 @@
             <span class="map-hint">Optionally pick stations by clicking on the map</span>
         </div>
 
-        <!-- Sounding Map (hidden by default) -->
         <div id="soundingMapWrapper">
             <div class="map-panel-bar">
                 <label>Assign clicks to:</label>
@@ -407,10 +360,9 @@
             <div id="soundingMap"></div>
         </div>
 
-        <div class="sounding-station-grid" id="soundingStationGrid">
-        </div>
+        <div class="sounding-station-grid" id="soundingStationGrid"></div>
 
-        <div class="image-container" id="soundingsContainer">
+        <div class="image-container" id="soundingsContainer" style="max-width:1700px;">
             <div class="image-panel">
                 <h3>Sounding 1</h3>
                 <img id="sounding1" src="" alt="Sounding 1">
@@ -430,6 +382,115 @@
                 <h3>Sounding 4</h3>
                 <img id="sounding4" src="" alt="Sounding 4">
                 <p id="serror4" class="error" style="display:none;">Image not available.</p>
+            </div>
+        </div>
+    </div>
+
+    <div class="container outlook-section">
+        <div style="display: flex; align-items: center; gap: 15px; margin-bottom: 20px; flex-wrap: wrap;">
+            <h2 style="margin: 0;">SPC Outlook</h2>
+            <div class="toggle-btn-group">
+                <button id="nationalSectorBtn" class="active" onclick="switchOutlookSector('national')">National</button>
+                <button id="cwaSectorBtn" onclick="switchOutlookSector('cwa')">CWA</button>
+            </div>
+            <div class="toggle-btn-group">
+                <button id="day1OutlookBtn" class="active" onclick="switchOutlookDay(1)">Day 1</button>
+                <button id="day2OutlookBtn" onclick="switchOutlookDay(2)">Day 2</button>
+            </div>
+            <select id="cwaSelect" style="display: none; padding: 8px; border: 2px solid #333; border-radius: 4px;">
+                <optgroup label="Northeast">
+                    <option value="ALY">ALY - Albany, NY</option>
+                    <option value="BGM">BGM - Binghamton, NY</option>
+                    <option value="BOX">BOX - Boston, MA</option>
+                    <option value="BUF">BUF - Buffalo, NY</option>
+                    <option value="GYX">GYX - Portland, ME</option>
+                    <option value="OKX">OKX - Upton, NY</option>
+                    <option value="PHI">PHI - Philadelphia, PA</option>
+                    <option value="PBZ">PBZ - Pittsburgh, PA</option>
+                </optgroup>
+                <optgroup label="Southeast">
+                    <option value="CAE">CAE - Columbia, SC</option>
+                    <option value="CHA">CHA - Chattanooga, TN</option>
+                    <option value="CHS">CHS - Charleston, SC</option>
+                    <option value="CRH">CRH - Raleigh, NC</option>
+                    <option value="FFC">FFC - Atlanta, GA</option>
+                    <option value="GSP">GSP - Greenville, SC</option>
+                    <option value="ILM">ILM - Wilmington, NC</option>
+                    <option value="JAX">JAX - Jacksonville, FL</option>
+                    <option value="JAN">JAN - Jackson, MS</option>
+                    <option value="KEY">KEY - Key West, FL</option>
+                    <option value="MFL">MFL - Miami, FL</option>
+                    <option value="MLB">MLB - Melbourne, FL</option>
+                    <option value="MHX">MHX - Morehead City, NC</option>
+                    <option value="RLH">RLH - Raleigh, NC</option>
+                    <option value="RNK">RNK - Blacksburg, VA</option>
+                    <option value="TAE">TAE - Tallahassee, FL</option>
+                    <option value="TBW">TBW - Tampa, FL</option>
+                    <option value="TPA">TPA - Tampa, FL</option>
+                </optgroup>
+                <optgroup label="Central/Midwest">
+                    <option value="BIS">BIS - Bismarck, ND</option>
+                    <option value="DVN">DVN - Davenport, IA</option>
+                    <option value="DTX">DTX - Detroit, MI</option>
+                    <option value="GRB">GRB - Green Bay, WI</option>
+                    <option value="ILX">ILX - Lincoln, IL</option>
+                    <option value="LOT">LOT - Chicago, IL</option>
+                    <option value="MKX">MKX - Milwaukee, WI</option>
+                    <option value="MQT">MQT - Marquette, MI</option>
+                    <option value="OAX">OAX - Omaha, NE</option>
+                    <option value="OHX">OHX - Nashville, TN</option>
+                    <option value="APX">APX - Gaylord, MI</option>
+                </optgroup>
+                <optgroup label="South/South-Central">
+                    <option value="AUS">AUS - Austin, TX</option>
+                    <option value="BRO">BRO - Brownsville, TX</option>
+                    <option value="CRP">CRP - Corpus Christi, TX</option>
+                    <option value="DFW">DFW - Dallas/Fort Worth, TX</option>
+                    <option value="EWX">EWX - Austin/San Antonio, TX</option>
+                    <option value="HGX">HGX - Houston, TX</option>
+                    <option value="LCH">LCH - Lake Charles, LA</option>
+                    <option value="LIX">LIX - New Orleans, LA</option>
+                    <option value="LZK">LZK - Little Rock, AR</option>
+                    <option value="OUN">OUN - Norman, OK</option>
+                    <option value="SGF">SGF - Springfield, MO</option>
+                    <option value="SHV">SHV - Shreveport, LA</option>
+                    <option value="TSA">TSA - Tulsa, OK</option>
+                </optgroup>
+                <optgroup label="Great Plains">
+                    <option value="AMA">AMA - Amarillo, TX</option>
+                    <option value="DDC">DDC - Dodge City, KS</option>
+                    <option value="GID">GID - Goodland, KS</option>
+                    <option value="LBF">LBF - North Platte, NE</option>
+                    <option value="MAF">MAF - Midland, TX</option>
+                    <option value="TOP">TOP - Topeka, KS</option>
+                </optgroup>
+                <optgroup label="Southwest">
+                    <option value="TWC">TWC - Tucson, AZ</option>
+                    <option value="VEF">VEF - Las Vegas, NV</option>
+                </optgroup>
+            </select>
+        </div>
+        <p class="outlook-update-note"></p>
+        <div class="outlook-grid">
+            <div class="outlook-panel">
+                <h3>Categorical</h3>
+                <img id="outlookCategorical" src="" alt="Categorical Outlook">
+                <p class="error">Image not available</p>
+            </div>
+            <div class="outlook-panel">
+                <h3>Tornado</h3>
+                <img id="outlookTornado" src="" alt="Tornado Outlook">
+                <p class="error">Image not available</p>
+            </div>
+            <div class="outlook-panel">
+                <h3>Hail</h3>
+                <img id="outlookHail" src="" alt="Hail Outlook">
+                <p class="error">Image not available</p>
+            </div>
+            <div class="outlook-panel">
+                <h3>Damaging Wind</h3>
+                <img id="outlookWind" src="" alt="Damaging Wind Outlook">
+                <p class="error">Image not available</p>
             </div>
         </div>
     </div>
@@ -484,7 +545,6 @@ const forecastParams = new Set([
 ]);
 
 const FCST_STOPS = ['obs', 0, 2, 4, 6];
-
 
 const stationData = {
     OUN:{name:'Norman, OK',        region:'S', lat:35.22, lon:-97.46},
@@ -584,11 +644,10 @@ let currentMode = 'grid';
 let globalFcstHour = 'obs';
 let soundingTimeMode = 'shared';
 
-
 let soundingMap = null;
 let mapVisible = false;
 let activeMapPanel = 1;
-let stationMarkers = {}; 
+let stationMarkers = {};
 const PANEL_COLORS = { 1:'#cc0000', 2:'#0000cc', 3:'#006600', 4:'#cc7700' };
 const PANEL_CLASSES = { 1:'assigned-p1', 2:'assigned-p2', 3:'assigned-p3', 4:'assigned-p4' };
 
@@ -644,10 +703,12 @@ function setMode(mode, evt) {
 
     if (mode === 'single') {
         container.style.gridTemplateColumns = '1fr';
+        container.style.maxWidth = '800px';
         panels.forEach((p, i) => { p.style.display = i === 0 ? 'block' : 'none'; });
         document.getElementById('controls').style.gridTemplateColumns = '1fr';
     } else {
         container.style.gridTemplateColumns = '1fr 1fr';
+        container.style.maxWidth = '1700px';
         panels.forEach(p => { p.style.display = 'block'; });
         document.getElementById('controls').style.gridTemplateColumns = 'repeat(2, 1fr)';
     }
@@ -783,8 +844,8 @@ function buildStationGrid() {
     const filteredDts = getFilteredDatetimes();
 
     for (let i = 1; i <= 4; i++) {
-        const div = document.createElement('div');
-        div.className = 'panel-control';
+    const div = document.createElement('div');
+    div.className = 'panel-control sounding-card';
 
         if (soundingTimeMode === 'independent') {
             const dtRow = document.createElement('div');
@@ -795,13 +856,26 @@ function buildStationGrid() {
             dtLabel.style.fontWeight = 'bold';
             dtLabel.style.fontSize = '0.9em';
             dtLabel.textContent = `Sounding ${i}`;
-            div.appendChild(dtLabel);
+            dtRow.appendChild(dtLabel);
 
             const dtSel = document.createElement('select');
             dtSel.id = `indep_dt_${i}`;
             buildDatetimeOptions(dtSel, filteredDts);
-            dtSel.addEventListener('change', () => updateSoundingPanel(i));
+            dtSel.selectedIndex = 0;
+            dtSel.addEventListener('change', () => {
+                const idx = dtSel.selectedIndex;
+                const disp = document.getElementById(`indep_dt_label_${i}`);
+                if (disp && filteredDts[idx]) disp.textContent = fmtDt(filteredDts[idx]);
+                updateSoundingPanel(i);
+            });
             dtRow.appendChild(dtSel);
+
+            const dtDisplay = document.createElement('span');
+            dtDisplay.id = `indep_dt_label_${i}`;
+            dtDisplay.className = 'indep-dt-label';
+            dtDisplay.textContent = filteredDts.length ? fmtDt(filteredDts[0]) : '';
+            dtRow.appendChild(dtDisplay);
+
             div.appendChild(dtRow);
 
             const slider = document.createElement('input');
@@ -816,6 +890,8 @@ function buildStationGrid() {
                 const idx = parseInt(this.value, 10);
                 if (!isNaN(idx) && dtSel.options[idx]) {
                     dtSel.selectedIndex = idx;
+                    const disp = document.getElementById(`indep_dt_label_${i}`);
+                    if (disp && filteredDts[idx]) disp.textContent = fmtDt(filteredDts[idx]);
                     updateSoundingPanel(i);
                 }
             });
@@ -876,6 +952,66 @@ function updateAllSoundings() {
     for (let i = 1; i <= 4; i++) updateSoundingPanel(i);
 }
 
+function loadOutlooks(day, sector) {
+    if (!sector) sector = 'national'; // default to national
+    
+    let urls = {};
+    
+    if (sector === 'national') {
+        urls = {
+            'outlookCategorical': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}.png`,
+            'outlookTornado': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_TORN.png`,
+            'outlookHail': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_HAIL.png`,
+            'outlookWind': `https://www.spc.noaa.gov/partners/outlooks/national/swody${day}_WIND.png`
+        };
+    } else if (sector === 'cwa') {
+        const cwa = document.getElementById('cwaSelect').value.toUpperCase();
+        urls = {
+            'outlookCategorical': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}.png`,
+            'outlookTornado': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_TORN.png`,
+            'outlookHail': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_HAIL.png`,
+            'outlookWind': `https://www.spc.noaa.gov/partners/outlooks/cwa/images/${cwa}_swody${day}_WIND.png`
+        };
+    }
+
+    Object.keys(urls).forEach(imgId => {
+        const imgEl = document.getElementById(imgId);
+        const errorEl = imgEl.nextElementSibling;
+
+        if (!imgEl) return;
+
+        imgEl.src = urls[imgId];
+
+        imgEl.onerror = () => {
+            errorEl.style.display = 'block';
+            imgEl.style.display = 'none';
+        };
+
+        imgEl.onload = () => {
+            errorEl.style.display = 'none';
+            imgEl.style.display = 'block';
+        };
+    });
+}
+
+let currentOutlookSector = 'national';
+let currentOutlookDay = 1;
+
+function switchOutlookSector(sector) {
+    currentOutlookSector = sector;
+    document.getElementById('nationalSectorBtn').classList.toggle('active', sector === 'national');
+    document.getElementById('cwaSectorBtn').classList.toggle('active', sector === 'cwa');
+    document.getElementById('cwaSelect').style.display = sector === 'cwa' ? '' : 'none';
+    loadOutlooks(currentOutlookDay, sector);
+}
+
+function switchOutlookDay(day) {
+    currentOutlookDay = day;
+    document.getElementById('day1OutlookBtn').classList.toggle('active', day === 1);
+    document.getElementById('day2OutlookBtn').classList.toggle('active', day === 2);
+    loadOutlooks(day, currentOutlookSector);
+}
+
 function toggleSoundingMap() {
     mapVisible = !mapVisible;
     const wrapper = document.getElementById('soundingMapWrapper');
@@ -914,7 +1050,7 @@ function selectMapPanel(n) {
 }
 
 function makeMarkerIcon(code, assignedPanel) {
-    const color = assignedPanel ? PANEL_COLORS[assignedPanel] : '#336699';
+    const color = assignedPanel ? PANEL_COLORS[assignedPanel] : '#333699';
     const size = assignedPanel ? 14 : 10;
     const border = assignedPanel ? 3 : 2;
 
@@ -956,21 +1092,18 @@ function initOrRefreshMap() {
             scrollWheelZoom: true
         });
 
-        
         L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
             attribution: '&copy; OpenStreetMap &copy; CARTO',
             subdomains: 'abcd',
             maxZoom: 19
         }).addTo(soundingMap);
 
-        
         L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
             maxZoom: 19,
             opacity: 0.7,
             attribution: 'Esri'
         }).addTo(soundingMap);
 
-        
         Object.keys(stationData).forEach(code => {
             const s = stationData[code];
             if (!s.lat || !s.lon) return;
@@ -981,22 +1114,18 @@ function initOrRefreshMap() {
                 title: `${code} — ${s.name}`
             }).addTo(soundingMap);
 
-            
             marker.bindTooltip(`<strong>${code}</strong><br>${s.name}`, {
                 direction: 'top',
                 offset: [0, -8],
                 className: ''
             });
 
-            
             marker.on('click', () => {
                 const sel = document.getElementById(`station${activeMapPanel}`);
                 if (sel) {
                     sel.value = code;
                     updateSoundingPanel(activeMapPanel);
                     refreshMapMarkers();
-
-                    // Auto-advance to next panel
                     const next = (activeMapPanel % 4) + 1;
                     selectMapPanel(next);
                 }
@@ -1005,7 +1134,6 @@ function initOrRefreshMap() {
             stationMarkers[code] = marker;
         });
     } else {
-        
         soundingMap.invalidateSize();
         refreshMapMarkers();
     }
@@ -1054,6 +1182,12 @@ window.onload = function () {
 
     buildStationGrid();
     updateAllSoundings();
+    loadOutlooks(1);
+    
+    document.getElementById('cwaSelect').value = 'OUN';
+    document.getElementById('cwaSelect').addEventListener('change', () => {
+        loadOutlooks(currentOutlookDay, 'cwa');
+    });
 };
 </script>
 </body>
