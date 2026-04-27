@@ -1,0 +1,824 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MRMS Reflectivity Radar</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+    <style>
+        *, *::before, *::after {
+            box-sizing: border-box;
+        }
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+            min-height: 100%;
+            font-family: 'Roboto', sans-serif;
+            background: #f2f5f8;
+            color: #1a1a1a;
+        }
+        .site-wrap {
+            width: 100%;
+        }
+        .hero-section {
+            background-image: url('https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png');
+            background-size: cover;
+            background-position: center;
+            height: 300px;
+            position: relative;
+        }
+        .hero-text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #fff;
+            background-color: rgba(0, 0, 0, 0.5);
+            padding: 20px;
+            border-radius: 6px;
+            text-align: center;
+        }
+        .hero-text h1 {
+            margin: 0;
+            font-size: 2rem;
+        }
+        nav.primary {
+            background-color: #333;
+            overflow: hidden;
+            text-align: center;
+        }
+        nav.primary a {
+            display: inline-block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+        nav.primary a:hover {
+            background-color: #ddd;
+            color: #111;
+        }
+        .content {
+            max-width: 1200px;
+            margin: 20px auto 28px;
+            padding: 0 16px;
+        }
+        .intro {
+            background: #fff;
+            border: 1px solid #d8dde3;
+            border-radius: 8px;
+            padding: 14px 16px;
+            margin-bottom: 12px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+            align-items: center;
+            background: #fff;
+            border: 1px solid #d8dde3;
+            border-radius: 8px;
+            padding: 10px 12px;
+            margin-bottom: 12px;
+        }
+        .controls label {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+        .controls button {
+            border: 1px solid #2f3d4a;
+            background: #fff;
+            color: #1c2a35;
+            border-radius: 6px;
+            padding: 7px 10px;
+            cursor: pointer;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.88rem;
+        }
+        .controls button:hover {
+            background: #1f2933;
+            color: #fff;
+        }
+        .status {
+            margin-left: auto;
+            font-size: 0.85rem;
+            color: #444;
+        }
+        .timeline-control {
+            display: none;
+            flex-direction: column;
+            align-items: stretch;
+            gap: 8px;
+            flex-wrap: wrap;
+            background: #f2f2f2;
+            border: 1px solid #d0d0d0;
+            border-radius: 6px;
+            padding: 10px 16px;
+            margin-bottom: 12px;
+        }
+        .timeline-control.visible {
+            display: flex;
+        }
+        .timeline-head {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .timeline-head label {
+            font-size: 0.9rem;
+            font-weight: 700;
+            white-space: nowrap;
+        }
+        .timeline-track {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex: 1;
+            min-width: 240px;
+        }
+        #frameSlider {
+            flex: 1;
+            min-width: 180px;
+            accent-color: #333;
+        }
+        .timeline-tick-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.72rem;
+            color: #555;
+            padding: 0 2px;
+            gap: 4px;
+        }
+        .timeline-tick-row span {
+            flex: 1;
+            text-align: center;
+            white-space: nowrap;
+        }
+        .timeline-actions {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            flex-wrap: wrap;
+        }
+        .frame-label {
+            font-weight: 700;
+            font-size: 0.95rem;
+            color: #333;
+            min-width: 94px;
+            text-align: left;
+        }
+        .timeline-note {
+            font-size: 0.78rem;
+            color: #666;
+            font-style: italic;
+        }
+        .timeline-control select,
+        .timeline-control button {
+            border: 1px solid #2f3d4a;
+            border-radius: 6px;
+            padding: 6px 9px;
+            font-family: 'Roboto', sans-serif;
+            font-size: 0.86rem;
+            background: #fff;
+            color: #1c2a35;
+        }
+        .timeline-control button {
+            cursor: pointer;
+        }
+        .timeline-control button:hover:not(:disabled) {
+            background: #1f2933;
+            color: #fff;
+        }
+        .timeline-control button:disabled,
+        .timeline-control select:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+        }
+        .map-card {
+            background: #fff;
+            border: 1px solid #d8dde3;
+            border-radius: 8px;
+            overflow: hidden;
+            position: relative;
+        }
+        #mrmsMap {
+            width: 100%;
+            height: 620px;
+        }
+        .map-legend {
+            position: absolute;
+            z-index: 450;
+            background: rgba(255, 255, 255, 0.94);
+            border: 1px solid #cfd5db;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.14);
+            padding: 10px 11px;
+            backdrop-filter: blur(2px);
+        }
+        .map-legend h4 {
+            margin: 0 0 8px;
+            font-size: 0.83rem;
+            color: #1f2a33;
+        }
+        .reflectivity-legend {
+            top: 12px;
+            right: 12px;
+            width: 230px;
+        }
+        .dbz-scale {
+            height: 14px;
+            border-radius: 4px;
+            border: 1px solid #b8bfc7;
+            background: linear-gradient(to right,
+                #6aaefb 0%,
+                #6aaefb 8%,
+                #52d6ff 16%,
+                #2ebf65 26%,
+                #a4d64a 36%,
+                #f1e549 48%,
+                #f4b23b 60%,
+                #ea6f2d 72%,
+                #d42f2f 84%,
+                #b60084 92%,
+                #f2f2f2 100%);
+        }
+        .dbz-ticks {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            font-size: 0.72rem;
+            color: #333;
+        }
+        .warnings-legend {
+            left: 12px;
+            bottom: 12px;
+            width: 250px;
+        }
+        .legend-row {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.76rem;
+            color: #242c33;
+            margin-top: 5px;
+        }
+        .legend-swatch {
+            width: 13px;
+            height: 13px;
+            border-radius: 3px;
+            border: 1px solid rgba(0, 0, 0, 0.35);
+            flex-shrink: 0;
+        }
+        .legend-note {
+            margin-top: 8px;
+            font-size: 0.68rem;
+            color: #4d5863;
+        }
+        .notes {
+            margin-top: 10px;
+            font-size: 0.84rem;
+            color: #555;
+        }
+        @media (max-width: 768px) {
+            .hero-section {
+                height: 220px;
+            }
+            .hero-text h1 {
+                font-size: 1.6rem;
+            }
+            #mrmsMap {
+                height: 480px;
+            }
+            .status {
+                width: 100%;
+                margin-left: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="site-wrap">
+        <div class="hero-section">
+            <div class="hero-text">
+                <h1>Radar</h1>
+            </div>
+        </div>
+
+        <nav class="primary">
+            <a href="https://anthony-illenden.github.io/index.html">Home</a>
+            <a href="https://anthony-illenden.github.io/semichigan.html">SE Michigan</a>
+            <a href="https://anthony-illenden.github.io/spcmesoanalysis.html">SPC Mesoanalysis</a>
+            <a href="https://anthony-illenden.github.io/models.html">Models</a>
+            <a href="https://anthony-illenden.github.io/winter.html">Winter</a>
+            <a href="https://anthony-illenden.github.io/about.html">About</a>
+        </nav>
+
+        <main class="content">
+            <section class="controls">
+                <label>Layers:</label>
+                <label for="warningsToggle" style="font-weight: 400;">
+                    <input type="checkbox" id="warningsToggle" checked>
+                    NWS Warnings
+                </label>
+                <label for="loopToggle" style="font-weight: 400;">
+                    <input type="checkbox" id="loopToggle">
+                    Radar Loop
+                </label>
+                <button type="button" id="refreshNow">Refresh Radar</button>
+                <span class="status" id="refreshStatus">Last refresh: loading...</span>
+            </section>
+
+            <section class="timeline-control" id="timelineControl">
+                <div class="timeline-head">
+                    <label for="frameSlider">Radar Loop:</label>
+                    <div class="timeline-track">
+                        <input type="range" id="frameSlider" min="0" max="0" value="0" step="1" disabled>
+                        <span class="frame-label" id="frameLabel">Latest</span>
+                    </div>
+                </div>
+                <div class="timeline-tick-row" id="frameTickRow"></div>
+                <div class="timeline-actions">
+                    <button type="button" id="playPauseBtn" disabled>Pause</button>
+                    <label for="speedSelect">Speed:</label>
+                    <select id="speedSelect" disabled>
+                        <option value="1000">Slow</option>
+                        <option value="700" selected>Normal</option>
+                        <option value="400">Fast</option>
+                    </select>
+                    <span class="timeline-note">Enable Radar Loop to scrub and animate recent frames.</span>
+                </div>
+            </section>
+
+            <section class="map-card">
+                <div id="mrmsMap"></div>
+                <div class="map-legend reflectivity-legend">
+                    <h4>Reflectivity (dBZ)</h4>
+                    <div class="dbz-scale"></div>
+                    <div class="dbz-ticks">
+                        <span>5</span>
+                        <span>20</span>
+                        <span>35</span>
+                        <span>50</span>
+                        <span>65+</span>
+                    </div>
+                </div>
+                <div class="map-legend warnings-legend" id="warningsLegend">
+                    <h4>NWS Watches and Warnings</h4>
+                    <div class="legend-row"><span class="legend-swatch" style="background:#ff0000;"></span>Tornado Warning</div>
+                    <div class="legend-row"><span class="legend-swatch" style="background:#ff9300;"></span>Severe Thunderstorm Warning</div>
+                    <div class="legend-row"><span class="legend-swatch" style="background:#00a34a;"></span>Flash Flood Warning</div>
+                    <div class="legend-row"><span class="legend-swatch" style="background:#ffe600;"></span>Tornado Watch</div>
+                    <div class="legend-row"><span class="legend-swatch" style="background:#1f78ff;"></span>Severe Thunderstorm Watch</div>
+                </div>
+            </section>
+
+            <p class="notes">
+                Source: Iowa State Mesonet MRMS SeamlessHSR (q2-hsr), SPC watch outlines, and NWS polygon warnings.
+            </p>
+        </main>
+    </div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+    <script>
+        const map = L.map('mrmsMap', {
+            center: [39.83, -98.58],
+            zoom: 4.5,
+            minZoom: 4,
+            maxZoom: 11
+        });
+
+        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            maxZoom: 19,
+            attribution: '&copy; OpenStreetMap'
+        }).addTo(map);
+
+        let mrmsLayer = createLatestMrmsLayer();
+        mrmsLayer.addTo(map);
+        const warningsLayer = L.geoJSON([], {
+            style: styleWarningFeature,
+            onEachFeature: onEachWarningFeature
+        });
+        const watchesLayer = L.geoJSON([], {
+            style: styleWatchFeature,
+            onEachFeature: onEachWatchFeature
+        });
+        warningsLayer.addTo(map);
+        watchesLayer.addTo(map);
+
+        const loopFrameLayers = [];
+        let activeLoopFrameLayer = null;
+        let loopTimer = null;
+        let loopFrameIndex = 0;
+        let loopFrameTimestamps = [];
+        let isLoopPlaying = true;
+        let loopFrameDelayMs = 700;
+        const LOOP_FRAME_COUNT = 12;
+        const LOOP_STEP_MINUTES = 2;
+        const LOOP_LAG_MINUTES = 8;
+
+        const refreshStatus = document.getElementById('refreshStatus');
+        const refreshNowButton = document.getElementById('refreshNow');
+        const warningsToggle = document.getElementById('warningsToggle');
+        const warningsLegend = document.getElementById('warningsLegend');
+        const loopToggle = document.getElementById('loopToggle');
+        const timelineControl = document.getElementById('timelineControl');
+        const frameSlider = document.getElementById('frameSlider');
+        const frameTickRow = document.getElementById('frameTickRow');
+        const frameLabel = document.getElementById('frameLabel');
+        const playPauseBtn = document.getElementById('playPauseBtn');
+        const speedSelect = document.getElementById('speedSelect');
+
+        warningsToggle.addEventListener('change', () => {
+            if (warningsToggle.checked) {
+                warningsLayer.addTo(map);
+                watchesLayer.addTo(map);
+                bringHazardsToFront();
+                warningsLegend.style.display = 'block';
+            } else {
+                map.removeLayer(warningsLayer);
+                map.removeLayer(watchesLayer);
+                warningsLegend.style.display = 'none';
+            }
+        });
+
+        refreshNowButton.addEventListener('click', refreshRadarLayers);
+
+        loopToggle.addEventListener('change', () => {
+            if (loopToggle.checked) {
+                startLoopMode();
+            } else {
+                stopLoopMode();
+            }
+        });
+
+        frameSlider.addEventListener('input', () => {
+            if (!loopToggle.checked || loopFrameLayers.length === 0) {
+                return;
+            }
+            const requestedIndex = parseInt(frameSlider.value, 10);
+            showLoopFrame(requestedIndex);
+        });
+
+        playPauseBtn.addEventListener('click', () => {
+            if (!loopToggle.checked || loopFrameLayers.length === 0) {
+                return;
+            }
+            if (isLoopPlaying) {
+                pauseLoopPlayback();
+            } else {
+                playLoopPlayback();
+            }
+        });
+
+        speedSelect.addEventListener('change', () => {
+            loopFrameDelayMs = parseInt(speedSelect.value, 10);
+            if (loopToggle.checked && isLoopPlaying) {
+                startLoopTimer();
+            }
+        });
+
+        setInterval(refreshRadarLayers, 120000);
+        setTimelineVisible(false);
+        renderTickRow(['Latest']);
+        updateStatus();
+        refreshHazardLayers();
+
+        function setTimelineVisible(isVisible) {
+            timelineControl.classList.toggle('visible', isVisible);
+        }
+
+        function createLatestMrmsLayer() {
+            return L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/q2-hsr-900913/{z}/{x}/{y}.png?_ts=' + Date.now(), {
+                opacity: 0.78,
+                attribution: 'MRMS reflectivity: Iowa State Mesonet / NOAA'
+            });
+        }
+
+        function createArchivedMrmsLayer(timestamp) {
+            return L.tileLayer('https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/mrms::lcref-' + timestamp + '-900913/{z}/{x}/{y}.png?_ts=' + Date.now(), {
+                opacity: 0.78,
+                attribution: 'MRMS reflectivity: Iowa State Mesonet / NOAA'
+            });
+        }
+
+        function refreshRadarLayers() {
+            if (loopToggle.checked) {
+                startLoopMode();
+            } else {
+                map.removeLayer(mrmsLayer);
+                mrmsLayer = createLatestMrmsLayer();
+                mrmsLayer.addTo(map);
+            }
+            refreshHazardLayers();
+
+            updateStatus();
+        }
+
+        async function refreshHazardLayers() {
+            try {
+                const cacheBust = '?cb=' + Date.now();
+                const responses = await Promise.all([
+                    fetch('https://mesonet.agron.iastate.edu/api/1/spc_watch_outline.geojson' + cacheBust),
+                    fetch('https://mesonet.agron.iastate.edu/geojson/sbw.geojson' + cacheBust)
+                ]);
+
+                if (!responses[0].ok || !responses[1].ok) {
+                    throw new Error('IEM hazard request failed');
+                }
+
+                const watchesData = await responses[0].json();
+                const warningsData = await responses[1].json();
+
+                const filteredWarningFeatures = warningsData.features.filter((feature) => {
+                    const phenomenon = feature && feature.properties ? feature.properties.phenomena : '';
+                    return ['TO', 'SV', 'FF'].includes(phenomenon);
+                });
+
+                warningsLayer.clearLayers();
+                warningsLayer.addData({
+                    type: 'FeatureCollection',
+                    features: filteredWarningFeatures
+                });
+
+                watchesLayer.clearLayers();
+                watchesLayer.addData(watchesData);
+
+                if (warningsToggle.checked) {
+                    bringHazardsToFront();
+                }
+            } catch (error) {
+                console.warn('Unable to refresh watch/warning layers:', error);
+            }
+        }
+
+        function onEachWarningFeature(feature, layer) {
+            const props = feature && feature.properties ? feature.properties : {};
+            const phenomena = props.phenomena || '';
+            const significance = props.significance || '';
+            const eventLabel = warningCodeToLabel(phenomena, significance);
+            const wfo = props.wfo || 'Unknown WFO';
+            const expire = props.expire || 'Unknown';
+            layer.bindPopup('<strong>' + escapeHtml(eventLabel) + '</strong><br>WFO: ' + escapeHtml(wfo) + '<br><em>Expires: ' + escapeHtml(expire) + '</em>');
+        }
+
+        function onEachWatchFeature(feature, layer) {
+            const props = feature && feature.properties ? feature.properties : {};
+            const watchType = props.type || '';
+            const watchNum = props.num || '';
+            const issue = props.issue || '';
+            layer.bindPopup('<strong>' + escapeHtml(watchCodeToLabel(watchType)) + '</strong><br>Watch #: ' + escapeHtml(String(watchNum)) + '<br><em>Issued: ' + escapeHtml(issue) + '</em>');
+        }
+
+        function styleWarningFeature(feature) {
+            const props = feature && feature.properties ? feature.properties : {};
+            const phenomena = props.phenomena || '';
+            const color = getWarningColor(phenomena);
+            return {
+                color: color,
+                weight: 3,
+                fillColor: color,
+                fillOpacity: 0.25
+            };
+        }
+
+        function styleWatchFeature(feature) {
+            const props = feature && feature.properties ? feature.properties : {};
+            const watchType = props.type || '';
+            const color = getWatchColor(watchType);
+            return {
+                color: color,
+                weight: 3,
+                fillColor: color,
+                fillOpacity: 0.2
+            };
+        }
+
+        function getWarningColor(phenomena) {
+            if (phenomena === 'TO') return '#ff0000';
+            if (phenomena === 'SV') return '#ff9300';
+            if (phenomena === 'FF') return '#00a34a';
+            return '#a53f00';
+        }
+
+        function getWatchColor(typeCode) {
+            if (typeCode === 'TOR') return '#ffe600';
+            if (typeCode === 'SVR') return '#1f78ff';
+            return '#a53f00';
+        }
+
+        function warningCodeToLabel(phenomena, significance) {
+            if (phenomena === 'TO') return 'Tornado Warning';
+            if (phenomena === 'SV') return 'Severe Thunderstorm Warning';
+            if (phenomena === 'FF') return 'Flash Flood Warning';
+            return 'NWS Warning (' + phenomena + significance + ')';
+        }
+
+        function watchCodeToLabel(typeCode) {
+            if (typeCode === 'TOR') return 'Tornado Watch';
+            if (typeCode === 'SVR') return 'Severe Thunderstorm Watch';
+            return 'SPC Watch';
+        }
+
+        function bringHazardsToFront() {
+            if (map.hasLayer(watchesLayer)) {
+                watchesLayer.bringToFront();
+            }
+            if (map.hasLayer(warningsLayer)) {
+                warningsLayer.bringToFront();
+            }
+        }
+
+        function escapeHtml(text) {
+            return String(text)
+                .replace(/&/g, '&amp;')
+                .replace(/</g, '&lt;')
+                .replace(/>/g, '&gt;')
+                .replace(/\"/g, '&quot;')
+                .replace(/'/g, '&#39;');
+        }
+
+        function startLoopMode() {
+            stopLoopTimer();
+            clearLoopLayers();
+            setTimelineVisible(true);
+
+            if (map.hasLayer(mrmsLayer)) {
+                map.removeLayer(mrmsLayer);
+            }
+
+            loopFrameTimestamps = buildLoopTimestamps();
+            loopFrameTimestamps.forEach((timestamp) => {
+                loopFrameLayers.push(createArchivedMrmsLayer(timestamp));
+            });
+
+            if (loopFrameLayers.length === 0) {
+                return;
+            }
+
+            frameSlider.disabled = false;
+            frameSlider.min = '0';
+            frameSlider.max = String(loopFrameLayers.length - 1);
+            playPauseBtn.disabled = false;
+            speedSelect.disabled = false;
+            renderTickRow(loopFrameTimestamps.map(formatTickLabel));
+
+            loopFrameIndex = 0;
+            showLoopFrame(loopFrameIndex);
+            isLoopPlaying = true;
+            updatePlayPauseButtonLabel();
+            startLoopTimer();
+
+            updateStatus('Looping ' + loopFrameLayers.length + ' frames');
+        }
+
+        function stopLoopMode() {
+            stopLoopTimer();
+            clearLoopLayers();
+            setTimelineVisible(false);
+
+            if (map.hasLayer(mrmsLayer)) {
+                map.removeLayer(mrmsLayer);
+            }
+
+            mrmsLayer = createLatestMrmsLayer();
+            mrmsLayer.addTo(map);
+            frameSlider.disabled = true;
+            frameSlider.min = '0';
+            frameSlider.max = '0';
+            frameSlider.value = '0';
+            playPauseBtn.disabled = true;
+            speedSelect.disabled = true;
+            isLoopPlaying = true;
+            updatePlayPauseButtonLabel();
+            frameLabel.textContent = 'Latest';
+            renderTickRow(['Latest']);
+            updateStatus('Latest frame');
+        }
+
+        function playLoopPlayback() {
+            isLoopPlaying = true;
+            updatePlayPauseButtonLabel();
+            startLoopTimer();
+            updateStatus('Looping ' + loopFrameLayers.length + ' frames');
+        }
+
+        function pauseLoopPlayback() {
+            isLoopPlaying = false;
+            updatePlayPauseButtonLabel();
+            stopLoopTimer();
+            updateStatus('Loop paused');
+        }
+
+        function startLoopTimer() {
+            stopLoopTimer();
+            if (!isLoopPlaying || loopFrameLayers.length === 0) {
+                return;
+            }
+            loopTimer = setInterval(() => {
+                loopFrameIndex = (loopFrameIndex + 1) % loopFrameLayers.length;
+                showLoopFrame(loopFrameIndex);
+            }, loopFrameDelayMs);
+        }
+
+        function updatePlayPauseButtonLabel() {
+            playPauseBtn.textContent = isLoopPlaying ? 'Pause' : 'Play';
+        }
+
+        function stopLoopTimer() {
+            if (loopTimer) {
+                clearInterval(loopTimer);
+                loopTimer = null;
+            }
+        }
+
+        function clearLoopLayers() {
+            if (activeLoopFrameLayer && map.hasLayer(activeLoopFrameLayer)) {
+                map.removeLayer(activeLoopFrameLayer);
+            }
+            activeLoopFrameLayer = null;
+            loopFrameLayers.length = 0;
+            loopFrameTimestamps.length = 0;
+        }
+
+        function showLoopFrame(index) {
+            if (index < 0 || index >= loopFrameLayers.length) {
+                return;
+            }
+            if (activeLoopFrameLayer && map.hasLayer(activeLoopFrameLayer)) {
+                map.removeLayer(activeLoopFrameLayer);
+            }
+
+            loopFrameIndex = index;
+            activeLoopFrameLayer = loopFrameLayers[loopFrameIndex];
+            activeLoopFrameLayer.addTo(map);
+            frameSlider.value = String(loopFrameIndex);
+            frameLabel.textContent = formatTimestampLabel(loopFrameTimestamps[loopFrameIndex]);
+
+            if (warningsToggle.checked) {
+                bringHazardsToFront();
+            }
+        }
+
+        function buildLoopTimestamps() {
+            const now = new Date();
+            const roundedMinutes = now.getUTCMinutes() - (now.getUTCMinutes() % LOOP_STEP_MINUTES);
+            now.setUTCMinutes(roundedMinutes, 0, 0);
+
+            const timestamps = [];
+            for (let i = LOOP_FRAME_COUNT - 1; i >= 0; i--) {
+                const dt = new Date(now.getTime() - (LOOP_LAG_MINUTES + i * LOOP_STEP_MINUTES) * 60000);
+                timestamps.push(formatUtcTimestamp(dt));
+            }
+            return timestamps;
+        }
+
+        function formatUtcTimestamp(dt) {
+            const year = dt.getUTCFullYear();
+            const month = String(dt.getUTCMonth() + 1).padStart(2, '0');
+            const day = String(dt.getUTCDate()).padStart(2, '0');
+            const hour = String(dt.getUTCHours()).padStart(2, '0');
+            const minute = String(dt.getUTCMinutes()).padStart(2, '0');
+            return '' + year + month + day + hour + minute;
+        }
+
+        function formatTimestampLabel(ts) {
+            if (!ts || ts.length !== 12) {
+                return 'Loop Frame';
+            }
+            const month = ts.slice(4, 6);
+            const day = ts.slice(6, 8);
+            const hour = ts.slice(8, 10);
+            const minute = ts.slice(10, 12);
+            return month + '/' + day + ' ' + hour + ':' + minute + 'Z';
+        }
+
+        function formatTickLabel(ts) {
+            if (!ts || ts.length !== 12) {
+                return '-';
+            }
+            const hour = ts.slice(8, 10);
+            const minute = ts.slice(10, 12);
+            return hour + ':' + minute + 'Z';
+        }
+
+        function renderTickRow(labels) {
+            frameTickRow.innerHTML = '';
+            labels.forEach((label) => {
+                const tick = document.createElement('span');
+                tick.textContent = label;
+                frameTickRow.appendChild(tick);
+            });
+        }
+
+        function updateStatus(modeText) {
+            const now = new Date();
+            const mode = modeText ? ' | ' + modeText : '';
+            refreshStatus.textContent = 'Last refresh: ' + now.toUTCString().replace('GMT', 'UTC') + mode;
+        }
+    </script>
+</body>
+</html>
