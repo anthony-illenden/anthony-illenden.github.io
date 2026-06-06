@@ -1,0 +1,881 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Climatology | Daily Temperature</title>
+    <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
+    <link rel="stylesheet" href="styles.css">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.2.0/highcharts.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.2.0/highcharts-more.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highcharts/11.2.0/modules/accessibility.js"></script>
+
+    <style>
+        :root {
+                --ice:    #555;
+                --frost:  #222;
+                --deep:   #ffffff;
+                --mid:    #f5f5f5;
+                --panel:  #ffffff;
+                --border: #dddddd;
+                --accent: #0078d7;
+                --warm:   #d9534f;
+                --cold:   #0275d8;
+                --snow:   #666;
+                --mono:   'Roboto', monospace;
+                --sans:   'Roboto', sans-serif;
+            }
+        
+        html, body {
+            margin: 0;
+            padding: 0;
+            width: 100%;
+        }
+
+        nav {
+            background-color: #333;
+            overflow: hidden;
+            text-align: center;
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        nav a {
+            display: inline-block;
+            color: #f2f2f2;
+            text-align: center;
+            padding: 14px 16px;
+            text-decoration: none;
+        }
+
+        nav a:hover {
+            background-color: #ddd;
+            color: black;
+        }
+
+        .header {
+            position: relative;
+            text-align: center;
+            color: white;
+            height: 400px;
+            width: 100%;
+        }
+
+        .header img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header .text {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(0,0,0,0.5);
+            padding: 10px 20px;
+        }
+
+        .header .text h1 {
+            margin: 0;
+            font-family: 'Roboto', sans-serif;
+            font-size: 3rem;
+        }
+
+        .clim-wrap {
+            background: #fff;
+            min-height: 100vh;
+            color: #222;
+            font-family: var(--sans);
+            padding-bottom: 80px;
+        }
+
+        /* ── Controls ── */
+        .controls-bar {
+            background: #f5f5f5;
+            border-bottom: 1px solid var(--border);
+            padding: 18px 40px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 14px;
+            align-items: flex-end;
+        }
+        .ctrl-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .ctrl-group label {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: var(--ice);
+            opacity: 0.65;
+        }
+        .ctrl-group input,
+        .ctrl-group select {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            color: #222;
+            font-family: var(--mono);
+            font-size: 13px;
+            padding: 8px 12px;
+            outline: none;
+            transition: border-color 0.2s;
+            min-width: 150px;
+        }
+        .ctrl-group input:focus,
+        .ctrl-group select:focus { border-color: var(--accent); }
+        .ctrl-group select option { background: var(--mid); }
+
+        .btn-fetch {
+            background: var(--accent);
+            border: none;
+            border-radius: 4px;
+            color: var(--deep);
+            font-family: var(--mono);
+            font-size: 13px;
+            font-weight: 500;
+            letter-spacing: 0.08em;
+            padding: 9px 22px;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.1s;
+            align-self: flex-end;
+        }
+        .btn-fetch:hover  { background: #81d4fa; }
+        .btn-fetch:active { transform: scale(0.97); }
+        .btn-fetch:disabled { background: #3a5f75; cursor: not-allowed; }
+
+        /* ── City chips ── */
+        .city-chips {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            padding: 12px 40px;
+            background: #fafafa;
+            border-bottom: 1px solid var(--border);
+        }
+        .chip-label {
+            font-family: var(--mono);
+            font-size: 10px;
+            opacity: 0.4;
+            align-self: center;
+            letter-spacing: .1em;
+        }
+        .chip {
+            font-family: var(--mono);
+            font-size: 11px;
+            padding: 5px 12px;
+            border: 1px solid var(--border);
+            border-radius: 20px;
+            cursor: pointer;
+            color: black;
+            background: transparent;
+            transition: all 0.15s;
+            letter-spacing: 0.04em;
+        }
+        .chip:hover,
+        .chip.active { background: var(--accent); color: var(--deep); border-color: var(--accent); }
+
+        /* ── Status bar ── */
+        .status-bar {
+            font-family: var(--mono);
+            font-size: 12px;
+            padding: 9px 40px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            border-bottom: 1px solid var(--border);
+            background: #fafafa;
+            min-height: 34px;
+        }
+        .status-dot { width: 7px; height: 7px; border-radius: 50%; background: #555; flex-shrink: 0; }
+        .status-dot.loading { background: #ffcc02; animation: pulse 1s infinite; }
+        .status-dot.ok      { background: #66bb6a; }
+        .status-dot.err     { background: #ef5350; }
+        @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.3} }
+
+        /* ── Main content ── */
+        .content {
+            padding: 28px 40px;
+        }
+
+        /* ── Station header ── */
+        .station-header {
+            display: none;
+            margin-bottom: 22px;
+            border-left: 3px solid var(--accent);
+            padding-left: 16px;
+        }
+        .station-header h2 {
+            font-family: 'Roboto', sans-serif;
+            font-size: 2rem;
+            letter-spacing: 0.06em;
+            color: #222;
+            margin: 0 0 2px;
+        }
+        .station-header p {
+            font-family: var(--mono);
+            font-size: 11px;
+            color: #666;
+            opacity: 0.55;
+            margin: 0;
+        }
+
+        /* ── Chart panels ── */
+        .chart-panel {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        .chart-panel h3 {
+            font-family: var(--mono);
+            font-size: 10px;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: var(--ice);
+            opacity: 0.55;
+            margin: 0 0 16px;
+        }
+        #tempChart    { width: 100%; height: 420px; }
+        #depChart     { width: 100%; height: 220px; }
+        #snowChart    { width: 100%; height: 200px; }
+
+        /* ── Summary strip ── */
+        .summary-strip {
+            display: none;
+            grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+            gap: 12px;
+            margin-bottom: 20px;
+        }
+        .s-card {
+            background: white;
+            border: 1px solid #ccc;
+            border-radius: 6px;
+            padding: 14px 16px;
+        }
+        .s-label {
+            font-family: var(--mono);
+            font-size: 9px;
+            letter-spacing: 0.13em;
+            text-transform: uppercase;
+            color: var(--ice);
+            opacity: 0.5;
+            margin-bottom: 5px;
+        }
+        .s-val {
+            font-family: 'Roboto', sans-serif;
+            font-size: 1.8rem;
+            line-height: 1;
+            color: #222;
+        }
+        .s-val.warm { color: var(--warm); }
+        .s-val.cold { color: var(--cold); }
+        .s-val.snow { color: var(--snow); }
+
+        /* ── Placeholder ── */
+        .placeholder {
+            text-align: center;
+            padding: 80px 20px;
+            font-family: var(--mono);
+            font-size: 13px;
+            color: var(--ice);
+            opacity: 0.3;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Legend ── */
+        .legend-row {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-bottom: 10px;
+            padding: 0 2px;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 7px;
+            font-family: var(--mono);
+            font-size: 11px;
+            color: var(--ice);
+            opacity: 0.7;
+        }
+        .legend-swatch {
+            width: 22px;
+            height: 8px;
+            border-radius: 2px;
+        }
+
+        @media (max-width: 640px) {
+            .controls-bar { padding: 14px 16px; }
+            .city-chips   { padding: 10px 16px; }
+            .status-bar   { padding: 8px 16px; }
+            .content      { padding: 16px; }
+        }
+    </style>
+</head>
+<body>
+<div class="header">
+    <img src="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/awips.png" alt="Header Image">
+    <div class="text">
+        <h1>Climatology</h1>
+    </div>
+</div>
+
+<nav>
+    <a href="https://anthony-illenden.github.io/index.html">Home</a>
+    <a href="https://anthony-illenden.github.io/semichigan.html">SE Michigan</a>
+    <a href="https://anthony-illenden.github.io/spcmesoanalysis.html">SPC Mesoanalysis</a>
+    <a href="https://anthony-illenden.github.io/models.html">Models</a>
+    <a href="https://anthony-illenden.github.io/winter.html">Winter</a>
+    <a href="https://anthony-illenden.github.io/climatology.html">Climatology</a>
+    <a href="https://anthony-illenden.github.io/about.html">About</a>
+</nav>
+
+    <div class="clim-wrap">
+
+        <!-- City chips -->
+        <div class="city-chips">
+            <span class="chip-label">Select City: </span>
+        </div>
+
+        <!-- Controls -->
+        <div class="controls-bar">
+            <div class="ctrl-group">
+                <label>Station (ICAO)</label>
+                <input type="text" id="stationId" placeholder="e.g. KDTW, KORD" value="KDTW">
+            </div>
+            <div class="ctrl-group">
+                <label>Start Date</label>
+                <input type="date" id="sdate">
+            </div>
+            <div class="ctrl-group">
+                <label>End Date</label>
+                <input type="date" id="edate">
+            </div>
+            <div class="ctrl-group">
+                <label>Show Snow Chart</label>
+                <select id="showSnow">
+                    <option value="yes">Yes</option>
+                    <option value="no">No</option>
+                </select>
+            </div>
+            <button class="btn-fetch" id="fetchBtn" onclick="fetchData()">FETCH</button>
+        </div>
+
+        <!-- Status -->
+        <div class="status-bar">
+            <div class="status-dot" id="statusDot"></div>
+            <span id="statusText">Enter a 4-char ICAO station and date range, then click FETCH.</span>
+        </div>
+
+        <!-- Content -->
+        <div class="content">
+
+            <div class="station-header" id="stationHeader">
+                <h2 id="stationName">—</h2>
+                <p id="stationMeta">—</p>
+            </div>
+
+            <!-- Summary strip -->
+            <div class="summary-strip" id="summaryStrip"></div>
+
+            <!-- Placeholder -->
+            <div class="placeholder" id="placeholder">↑ Configure your query above to render an interactive climatology chart.</div>
+
+            <!-- Temp range chart -->
+            <div class="chart-panel" id="tempPanel" style="display:none">
+                <h3>Daily Temperature Range vs. Climatological Normal (1991–2020)</h3>
+                <div class="legend-row" id="tempLegend"></div>
+                <div id="tempChart"></div>
+            </div>
+
+            <!-- Departure chart -->
+            <div class="chart-panel" id="depPanel" style="display:none">
+                <h3>Daily Temperature Departure from Normal</h3>
+                <div id="depChart"></div>
+            </div>
+
+            <!-- Snow chart -->
+            <div class="chart-panel" id="snowPanel" style="display:none">
+                <h3>Daily Snowfall (in)</h3>
+                <div id="snowChart"></div>
+            </div>
+
+        </div>
+    </div>
+
+<script>
+// ── Cities ───────────────────────────────────────────────────────────────────
+const CITIES = [
+    { sid: 'KJFK', name: 'New York' },
+    { sid: 'KLAX', name: 'Los Angeles' },
+    { sid: 'KORD', name: 'Chicago' },
+    { sid: 'KDFW', name: 'Dallas–Fort Worth' },
+    { sid: 'KIAH', name: 'Houston' },
+    { sid: 'KPHX', name: 'Phoenix' },
+    { sid: 'KPHL', name: 'Philadelphia' },
+    { sid: 'KSAT', name: 'San Antonio' },
+    { sid: 'KSAN', name: 'San Diego' },
+    { sid: 'KDAL', name: 'Dallas' },
+    { sid: 'KSJC', name: 'San Jose' },
+    { sid: 'KAUS', name: 'Austin' },
+    { sid: 'KJAX', name: 'Jacksonville' },
+    { sid: 'KCMH', name: 'Columbus' },
+    { sid: 'KCLT', name: 'Charlotte' },
+    { sid: 'KIND', name: 'Indianapolis' },
+    { sid: 'KSEA', name: 'Seattle' },
+    { sid: 'KDEN', name: 'Denver' },
+    { sid: 'KBOS', name: 'Boston' },
+    { sid: 'KRDU', name: 'Raleigh' }
+];
+
+// Populate chips
+const chipsWrap = document.querySelector('.city-chips');
+CITIES.forEach(c => {
+    const chip = document.createElement('button');
+    chip.className = 'chip';
+    chip.textContent = c.name;
+    chip.dataset.sid = c.sid;
+    chip.onclick = () => {
+        document.querySelectorAll('.chip').forEach(ch => ch.classList.remove('active'));
+        chip.classList.add('active');
+        document.getElementById('stationId').value = c.sid;
+    };
+    chipsWrap.appendChild(chip);
+});
+
+// ── Default dates: past 365 days ─────────────────────────────────────────────
+(function() {
+    const now   = new Date();
+    const start = new Date(now);
+    start.setFullYear(start.getFullYear() - 1);
+    document.getElementById('sdate').value = start.toISOString().slice(0,10);
+    document.getElementById('edate').value = now.toISOString().slice(0,10);
+})();
+
+// ── Highcharts global theme ───────────────────────────────────────────────────
+Highcharts.setOptions({
+    chart: {
+        backgroundColor: 'transparent',
+        style: { fontFamily: "'Roboto', monospace" },
+        animation: { duration: 500 },
+        zoomType: 'x',
+        panning: true,
+        panKey: 'shift',
+        resetZoomButton: {
+    theme: {
+            fill: '#f5f5f5',
+            stroke: '#cccccc',
+            style: {
+                color: '#333333',
+                fontSize: '11px'
+            },
+            states: {
+                hover: {
+                    fill: '#e9e9e9'
+                }
+            }
+        }
+    }
+    },
+    title:    { text: null },
+    subtitle: { text: null },
+    credits:  { enabled: false },
+    legend:   { enabled: false },
+    tooltip: {
+        backgroundColor: '#ffffff',
+        borderColor: '#cccccc',
+        borderRadius: 6,
+        style: {
+            color: '#222222',
+            fontSize: '12px'
+        },
+        shared: true,
+        crosshairs: true
+    },
+    xAxis: {
+        type: 'datetime',
+        lineColor: 'rgba(168,216,240,0.15)',
+        tickColor: 'rgba(168,216,240,0.15)',
+        labels: { style: { color: '#a8d8f0', fontSize: '11px' } },
+        crosshair: { color: 'rgba(79,195,247,0.25)', width: 1 },
+    },
+    yAxis: {
+        gridLineColor: 'rgba(168,216,240,0.08)',
+        labels: { style: { color: '#a8d8f0', fontSize: '11px' } },
+    },
+    plotOptions: {
+        series: { animation: { duration: 600 } },
+    },
+});
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
+function setStatus(state, msg) {
+    document.getElementById('statusDot').className = 'status-dot ' + state;
+    document.getElementById('statusText').textContent = msg;
+}
+
+function parseVal(v) {
+    if (v === 'M' || v === null || v === undefined || v === '') return null;
+    if (v === 'T') return 0.001;
+    const n = parseFloat(v);
+    return isNaN(n) ? null : n;
+}
+
+function acisDateToMs(str) {
+    // "2024-01-15" → UTC ms
+    const [y, m, d] = str.split('-').map(Number);
+    return Date.UTC(y, m - 1, d);
+}
+
+async function acisPost(endpoint, params) {
+    const res = await fetch(`https://data.rcc-acis.org/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error(`ACIS HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(`ACIS: ${json.error}`);
+    return json;
+}
+
+// ── Chart instances (so we can destroy/recreate) ──────────────────────────────
+let tempChartInst = null;
+let depChartInst  = null;
+let snowChartInst = null;
+
+// ── Main fetch ────────────────────────────────────────────────────────────────
+async function fetchData() {
+    const sid    = document.getElementById('stationId').value.trim().toUpperCase();
+    const sdate  = document.getElementById('sdate').value;
+    const edate  = document.getElementById('edate').value;
+    const doSnow = document.getElementById('showSnow').value === 'yes';
+
+    if (!sid || !sdate || !edate) {
+        setStatus('err', 'Please fill in all fields.');
+        return;
+    }
+
+    document.getElementById('fetchBtn').disabled = true;
+    setStatus('loading', `Querying ACIS for ${sid}…`);
+    document.getElementById('placeholder').style.display  = 'none';
+    document.getElementById('tempPanel').style.display    = 'none';
+    document.getElementById('depPanel').style.display     = 'none';
+    document.getElementById('snowPanel').style.display    = 'none';
+    document.getElementById('summaryStrip').style.display = 'none';
+    document.getElementById('stationHeader').style.display= 'none';
+
+    try {
+        // ── Metadata ─────────────────────────────────────────────────────────
+        const metaRes = await acisPost('StnMeta', {
+            sids: [sid],
+            meta: ['name', 'state', 'll', 'elev'],
+        });
+        const station = metaRes.meta?.[0];
+        if (!station) throw new Error(`No station found for "${sid}". Use 4-char ICAO (e.g. KDTW).`);
+
+        // ── Data: maxt, mint (obs + normal), pcpn, snow ───────────────────────
+        const elemsSpec = [
+            { name: 'maxt' },
+            { name: 'maxt', normal: 1 },
+            { name: 'mint' },
+            { name: 'mint', normal: 1 },
+            { name: 'pcpn' },
+        ];
+        if (doSnow) elemsSpec.push({ name: 'snow' });
+
+        const dataRes = await acisPost('StnData', { sid, sdate, edate, elems: elemsSpec });
+        const rows = dataRes.data || [];
+        if (!rows.length) throw new Error('No data returned for that date range.');
+
+        // Column layout: [date, maxt, maxtNorm, mint, mintNorm, pcpn, snow?]
+        // Indices:          0     1     2         3     4         5    6
+
+        // ── Build series data ─────────────────────────────────────────────────
+        const obsRange    = [];  // [ms, mint, maxt]          arearange
+        const normRange   = [];  // [ms, mintNorm, maxtNorm]  arearange
+        const maxtLine    = [];  // [ms, maxt]                line
+        const mintLine    = [];  // [ms, mint]                line
+        const normMaxLine = [];  // [ms, maxtNorm]            line
+        const normMinLine = [];  // [ms, mintNorm]            line
+        const departure   = [];  // [ms, dep]                 column (avg temp dep)
+        const snowBars    = [];  // [ms, snow]                column
+
+        let sumMaxt = 0, cntMaxt = 0;
+        let sumMint = 0, cntMint = 0;
+        let sumSnow = 0;
+        let maxMaxt = -Infinity, minMint = Infinity;
+        let maxDep = 0;
+
+        rows.forEach(row => {
+            const ms       = acisDateToMs(row[0]);
+            const maxt     = parseVal(row[1]);
+            const maxtNorm = parseVal(row[2]);
+            const mint     = parseVal(row[3]);
+            const mintNorm = parseVal(row[4]);
+            const snow     = doSnow ? parseVal(row[6]) : null;
+
+            if (maxt !== null && mint !== null) {
+                obsRange.push([ms, mint, maxt]);
+                maxtLine.push([ms, maxt]);
+                mintLine.push([ms, mint]);
+                sumMaxt += maxt; cntMaxt++;
+                sumMint += mint; cntMint++;
+                if (maxt > maxMaxt) maxMaxt = maxt;
+                if (mint < minMint) minMint = mint;
+            }
+
+            if (maxtNorm !== null && mintNorm !== null) {
+                normRange.push([ms, mintNorm, maxtNorm]);
+                normMaxLine.push([ms, maxtNorm]);
+                normMinLine.push([ms, mintNorm]);
+            }
+
+            // Departure = avg observed vs avg normal
+            if (maxt !== null && mint !== null && maxtNorm !== null && mintNorm !== null) {
+                const avgObs  = (maxt + mint) / 2;
+                const avgNorm = (maxtNorm + mintNorm) / 2;
+                const dep = parseFloat((avgObs - avgNorm).toFixed(1));
+                departure.push({ x: ms, y: dep, color: dep >= 0 ? 'rgba(255,138,101,0.75)' : 'rgba(79,195,247,0.75)' });
+                if (Math.abs(dep) > maxDep) maxDep = Math.abs(dep);
+            }
+
+            if (doSnow && snow !== null && snow > 0.001) {
+                snowBars.push([ms, parseFloat(snow.toFixed(1))]);
+                sumSnow += snow;
+            }
+        });
+
+        // ── Render station header ─────────────────────────────────────────────
+        const llStr  = station.ll ? `${station.ll[1].toFixed(2)}°N, ${Math.abs(station.ll[0]).toFixed(2)}°W` : '';
+        const elevStr= station.elev ? ` · ${station.elev} ft` : '';
+        document.getElementById('stationName').textContent = `${station.name}, ${station.state}`;
+        document.getElementById('stationMeta').textContent = `${sid} · ${llStr}${elevStr} · ${rows.length} days`;
+        document.getElementById('stationHeader').style.display = 'block';
+
+        // ── Summary strip ─────────────────────────────────────────────────────
+        const strip = document.getElementById('summaryStrip');
+        strip.innerHTML = '';
+        const addCard = (label, val, cls='') =>
+            strip.insertAdjacentHTML('beforeend', `
+                <div class="s-card">
+                    <div class="s-label">${label}</div>
+                    <div class="s-val ${cls}">${val}</div>
+                </div>`);
+
+        if (cntMaxt) addCard('Avg High', (sumMaxt/cntMaxt).toFixed(1)+'°', 'warm');
+        if (cntMint) addCard('Avg Low',  (sumMint/cntMint).toFixed(1)+'°', 'cold');
+        if (maxMaxt > -Infinity) addCard('Period Max', maxMaxt+'°', 'warm');
+        if (minMint <  Infinity) addCard('Period Min', minMint+'°', 'cold');
+        if (departure.length) {
+            const meanDep = (departure.reduce((s,d)=>s+d.y,0)/departure.length).toFixed(1);
+            const sign = meanDep > 0 ? '+' : '';
+            addCard('Mean Departure', sign+meanDep+'°', meanDep >= 0 ? 'warm' : 'cold');
+        }
+        if (doSnow && sumSnow > 0) addCard('Total Snowfall', sumSnow.toFixed(1)+'"', 'snow');
+
+        strip.style.display = 'grid';
+
+        // ── Destroy old charts ────────────────────────────────────────────────
+        if (tempChartInst) { tempChartInst.destroy(); tempChartInst = null; }
+        if (depChartInst)  { depChartInst.destroy();  depChartInst  = null; }
+        if (snowChartInst) { snowChartInst.destroy();  snowChartInst = null; }
+
+        // ── Temperature range chart ───────────────────────────────────────────
+        document.getElementById('tempPanel').style.display = 'block';
+
+        // Legend
+        document.getElementById('tempLegend').innerHTML = `
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(255,138,101,0.25);border:1px solid rgba(255,138,101,0.5)"></span>Observed High/Low</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(168,216,240,0.12);border:1px dashed rgba(168,216,240,0.4)"></span>Normal Range</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:#ff8a65;height:2px;margin:3px 0"></span>Observed High</div>
+            <div class="legend-item"><span class="legend-swatch" style="background:#4fc3f7;height:2px;margin:3px 0"></span>Observed Low</div>`;
+
+        tempChartInst = Highcharts.chart('tempChart', {
+            chart: { type: 'arearange' },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
+                
+            },
+            yAxis: {
+                title: { text: 'Temperature (°F)', style: { color: '#333', fontSize: '11px' } },
+                plotLines: [{
+                    value: 32,
+                    color: 'rgba(168,216,240,0.3)',
+                    width: 1,
+                    dashStyle: 'ShortDash',
+                    label: {
+                        text: '32°F',
+                        style: { color: 'rgba(168,216,240,0.5)', fontSize: '10px' },
+                        align: 'right', x: -4,
+                    }
+                }],
+            },
+            tooltip: {
+                pointFormatter: function() {
+                    if (this.series.name === 'Obs Range') {
+                        return `<span style="color:${this.series.color}">●</span> <b>Observed:</b> ${this.low}°F – ${this.high}°F<br>`;
+                    }
+                    if (this.series.name === 'Normal Range') {
+                        return `<span style="color:#aaa">●</span> <b>Normal:</b> ${this.low}°F – ${this.high}°F<br>`;
+                    }
+                    return '';
+                },
+                headerFormat: '<span style="font-size:11px;opacity:.7">{point.key}</span><br>',
+                xDateFormat: '%B %e, %Y',
+            },
+            series: [
+                {
+                    name: 'Normal Range',
+                    type: 'arearange',
+                    data: normRange,
+                    fillColor: 'rgba(168,216,240,0.07)',
+                    lineColor: 'rgba(168,216,240,0.25)',
+                    lineWidth: 0,
+                    dashStyle: 'Dash',
+                    marker: { enabled: false },
+                    zIndex: 1,
+                    states: { hover: { enabled: false } },
+                },
+                {
+                    name: 'Obs Range',
+                    type: 'arearange',
+                    data: obsRange,
+                    fillColor: 'rgba(255,138,101,0.18)',
+                    lineColor: 'transparent',
+                    lineWidth: 0,
+                    marker: { enabled: false },
+                    zIndex: 2,
+                    states: { hover: { enabled: false } },
+                },
+                {
+                    name: 'Normal High',
+                    type: 'line',
+                    data: normMaxLine,
+                    color: 'rgba(168,216,240,0.35)',
+                    lineWidth: 1,
+                    dashStyle: 'ShortDash',
+                    marker: { enabled: false },
+                    zIndex: 3,
+                    enableMouseTracking: false,
+                },
+                {
+                    name: 'Normal Low',
+                    type: 'line',
+                    data: normMinLine,
+                    color: 'rgba(168,216,240,0.35)',
+                    lineWidth: 1,
+                    dashStyle: 'ShortDash',
+                    marker: { enabled: false },
+                    zIndex: 3,
+                    enableMouseTracking: false,
+                },
+                {
+                    name: 'High',
+                    type: 'line',
+                    data: maxtLine,
+                    color: '#ff8a65',
+                    lineWidth: 1.5,
+                    marker: { enabled: false, states: { hover: { enabled: true, radius: 4 } } },
+                    zIndex: 4,
+                    tooltip: { valueSuffix: '°F' },
+                },
+                {
+                    name: 'Low',
+                    type: 'line',
+                    data: mintLine,
+                    color: '#4fc3f7',
+                    lineWidth: 1.5,
+                    marker: { enabled: false, states: { hover: { enabled: true, radius: 4 } } },
+                    zIndex: 4,
+                    tooltip: { valueSuffix: '°F' },
+                },
+            ],
+        });
+
+        // ── Departure chart ───────────────────────────────────────────────────
+        document.getElementById('depPanel').style.display = 'block';
+        depChartInst = Highcharts.chart('depChart', {
+            chart: { type: 'column' },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
+            },
+            yAxis: {
+                title: { text: 'Departure (°F)', style: { color: '#a8d8f0', fontSize:'11px' } },
+                plotLines: [{ value: 0, color: 'rgba(168,216,240,0.3)', width: 1 }],
+            },
+            tooltip: {
+                headerFormat: '<span style="font-size:11px;opacity:.7">{point.key}</span><br>',
+                xDateFormat: '%B %e, %Y',
+                pointFormatter: function() {
+                    const sign = this.y >= 0 ? '+' : '';
+                    return `<b>Departure:</b> ${sign}${this.y}°F<br>`;
+                },
+            },
+            series: [{
+                name: 'Departure',
+                data: departure,
+                pointPadding: 0,
+                groupPadding: 0,
+                borderWidth: 0,
+                maxPointWidth: 8,
+            }],
+        });
+
+        // ── Snow chart ────────────────────────────────────────────────────────
+        if (doSnow && snowBars.length > 0) {
+            document.getElementById('snowPanel').style.display = 'block';
+            snowChartInst = Highcharts.chart('snowChart', {
+                chart: { type: 'column' },
+                xAxis: {
+                    type: 'datetime',
+                    dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
+                },
+                yAxis: {
+                    title: { text: 'Snowfall (in)', style: { color: '#a8d8f0', fontSize:'11px' } },
+                    min: 0,
+                },
+                tooltip: {
+                    headerFormat: '<span style="font-size:11px;opacity:.7">{point.key}</span><br>',
+                    xDateFormat: '%B %e, %Y',
+                    pointFormatter: function() {
+                        return `<b>Snowfall:</b> ${this.y}"<br>`;
+                    },
+                },
+                series: [{
+                    name: 'Snowfall',
+                    data: snowBars,
+                    color: '#1976d2',
+                    borderColor: 'rgba(224,247,250,0.3)',
+                    borderWidth: 1,
+                    pointPadding: 0,
+                    groupPadding: 0,
+                    maxPointWidth: 10,
+                }],
+            });
+        }
+
+        setStatus('ok', `${rows.length} days loaded for ${station.name}, ${station.state} · drag to pan, scroll to zoom · data: ACIS/RCC`);
+
+    } catch(err) {
+        setStatus('err', err.message);
+        document.getElementById('placeholder').textContent = err.message;
+        document.getElementById('placeholder').style.display = 'block';
+    } finally {
+        document.getElementById('fetchBtn').disabled = false;
+    }
+}
+</script>
+</body>
+</html>
