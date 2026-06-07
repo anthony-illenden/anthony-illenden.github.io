@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Climatology | Daily Temperature</title>
+    <title>Climatology</title>
     <link rel="icon" type="image/png" href="https://raw.githubusercontent.com/anthony-illenden/anthony-illenden.github.io/main/images/bolt.png">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css" />
@@ -36,6 +36,7 @@
         nav a {
             display: inline-block; color: #f2f2f2;
             text-align: center; padding: 14px 16px; text-decoration: none;
+            font-family: 'Roboto', sans-serif !important;
         }
         nav a:hover { background-color: #ddd; color: black; }
 
@@ -57,8 +58,6 @@
             background: #fff; min-height: 100vh;
             color: #222; font-family: var(--sans); padding-bottom: 80px;
         }
-
-
 
         /* ── Controls ── */
         .controls-bar {
@@ -119,7 +118,7 @@
             margin-top: 10px;
         }
         .clim-marker-dot {
-            width: 12px; height: 12px; border-radius: 50%;
+            width: 10px; height: 10px; border-radius: 50%;
             background: #0078d7; border: 2px solid white;
             box-shadow: 0 1px 4px rgba(0,0,0,0.45);
             cursor: pointer; box-sizing: border-box;
@@ -129,6 +128,41 @@
         .clim-marker-dot.active {
             background: #ffcc02; border-color: #333;
             transform: scale(1.4);
+        }
+
+        /* Map loading overlay */
+        #mapLoadOverlay {
+            position: absolute; top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(250,250,250,0.85);
+            display: flex; align-items: center; justify-content: center;
+            font-family: var(--mono); font-size: 11px; color: #666;
+            letter-spacing: 0.1em; z-index: 1000; border-radius: 6px;
+            pointer-events: none;
+        }
+        #mapLoadOverlay.hidden { display: none; }
+        #mapWrap { position: relative; margin-top: 10px; }
+
+        /* Station count badge */
+        #stationCount {
+            font-family: var(--mono); font-size: 10px; color: #888;
+            margin-top: 6px; letter-spacing: 0.05em;
+        }
+
+        /* Map search */
+        .map-search-bar {
+            display: flex; gap: 8px; align-items: center;
+            margin-bottom: 8px; margin-top: 8px;
+        }
+        #mapSearch {
+            flex: 1; background: white; border: 1px solid #ccc;
+            border-radius: 4px; color: #222; font-family: var(--mono);
+            font-size: 13px; padding: 7px 12px; outline: none;
+            transition: border-color 0.2s;
+        }
+        #mapSearch:focus { border-color: var(--accent); }
+        #mapSearchCount {
+            font-family: var(--mono); font-size: 10px; color: #aaa;
+            white-space: nowrap;
         }
 
         /* ── City chips ── */
@@ -239,7 +273,6 @@
             .status-bar   { padding: 8px 16px; }
             .content      { padding: 16px; }
             .map-section  { padding: 12px 16px; }
-            #todayBanner  { padding: 12px 16px; }
         }
     </style>
 </head>
@@ -262,13 +295,19 @@
 
 <div class="clim-wrap">
 
-
-
     <!-- Map picker (collapsible) -->
     <details class="map-section" id="mapDetails">
         <summary>Click-to-Select Map &nbsp;<span style="opacity:.4;font-size:9px">expand</span></summary>
-        <p class="map-label-tip">Click any marker to select that station — it will load into the ICAO field below.</p>
-        <div id="climMap"></div>
+        <p class="map-label-tip">Click any marker to load that station. All xmACIS stations with temperature records are shown — search by name or ID below.</p>
+        <div class="map-search-bar">
+            <input type="text" id="mapSearch" placeholder="Search station name or ID (e.g. Detroit, KDTW, Traverse City)…" oninput="filterMapMarkers(this.value)">
+            <span id="mapSearchCount"></span>
+        </div>
+        <div id="mapWrap">
+            <div id="climMap"></div>
+            <div id="mapLoadOverlay">⟳ &nbsp;LOADING ALL xmACIS STATIONS…</div>
+        </div>
+        <div id="stationCount"></div>
     </details>
 
     <!-- City chips -->
@@ -297,6 +336,13 @@
                 <option value="no">No</option>
             </select>
         </div>
+        <div class="ctrl-group">
+            <label>Show Records</label>
+            <select id="showRecords">
+                <option value="yes">Yes</option>
+                <option value="no">No</option>
+            </select>
+        </div>
         <button class="btn-fetch" id="fetchBtn" onclick="fetchData()">FETCH</button>
     </div>
 
@@ -320,7 +366,7 @@
 
         <!-- Temp range chart -->
         <div class="chart-panel" id="tempPanel" style="display:none">
-            <h3>Daily Temperature Range vs. Climatological Normal (1991–2020)</h3>
+            <h3>Daily Temperature Range vs. Climatological Normal (1991–2020) &amp; All-Time Records</h3>
             <div class="legend-row" id="tempLegend"></div>
             <div id="tempChart"></div>
         </div>
@@ -345,199 +391,267 @@
 </div>
 
 <script>
-// ── Cities with lat/lon for Leaflet map (150+ ASOS stations) ────────────────
-const CITIES = [
-    // Northeast
-    { sid:'KJFK', name:'New York (JFK)',         lat:40.64,  lon:-73.78 },
-    { sid:'KLGA', name:'New York (LaGuardia)',    lat:40.78,  lon:-73.88 },
-    { sid:'KEWR', name:'Newark',                 lat:40.69,  lon:-74.17 },
-    { sid:'KBOS', name:'Boston',                 lat:42.36,  lon:-71.01 },
-    { sid:'KPHL', name:'Philadelphia',           lat:39.87,  lon:-75.24 },
-    { sid:'KPWM', name:'Portland, ME',           lat:43.64,  lon:-70.30 },
-    { sid:'KBGR', name:'Bangor',                 lat:44.81,  lon:-68.83 },
-    { sid:'KBDL', name:'Hartford',               lat:41.94,  lon:-72.68 },
-    { sid:'KPVD', name:'Providence',             lat:41.73,  lon:-71.43 },
-    { sid:'KBUF', name:'Buffalo',                lat:42.94,  lon:-78.73 },
-    { sid:'KROC', name:'Rochester, NY',          lat:43.12,  lon:-77.67 },
-    { sid:'KSYR', name:'Syracuse',               lat:43.11,  lon:-76.11 },
-    { sid:'KORD', name:'Chicago (O\'Hare)',       lat:41.98,  lon:-87.91 },
-    { sid:'KMDW', name:'Chicago (Midway)',        lat:41.79,  lon:-87.75 },
-    { sid:'KMSP', name:'Minneapolis',            lat:44.88,  lon:-93.22 },
-    { sid:'KMKE', name:'Milwaukee',              lat:42.95,  lon:-87.90 },
-    { sid:'KGRB', name:'Green Bay',              lat:44.50,  lon:-88.12 },
-    { sid:'KMSN', name:'Madison',               lat:43.14,  lon:-89.34 },
-    { sid:'KDTW', name:'Detroit',               lat:42.21,  lon:-83.35 },
-    { sid:'KGRR', name:'Grand Rapids',           lat:42.88,  lon:-85.52 },
-    { sid:'KLAN', name:'Lansing',               lat:42.77,  lon:-84.59 },
-    { sid:'KAPX', name:'Gaylord, MI',           lat:44.91,  lon:-84.72 },
-    { sid:'KCLE', name:'Cleveland',             lat:41.41,  lon:-81.85 },
-    { sid:'KCMH', name:'Columbus',              lat:39.99,  lon:-82.89 },
-    { sid:'KDAY', name:'Dayton',               lat:39.90,  lon:-84.22 },
-    { sid:'KIND', name:'Indianapolis',          lat:39.72,  lon:-86.28 },
-    { sid:'KFWA', name:'Fort Wayne',            lat:40.98,  lon:-85.20 },
-    { sid:'KSBN', name:'South Bend',            lat:41.71,  lon:-86.32 },
-    { sid:'KPIT', name:'Pittsburgh',            lat:40.49,  lon:-80.23 },
-    { sid:'KPBZ', name:'Pittsburgh (NWS)',       lat:40.53,  lon:-80.22 },
-    // Mid-Atlantic / Southeast
-    { sid:'KBWI', name:'Baltimore',             lat:39.17,  lon:-76.67 },
-    { sid:'KDCA', name:'Washington DC (Reagan)', lat:38.85,  lon:-77.04 },
-    { sid:'KIAD', name:'Washington DC (Dulles)', lat:38.94,  lon:-77.46 },
-    { sid:'KRIC', name:'Richmond',              lat:37.51,  lon:-77.32 },
-    { sid:'KROA', name:'Roanoke',              lat:37.32,  lon:-79.97 },
-    { sid:'KORF', name:'Norfolk',              lat:36.90,  lon:-76.02 },
-    { sid:'KRDU', name:'Raleigh',              lat:35.87,  lon:-78.79 },
-    { sid:'KCLT', name:'Charlotte',            lat:35.21,  lon:-80.94 },
-    { sid:'KGSO', name:'Greensboro',           lat:36.10,  lon:-79.94 },
-    { sid:'KCHA', name:'Chattanooga',          lat:35.03,  lon:-85.20 },
-    { sid:'KTRI', name:'Tri-Cities, TN',       lat:36.48,  lon:-82.40 },
-    { sid:'KATL', name:'Atlanta',              lat:33.64,  lon:-84.43 },
-    { sid:'KAGS', name:'Augusta, GA',          lat:33.37,  lon:-81.96 },
-    { sid:'KSAV', name:'Savannah',             lat:32.13,  lon:-81.20 },
-    { sid:'KCHS', name:'Charleston, SC',       lat:32.90,  lon:-80.04 },
-    { sid:'KGSP', name:'Greenville-Spartanburg',lat:34.90,  lon:-82.22 },
-    { sid:'KFFC', name:'Peachtree City, GA',   lat:33.36,  lon:-84.57 },
-    { sid:'KBHM', name:'Birmingham',           lat:33.56,  lon:-86.75 },
-    { sid:'KHSV', name:'Huntsville',           lat:34.64,  lon:-86.77 },
-    { sid:'KMOB', name:'Mobile',               lat:30.69,  lon:-88.24 },
-    { sid:'KJAN', name:'Jackson, MS',          lat:32.32,  lon:-90.08 },
-    { sid:'KGPT', name:'Gulfport',             lat:30.41,  lon:-89.07 },
-    { sid:'KTAE', name:'Tallahassee',          lat:30.39,  lon:-84.35 },
-    { sid:'KJAX', name:'Jacksonville',         lat:30.49,  lon:-81.69 },
-    { sid:'KORL', name:'Orlando (Executive)',  lat:28.54,  lon:-81.33 },
-    { sid:'KMCO', name:'Orlando (Intl)',       lat:28.43,  lon:-81.31 },
-    { sid:'KTPA', name:'Tampa',               lat:27.97,  lon:-82.53 },
-    { sid:'KTBW', name:'Tampa Bay Area',      lat:27.71,  lon:-82.40 },
-    { sid:'KMIA', name:'Miami',               lat:25.80,  lon:-80.28 },
-    { sid:'KFLL', name:'Fort Lauderdale',     lat:26.07,  lon:-80.15 },
-    { sid:'KPBI', name:'West Palm Beach',     lat:26.68,  lon:-80.10 },
-    { sid:'KEYW', name:'Key West',            lat:24.55,  lon:-81.76 },
-    { sid:'KRSW', name:'Fort Myers',          lat:26.54,  lon:-81.76 },
-    { sid:'KTLH', name:'Tallahassee (alt)',   lat:30.39,  lon:-84.33 },
-    // South / South-Central
-    { sid:'KBNA', name:'Nashville',           lat:36.12,  lon:-86.68 },
-    { sid:'KMEM', name:'Memphis',             lat:35.05,  lon:-89.99 },
-    { sid:'KSDF', name:'Louisville',          lat:38.17,  lon:-85.74 },
-    { sid:'KLOU', name:'Louisville (alt)',    lat:38.23,  lon:-85.66 },
-    { sid:'KLZK', name:'Little Rock',         lat:34.84,  lon:-92.26 },
-    { sid:'KLIT', name:'Little Rock (Adams)', lat:34.73,  lon:-92.22 },
-    { sid:'KSHR', name:'Shreveport',          lat:32.45,  lon:-93.82 },
-    { sid:'KSHV', name:'Shreveport (alt)',    lat:32.45,  lon:-93.84 },
-    { sid:'KLCH', name:'Lake Charles',        lat:30.13,  lon:-93.22 },
-    { sid:'KBTR', name:'Baton Rouge',         lat:30.53,  lon:-91.15 },
-    { sid:'KMSY', name:'New Orleans',         lat:29.99,  lon:-90.26 },
-    { sid:'KLIX', name:'New Orleans (NWS)',   lat:30.34,  lon:-89.83 },
-    { sid:'KIAH', name:'Houston (Intercont)', lat:29.98,  lon:-95.34 },
-    { sid:'KHOU', name:'Houston (Hobby)',     lat:29.65,  lon:-95.28 },
-    { sid:'KGLS', name:'Galveston',          lat:29.27,  lon:-94.86 },
-    { sid:'KBPT', name:'Beaumont',           lat:29.95,  lon:-94.02 },
-    { sid:'KAUS', name:'Austin',             lat:30.19,  lon:-97.67 },
-    { sid:'KSAT', name:'San Antonio',        lat:29.53,  lon:-98.47 },
-    { sid:'KEWX', name:'Austin/San Antonio', lat:29.70,  lon:-98.03 },
-    { sid:'KCRP', name:'Corpus Christi',     lat:27.77,  lon:-97.51 },
-    { sid:'KBRO', name:'Brownsville',        lat:25.91,  lon:-97.43 },
-    { sid:'KMAF', name:'Midland/Odessa',     lat:31.94,  lon:-102.19 },
-    { sid:'KELP', name:'El Paso',            lat:31.81,  lon:-106.38 },
-    { sid:'KDFW', name:'Dallas–Ft Worth',    lat:32.90,  lon:-97.04 },
-    { sid:'KDAL', name:'Dallas (Love Fld)',  lat:32.85,  lon:-96.85 },
-    { sid:'KAMA', name:'Amarillo',           lat:35.22,  lon:-101.71 },
-    { sid:'KLBB', name:'Lubbock',            lat:33.66,  lon:-101.82 },
-    { sid:'KSPS', name:'Wichita Falls',      lat:33.99,  lon:-98.49 },
-    { sid:'KSWO', name:'Stillwater, OK',     lat:36.16,  lon:-97.09 },
-    { sid:'KOUN', name:'Norman, OK',         lat:35.22,  lon:-97.46 },
-    { sid:'KOKC', name:'Oklahoma City',      lat:35.39,  lon:-97.60 },
-    { sid:'KTUL', name:'Tulsa',              lat:36.20,  lon:-95.89 },
-    { sid:'KSGF', name:'Springfield, MO',   lat:37.24,  lon:-93.39 },
-    { sid:'KSTL', name:'St. Louis',          lat:38.75,  lon:-90.37 },
-    { sid:'KSUS', name:'St. Louis (Spirit)', lat:38.66,  lon:-90.65 },
-    { sid:'KMCI', name:'Kansas City',        lat:39.30,  lon:-94.71 },
-    { sid:'KTOP', name:'Topeka',             lat:39.07,  lon:-95.62 },
-    { sid:'KICT', name:'Wichita',            lat:37.65,  lon:-97.43 },
-    { sid:'KDDC', name:'Dodge City',         lat:37.76,  lon:-99.97 },
-    { sid:'KOMA', name:'Omaha',              lat:41.30,  lon:-95.89 },
-    { sid:'KLNK', name:'Lincoln, NE',        lat:40.85,  lon:-96.76 },
-    // Mountain / Great Plains
-    { sid:'KDEN', name:'Denver',             lat:39.86,  lon:-104.67 },
-    { sid:'KCOS', name:'Colorado Springs',   lat:38.81,  lon:-104.70 },
-    { sid:'KPUB', name:'Pueblo, CO',         lat:38.29,  lon:-104.50 },
-    { sid:'KGJT', name:'Grand Junction',     lat:39.12,  lon:-108.53 },
-    { sid:'KBOU', name:'Boulder, CO',        lat:39.95,  lon:-105.22 },
-    { sid:'KABQ', name:'Albuquerque',        lat:35.04,  lon:-106.62 },
-    { sid:'KFGZ', name:'Flagstaff',          lat:35.23,  lon:-111.82 },
-    { sid:'KSLC', name:'Salt Lake City',     lat:40.78,  lon:-111.97 },
-    { sid:'KOGD', name:'Ogden, UT',          lat:41.19,  lon:-112.01 },
-    { sid:'KPVU', name:'Provo, UT',          lat:40.22,  lon:-111.72 },
-    { sid:'KRIV', name:'Riverside, CA',      lat:33.87,  lon:-117.25 },
-    { sid:'KRNO', name:'Reno',               lat:39.50,  lon:-119.78 },
-    { sid:'KBOI', name:'Boise',              lat:43.57,  lon:-116.21 },
-    { sid:'KTFX', name:'Great Falls, MT',    lat:47.46,  lon:-111.38 },
-    { sid:'KBIL', name:'Billings',           lat:45.81,  lon:-108.54 },
-    { sid:'KHLN', name:'Helena',             lat:46.61,  lon:-111.98 },
-    { sid:'KGGW', name:'Glasgow, MT',        lat:48.21,  lon:-106.62 },
-    { sid:'KBIS', name:'Bismarck',           lat:46.77,  lon:-100.75 },
-    { sid:'KFAR', name:'Fargo',              lat:46.92,  lon:-96.82 },
-    { sid:'KABR', name:'Aberdeen, SD',       lat:45.45,  lon:-98.41 },
-    { sid:'KRAP', name:'Rapid City',         lat:44.04,  lon:-103.06 },
-    { sid:'KUNR', name:'Rapid City (NWS)',   lat:44.07,  lon:-103.21 },
-    { sid:'KRIV', name:'Pierre, SD',         lat:44.38,  lon:-100.28 },
-    { sid:'KSUX', name:'Sioux City',         lat:42.40,  lon:-96.38 },
-    { sid:'KFSD', name:'Sioux Falls',        lat:43.58,  lon:-96.74 },
-    // West / Pacific
-    { sid:'KSEA', name:'Seattle',            lat:47.45,  lon:-122.31 },
-    { sid:'KBFI', name:'Seattle (Boeing)',   lat:47.53,  lon:-122.30 },
-    { sid:'KPDX', name:'Portland, OR',       lat:45.59,  lon:-122.60 },
-    { sid:'KEUG', name:'Eugene',             lat:44.12,  lon:-123.22 },
-    { sid:'KMFR', name:'Medford',            lat:42.37,  lon:-122.87 },
-    { sid:'KOTX', name:'Spokane',            lat:47.68,  lon:-117.63 },
-    { sid:'KYAK', name:'Yakima',             lat:46.57,  lon:-120.54 },
-    { sid:'KSFO', name:'San Francisco',      lat:37.62,  lon:-122.38 },
-    { sid:'KOAK', name:'Oakland',            lat:37.72,  lon:-122.22 },
-    { sid:'KSJC', name:'San Jose',           lat:37.36,  lon:-121.93 },
-    { sid:'KSMF', name:'Sacramento',         lat:38.70,  lon:-121.59 },
-    { sid:'KFAT', name:'Fresno',             lat:36.78,  lon:-119.72 },
-    { sid:'KBFL', name:'Bakersfield',        lat:35.43,  lon:-119.05 },
-    { sid:'KLAX', name:'Los Angeles',        lat:33.94,  lon:-118.41 },
-    { sid:'KBUR', name:'Burbank',            lat:34.20,  lon:-118.36 },
-    { sid:'KLGB', name:'Long Beach',         lat:33.82,  lon:-118.15 },
-    { sid:'KONT', name:'Ontario, CA',        lat:34.06,  lon:-117.60 },
-    { sid:'KSAN', name:'San Diego',          lat:32.73,  lon:-117.19 },
-    { sid:'KLAS', name:'Las Vegas',          lat:36.08,  lon:-115.15 },
-    { sid:'KPHX', name:'Phoenix',            lat:33.43,  lon:-112.01 },
-    { sid:'KTUS', name:'Tucson',             lat:32.12,  lon:-110.94 },
-    { sid:'KYUM', name:'Yuma',               lat:32.66,  lon:-114.60 },
-    { sid:'KTVL', name:'South Lake Tahoe',   lat:38.89,  lon:-119.99 },
-    { sid:'KMEV', name:'Minden-Tahoe',       lat:39.00,  lon:-119.75 },
-    { sid:'KVEF', name:'Las Vegas (NWS)',    lat:36.05,  lon:-115.19 },
-    // Alaska
-    { sid:'PANC', name:'Anchorage',          lat:61.17,  lon:-150.02 },
-    { sid:'PAJN', name:'Juneau',             lat:58.36,  lon:-134.58 },
-    { sid:'PAFA', name:'Fairbanks',          lat:64.82,  lon:-147.87 },
-    { sid:'PABT', name:'Bettles',            lat:66.92,  lon:-151.52 },
-    // Hawaii
-    { sid:'PHNL', name:'Honolulu',           lat:21.32,  lon:-157.92 },
-    { sid:'PHKO', name:'Kona',               lat:19.74,  lon:-156.05 },
+// ── ACIS helpers ──────────────────────────────────────────────────────────────
+async function acisPost(endpoint, params) {
+    const res = await fetch(`https://data.rcc-acis.org/${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(params),
+    });
+    if (!res.ok) throw new Error(`ACIS HTTP ${res.status}`);
+    const json = await res.json();
+    if (json.error) throw new Error(`ACIS: ${json.error}`);
+    return json;
+}
+
+// ── Leaflet map init ──────────────────────────────────────────────────────────
+let climMap = null;
+let climMarkers = {};       // sid → active Leaflet marker (only in-viewport ones)
+let stationsCache = [];     // full list of {sid,name,state,lat,lon} — never rendered all at once
+let activeMarkerSid = null; // currently selected station
+let renderPending = false;  // debounce flag
+
+// Zoom threshold below which we don't render individual markers (too dense)
+const MARKER_MIN_ZOOM = 6;
+
+// Max markers to render at once in viewport (prevents jank even at zoom 6)
+const MAX_VIEWPORT_MARKERS = 600;
+
+// Fallback hardcoded list used only if ACIS fetch fails
+const FALLBACK_CITIES = [
+    { sid:'KJFK', name:'New York (JFK)',       lat:40.64, lon:-73.78 },
+    { sid:'KLAX', name:'Los Angeles',          lat:33.94, lon:-118.41 },
+    { sid:'KORD', name:'Chicago (O\'Hare)',    lat:41.98, lon:-87.91 },
+    { sid:'KDFW', name:'Dallas–Ft Worth',      lat:32.90, lon:-97.04 },
+    { sid:'KIAH', name:'Houston (Intercont)',  lat:29.98, lon:-95.34 },
+    { sid:'KPHX', name:'Phoenix',              lat:33.43, lon:-112.01 },
+    { sid:'KPHL', name:'Philadelphia',         lat:39.87, lon:-75.24 },
+    { sid:'KSAT', name:'San Antonio',          lat:29.53, lon:-98.47 },
+    { sid:'KSAN', name:'San Diego',            lat:32.73, lon:-117.19 },
+    { sid:'KDTW', name:'Detroit',              lat:42.21, lon:-83.35 },
+    { sid:'KMSP', name:'Minneapolis',          lat:44.88, lon:-93.22 },
+    { sid:'KATL', name:'Atlanta',              lat:33.64, lon:-84.43 },
+    { sid:'KBOS', name:'Boston',               lat:42.36, lon:-71.01 },
+    { sid:'KSEA', name:'Seattle',              lat:47.45, lon:-122.31 },
+    { sid:'KDEN', name:'Denver',               lat:39.86, lon:-104.67 },
+    { sid:'KSLC', name:'Salt Lake City',       lat:40.78, lon:-111.97 },
+    { sid:'KSTL', name:'St. Louis',            lat:38.75, lon:-90.37 },
+    { sid:'KBNA', name:'Nashville',            lat:36.12, lon:-86.68 },
+    { sid:'KCLE', name:'Cleveland',            lat:41.41, lon:-81.85 },
+    { sid:'KPIT', name:'Pittsburgh',           lat:40.49, lon:-80.23 },
+    { sid:'KRDU', name:'Raleigh',              lat:35.87, lon:-78.79 },
+    { sid:'KCLT', name:'Charlotte',            lat:35.21, lon:-80.94 },
+    { sid:'KBWI', name:'Baltimore',            lat:39.17, lon:-76.67 },
+    { sid:'KDCA', name:'Washington DC',        lat:38.85, lon:-77.04 },
+    { sid:'KMEM', name:'Memphis',              lat:35.05, lon:-89.99 },
+    { sid:'KIND', name:'Indianapolis',         lat:39.72, lon:-86.28 },
+    { sid:'KOKC', name:'Oklahoma City',        lat:35.39, lon:-97.60 },
+    { sid:'KMCI', name:'Kansas City',          lat:39.30, lon:-94.71 },
+    { sid:'KOMA', name:'Omaha',                lat:41.30, lon:-95.89 },
+    { sid:'KBUF', name:'Buffalo',              lat:42.94, lon:-78.73 },
+    { sid:'PANC', name:'Anchorage',            lat:61.17, lon:-150.02 },
+    { sid:'PHNL', name:'Honolulu',             lat:21.32, lon:-157.92 },
 ];
 
-// ── Leaflet map init (lazy — only when <details> opens) ──────────────────────
-let climMap = null;
-let climMarkers = {};
+// All US states + territories
+const US_STATES = [
+    'AL','AK','AZ','AR','CA','CO','CT','DE','FL','GA',
+    'HI','ID','IL','IN','IA','KS','KY','LA','ME','MD',
+    'MA','MI','MN','MS','MO','MT','NE','NV','NH','NJ',
+    'NM','NY','NC','ND','OH','OK','OR','PA','RI','SC',
+    'SD','TN','TX','UT','VT','VA','WA','WV','WI','WY',
+    'PR','VI','GU',
+];
+
+// Extract the best usable station ID from ACIS sids array
+function extractBestSid(sids) {
+    if (!sids || !sids.length) return null;
+    const codes = sids.map(e => String(e).split(' ')[0].trim());
+    for (const c of codes) if (/^[KP][A-Z]{3}$/.test(c)) return c;
+    for (const c of codes) if (/^[KP][A-Z0-9]{3}$/.test(c)) return c;
+    for (const c of codes) if (/^[A-Z]{4}$/.test(c)) return c;
+    for (const c of codes) if (/^[A-Z0-9]{4,6}$/.test(c) && /[A-Z]/.test(c)) return c;
+    for (const c of codes) if (/^\d+$/.test(c)) return c;
+    return null;
+}
+
+async function fetchAllStations() {
+    try {
+        const batchSize = 10;
+        const allRaw = [];
+        for (let i = 0; i < US_STATES.length; i += batchSize) {
+            const batch = US_STATES.slice(i, i + batchSize);
+            const results = await Promise.all(batch.map(state =>
+                acisPost('StnMeta', {
+                    state,
+                    meta: ['name', 'state', 'll', 'sids'],
+                    elems: 'maxt',
+                }).catch(e => { console.warn(`StnMeta failed for ${state}:`, e.message); return { meta: [] }; })
+            ));
+            results.forEach(r => allRaw.push(...(r.meta || [])));
+        }
+        console.log(`ACIS StnMeta returned ${allRaw.length} raw station records`);
+
+        const stations = [];
+        const seen = new Set();
+        for (const s of allRaw) {
+            if (!s.ll || s.ll.length < 2) continue;
+            const lon = s.ll[0], lat = s.ll[1];
+            if (lat < 17 || lat > 72 || lon < -180 || lon > -60) continue;
+            const sid = extractBestSid(s.sids);
+            if (!sid || seen.has(sid)) continue;
+            seen.add(sid);
+            stations.push({ sid, name: s.name || sid, state: s.state || '', lat, lon });
+        }
+        console.log(`Filtered to ${stations.length} unique stations`);
+        if (stations.length < 10) {
+            console.warn('Too few stations — using fallback');
+            return FALLBACK_CITIES.map(c => ({ ...c, state: '' }));
+        }
+        return stations;
+    } catch(e) {
+        console.warn('Station fetch failed, using fallback:', e.message);
+        return FALLBACK_CITIES.map(c => ({ ...c, state: '' }));
+    }
+}
 
 function makeClimIcon(active) {
     return L.divIcon({
         className: '',
         html: `<div class="clim-marker-dot${active ? ' active' : ''}"></div>`,
-        iconSize: [12, 12],
-        iconAnchor: [6, 6],
+        iconSize: [10, 10],
+        iconAnchor: [5, 5],
     });
 }
 
-function syncMapMarker(sid) {
-    if (!climMap) return;
-    Object.keys(climMarkers).forEach(s => climMarkers[s].setIcon(makeClimIcon(false)));
-    if (climMarkers[sid]) climMarkers[sid].setIcon(makeClimIcon(true));
+function createMarker(c) {
+    const marker = L.marker([c.lat, c.lon], {
+        icon: makeClimIcon(c.sid === activeMarkerSid),
+        title: `${c.sid} — ${c.name}${c.state ? ', ' + c.state : ''}`,
+    });
+    marker.bindTooltip(
+        `<strong>${c.sid}</strong><br>${c.name}${c.state ? ', ' + c.state : ''}`,
+        { direction: 'top', offset: [0, -8] }
+    );
+    marker.on('click', () => {
+        activeMarkerSid = c.sid;
+        // Update icon on previously active marker
+        Object.keys(climMarkers).forEach(s => {
+            if (climMarkers[s]) climMarkers[s].setIcon(makeClimIcon(s === c.sid));
+        });
+        document.getElementById('stationId').value = c.sid;
+        document.querySelectorAll('.chip').forEach(ch => {
+            ch.classList.toggle('active', ch.dataset.sid === c.sid);
+        });
+        fetchData();
+    });
+    return marker;
 }
 
-function initClimMap() {
+// ── Core viewport renderer — called on every map move/zoom ───────────────────
+function renderViewportMarkers(searchQuery) {
+    if (!climMap || !stationsCache.length) return;
+
+    const zoom = climMap.getZoom();
+    const bounds = climMap.getBounds();
+    const q = (searchQuery || document.getElementById('mapSearch')?.value || '').trim().toLowerCase();
+
+    // Remove all existing markers from map
+    Object.keys(climMarkers).forEach(sid => {
+        if (climMarkers[sid]) {
+            climMap.removeLayer(climMarkers[sid]);
+            climMarkers[sid] = null;
+        }
+    });
+    climMarkers = {};
+
+    // Below threshold: show zoom-in hint, render nothing
+    if (zoom < MARKER_MIN_ZOOM && !q) {
+        document.getElementById('mapSearchCount').textContent =
+            `Zoom in to see stations (or search by name/ID)`;
+        return;
+    }
+
+    // Filter stations to viewport + search query
+    let candidates = stationsCache.filter(c => {
+        const inBounds = q || bounds.contains([c.lat, c.lon]);
+        const matchesSearch = !q
+            || c.sid.toLowerCase().includes(q)
+            || c.name.toLowerCase().includes(q)
+            || (c.state && c.state.toLowerCase().includes(q));
+        return inBounds && matchesSearch;
+    });
+
+    // If searching, show all matches regardless of zoom/bounds; if viewport,
+    // cap at MAX_VIEWPORT_MARKERS (preferring ICAO-coded stations first)
+    if (!q && candidates.length > MAX_VIEWPORT_MARKERS) {
+        // Sort: ICAO stations (K/P prefix) first, then others
+        candidates.sort((a, b) => {
+            const aICAO = /^[KP][A-Z]{3}$/.test(a.sid) ? 0 : 1;
+            const bICAO = /^[KP][A-Z]{3}$/.test(b.sid) ? 0 : 1;
+            return aICAO - bICAO;
+        });
+        candidates = candidates.slice(0, MAX_VIEWPORT_MARKERS);
+    }
+
+    // If search has matches, auto-zoom to fit them (up to 20 results)
+    if (q && candidates.length > 0 && candidates.length <= 20) {
+        const lats = candidates.map(c => c.lat);
+        const lons = candidates.map(c => c.lon);
+        const fitBounds = L.latLngBounds(
+            [Math.min(...lats) - 0.5, Math.min(...lons) - 0.5],
+            [Math.max(...lats) + 0.5, Math.max(...lons) + 0.5]
+        );
+        climMap.fitBounds(fitBounds, { maxZoom: 10, animate: true });
+    }
+
+    // Place markers
+    candidates.forEach(c => {
+        const marker = createMarker(c);
+        marker.addTo(climMap);
+        climMarkers[c.sid] = marker;
+    });
+
+    const total = stationsCache.length.toLocaleString();
+    const shown = candidates.length.toLocaleString();
+    document.getElementById('mapSearchCount').textContent =
+        q ? `${shown} matching / ${total} total`
+          : zoom < MARKER_MIN_ZOOM + 1 ? `${shown} shown — zoom in for more`
+          : `${shown} shown in view`;
+}
+
+// Debounced version for map move/zoom events
+function scheduleRender() {
+    if (renderPending) return;
+    renderPending = true;
+    setTimeout(() => {
+        renderPending = false;
+        renderViewportMarkers();
+    }, 150);
+}
+
+function syncMapMarker(sid) {
+    activeMarkerSid = sid;
+    Object.keys(climMarkers).forEach(s => {
+        if (climMarkers[s]) climMarkers[s].setIcon(makeClimIcon(s === sid));
+    });
+    // If the station isn't currently rendered (out of viewport), pan to it
+    if (!climMarkers[sid]) {
+        const found = stationsCache.find(c => c.sid === sid);
+        if (found) {
+            climMap.setView([found.lat, found.lon], Math.max(climMap.getZoom(), 8), { animate: true });
+        }
+    }
+}
+
+// Search handler — called by oninput on the search box
+function filterMapMarkers(query) {
+    renderViewportMarkers(query);
+}
+
+async function initClimMap() {
     if (climMap) { climMap.invalidateSize(); return; }
+
     climMap = L.map('climMap', {
         center: [39.5, -98.5],
         zoom: 4,
@@ -545,53 +659,54 @@ function initClimMap() {
         scrollWheelZoom: true,
     });
 
-    // Base tile (light, no labels)
     L.tileLayer('https://{s}.basemaps.cartocdn.com/light_nolabels/{z}/{x}/{y}{r}.png', {
         attribution: '&copy; OpenStreetMap &copy; CARTO',
-        subdomains: 'abcd',
-        maxZoom: 19,
+        subdomains: 'abcd', maxZoom: 19,
     }).addTo(climMap);
 
-    // Labels / boundaries overlay (state names, borders, cities)
     L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/Reference/World_Boundaries_and_Places/MapServer/tile/{z}/{y}/{x}', {
-        maxZoom: 19,
-        opacity: 0.75,
-        attribution: 'Esri',
+        maxZoom: 19, opacity: 0.75, attribution: 'Esri',
     }).addTo(climMap);
 
-    CITIES.forEach(c => {
-        const marker = L.marker([c.lat, c.lon], {
-            icon: makeClimIcon(false),
-            title: `${c.sid} — ${c.name}`,
-        }).addTo(climMap);
+    // Wire up viewport events
+    climMap.on('moveend zoomend', scheduleRender);
 
-        marker.bindTooltip(`<strong>${c.sid}</strong><br>${c.name}`, {
-            direction: 'top',
-            offset: [0, -8],
-        });
+    // Fetch all stations into memory (no markers yet)
+    const overlay = document.getElementById('mapLoadOverlay');
+    overlay.classList.remove('hidden');
+    overlay.textContent = '⟳  Querying all xmACIS states…';
 
-        marker.on('click', () => {
-            syncMapMarker(c.sid);
-            document.getElementById('stationId').value = c.sid;
-            // Sync chips
-            document.querySelectorAll('.chip').forEach(ch => {
-                ch.classList.toggle('active', ch.dataset.sid === c.sid);
-            });
-            fetchData();
-        });
+    const stations = await fetchAllStations();
+    stationsCache = stations;
 
-        climMarkers[c.sid] = marker;
-    });
+    const total = stations.length.toLocaleString();
+    document.getElementById('stationCount').textContent =
+        `${total} stations with temperature records loaded — zoom in or search to select`;
+
+    overlay.classList.add('hidden');
+
+    // Initial render pass
+    renderViewportMarkers();
+
+    // Pan to current station if already set
+    const currentSid = document.getElementById('stationId').value.trim().toUpperCase();
+    if (currentSid) {
+        const found = stationsCache.find(c => c.sid === currentSid);
+        if (found) {
+            climMap.setView([found.lat, found.lon], 8, { animate: false });
+            activeMarkerSid = currentSid;
+            renderViewportMarkers(); // re-render at new zoom so marker appears
+        }
+    }
 }
 
-// Open details → init/resize map
 document.getElementById('mapDetails').addEventListener('toggle', function () {
     if (this.open) {
-        setTimeout(initClimMap, 50); // small delay so the div has rendered height
+        setTimeout(initClimMap, 50);
     }
 });
 
-// ── Top-10 quick-select chips (auto-fetch on click) ─────────────────────────
+// ── Top-10 quick-select chips ─────────────────────────────────────────────────
 const TOP10 = ['KJFK','KLAX','KORD','KDFW','KIAH','KPHX','KPHL','KSAT','KSAN','KDAL'];
 const TOP10_NAMES = {
     KJFK:'New York', KLAX:'Los Angeles', KORD:'Chicago',
@@ -623,7 +738,7 @@ TOP10.forEach(sid => {
     document.getElementById('edate').value = now.toISOString().slice(0,10);
 })();
 
-// ── Highcharts global theme (BLACK axis labels) ───────────────────────────────
+// ── Highcharts global theme ───────────────────────────────────────────────────
 Highcharts.setOptions({
     chart: {
         backgroundColor: 'transparent',
@@ -654,12 +769,12 @@ Highcharts.setOptions({
         type: 'datetime',
         lineColor: '#ccc',
         tickColor: '#ccc',
-        labels: { style: { color: '#222', fontSize: '11px' } },   // ← BLACK
+        labels: { style: { color: '#222', fontSize: '11px' } },
         crosshair: { color: 'rgba(0,0,0,0.15)', width: 1 },
     },
     yAxis: {
         gridLineColor: 'rgba(0,0,0,0.07)',
-        labels: { style: { color: '#222', fontSize: '11px' } },   // ← BLACK
+        labels: { style: { color: '#222', fontSize: '11px' } },
     },
     plotOptions: {
         series: { animation: { duration: 600 } },
@@ -681,20 +796,9 @@ function acisDateToMs(str) {
     const [y, m, d] = str.split('-').map(Number);
     return Date.UTC(y, m - 1, d);
 }
-async function acisPost(endpoint, params) {
-    const res = await fetch(`https://data.rcc-acis.org/${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(params),
-    });
-    if (!res.ok) throw new Error(`ACIS HTTP ${res.status}`);
-    const json = await res.json();
-    if (json.error) throw new Error(`ACIS: ${json.error}`);
-    return json;
-}
 
-let tempChartInst  = null;
-let depChartInst   = null;
+let tempChartInst   = null;
+let depChartInst    = null;
 let precipChartInst = null;
 
 // ── Sync zoom across all three charts ────────────────────────────────────────
@@ -715,10 +819,11 @@ function syncZoom(sourceChart, min, max) {
 
 // ── Main fetch ────────────────────────────────────────────────────────────────
 async function fetchData() {
-    const sid    = document.getElementById('stationId').value.trim().toUpperCase();
-    const sdate  = document.getElementById('sdate').value;
-    const edate  = document.getElementById('edate').value;
-    const doSnow = document.getElementById('showSnow').value === 'yes';
+    const sid       = document.getElementById('stationId').value.trim().toUpperCase();
+    const sdate     = document.getElementById('sdate').value;
+    const edate     = document.getElementById('edate').value;
+    const doSnow    = document.getElementById('showSnow').value === 'yes';
+    const doRecords = document.getElementById('showRecords').value === 'yes';
 
     if (!sid || !sdate || !edate) { setStatus('err','Please fill in all fields.'); return; }
 
@@ -732,30 +837,69 @@ async function fetchData() {
     document.getElementById('stationHeader').style.display = 'none';
 
     try {
-        // Metadata
+        // ── Metadata ─────────────────────────────────────────────────────────
         const metaRes = await acisPost('StnMeta', {
             sids: [sid], meta: ['name','state','ll','elev'],
         });
         const station = metaRes.meta?.[0];
         if (!station) throw new Error(`No station found for "${sid}". Use 4-char ICAO (e.g. KDTW).`);
 
-// Main data
+        // ── Elems spec: observed + 1991-2020 normals ─────────────────────────
         const elemsSpec = [
-            { name: 'maxt' },
-            { name: 'maxt', normal: 1 },
-            { name: 'mint' },
-            { name: 'mint', normal: 1 },
-            { name: 'pcpn' },
-            { name: 'snow' },   // always fetch snow; we decide whether to show it
+            { name: 'maxt' },          // col 1: obs high
+            { name: 'maxt', normal: 1 },// col 2: 91-20 normal high
+            { name: 'mint' },          // col 3: obs low
+            { name: 'mint', normal: 1 },// col 4: 91-20 normal low
+            { name: 'pcpn' },          // col 5: precip
+            { name: 'snow' },          // col 6: snow
         ];
 
+        setStatus('loading', `Fetching observations for ${sid}…`);
         const dataRes = await acisPost('StnData', { sid, sdate, edate, elems: elemsSpec });
         const rows = dataRes.data || [];
         if (!rows.length) throw new Error('No data returned for that date range.');
 
-        // Column layout: [date, maxt, maxtNorm, mint, mintNorm, pcpn, snow]
+        // ── Fetch all-time daily records (period of record) ───────────────────
+        // Strategy: fetch maxt+mint for the full POR of the station, then compute
+        // max and min per calendar day-of-year (MM-DD) across all years.
+        // We use 'por' as sdate/edate to get every available year.
+        let porRecords = {};  // key: "MM-DD" → { recHigh, recLow }
+        if (doRecords) {
+            try {
+                setStatus('loading', `Fetching period-of-record data for ${sid}…`);
+                const porRes = await acisPost('StnData', {
+                    sid,
+                    sdate: 'por',
+                    edate: 'por',
+                    elems: [{ name: 'maxt' }, { name: 'mint' }],
+                });
+                const porRows = porRes.data || [];
+                // Build per-calendar-day records
+                for (const row of porRows) {
+                    const dateStr = row[0]; // "YYYY-MM-DD"
+                    const mmdd = dateStr.slice(5); // "MM-DD"
+                    const hi = parseVal(row[1]);
+                    const lo = parseVal(row[2]);
+                    if (!porRecords[mmdd]) porRecords[mmdd] = { recHigh: -Infinity, recLow: Infinity };
+                    if (hi !== null && hi > porRecords[mmdd].recHigh) porRecords[mmdd].recHigh = hi;
+                    if (lo !== null && lo < porRecords[mmdd].recLow)  porRecords[mmdd].recLow  = lo;
+                }
+                // Replace sentinel values with null for any incomplete days
+                for (const k of Object.keys(porRecords)) {
+                    if (porRecords[k].recHigh === -Infinity) porRecords[k].recHigh = null;
+                    if (porRecords[k].recLow  ===  Infinity) porRecords[k].recLow  = null;
+                }
+                console.log(`POR records computed for ${Object.keys(porRecords).length} calendar days`);
+            } catch(e) {
+                console.warn('POR fetch failed:', e.message);
+                porRecords = {};
+            }
+        }
+
+        // ── Parse rows ───────────────────────────────────────────────────────
         const obsRange    = [];
         const normRange   = [];
+        const recRange    = [];   // all-time record band
         const maxtLine    = [];
         const mintLine    = [];
         const normMaxLine = [];
@@ -768,15 +912,24 @@ async function fetchData() {
         let sumMint = 0, cntMint = 0;
         let sumPrecip = 0, sumSnow = 0;
         let maxMaxt = -Infinity, minMint = Infinity;
+        let recHighCount = 0, recLowCount = 0;
 
         rows.forEach(row => {
-            const ms       = acisDateToMs(row[0]);
-            const maxt     = parseVal(row[1]);
-            const maxtNorm = parseVal(row[2]);
-            const mint     = parseVal(row[3]);
-            const mintNorm = parseVal(row[4]);
-            const pcpn     = parseVal(row[5]);
-            const snow     = parseVal(row[6]);
+            // row: [date, maxt, maxtNorm, mint, mintNorm, pcpn, snow]
+            const dateStr   = row[0];
+            const ms        = acisDateToMs(dateStr);
+            const mmdd      = dateStr.slice(5); // "MM-DD" for record lookup
+            const maxt      = parseVal(row[1]);
+            const maxtNorm  = parseVal(row[2]);
+            const mint      = parseVal(row[3]);
+            const mintNorm  = parseVal(row[4]);
+            const pcpn      = parseVal(row[5]);
+            const snow      = parseVal(row[6]);
+
+            // All-time records for this calendar day
+            const rec       = porRecords[mmdd] || {};
+            const maxtRec   = rec.recHigh ?? null;
+            const mintRec   = rec.recLow  ?? null;
 
             if (maxt !== null && mint !== null) {
                 obsRange.push([ms, mint, maxt]);
@@ -792,30 +945,30 @@ async function fetchData() {
                 normMaxLine.push([ms, maxtNorm]);
                 normMinLine.push([ms, mintNorm]);
             }
+            if (maxtRec !== null && mintRec !== null) {
+                recRange.push([ms, mintRec, maxtRec]);
+            }
             if (maxt !== null && mint !== null && maxtNorm !== null && mintNorm !== null) {
                 const dep = parseFloat(((maxt+mint)/2 - (maxtNorm+mintNorm)/2).toFixed(1));
                 departure.push({ x: ms, y: dep, color: dep >= 0 ? 'rgba(255,138,101,0.75)' : 'rgba(79,195,247,0.75)' });
             }
 
-            // Precipitation (always show liquid)
-            if (pcpn !== null && pcpn > 0) {
-                precipBars.push({ x: ms, y: parseFloat(pcpn.toFixed(2)) });
-                sumPrecip += pcpn;
-            }
-            if (snow !== null && snow > 0.001) {
-                snowBars.push({ x: ms, y: parseFloat(snow.toFixed(1)) });
-                sumSnow += snow;
-            }
+            // Count days that set or tied records
+            if (maxt !== null && maxtRec !== null && maxt >= maxtRec) recHighCount++;
+            if (mint !== null && mintRec !== null && mint <= mintRec) recLowCount++;
+
+            if (pcpn !== null && pcpn > 0)  { precipBars.push({ x: ms, y: parseFloat(pcpn.toFixed(2)) }); sumPrecip += pcpn; }
+            if (snow !== null && snow > 0.001) { snowBars.push({ x: ms, y: parseFloat(snow.toFixed(1)) }); sumSnow += snow; }
         });
 
-        // Station header
+        // ── Station header ────────────────────────────────────────────────────
         const llStr   = station.ll ? `${station.ll[1].toFixed(2)}°N, ${Math.abs(station.ll[0]).toFixed(2)}°W` : '';
         const elevStr = station.elev ? ` · ${station.elev} ft` : '';
         document.getElementById('stationName').textContent = `${station.name}, ${station.state}`;
         document.getElementById('stationMeta').textContent = `${sid} · ${llStr}${elevStr} · ${rows.length} days`;
         document.getElementById('stationHeader').style.display = 'block';
 
-        // Summary strip
+        // ── Summary strip ─────────────────────────────────────────────────────
         const strip = document.getElementById('summaryStrip');
         strip.innerHTML = '';
         const addCard = (label, val, cls='') =>
@@ -831,13 +984,15 @@ async function fetchData() {
         if (departure.length) {
             const meanDep = (departure.reduce((s,d)=>s+d.y,0)/departure.length).toFixed(1);
             const sign = meanDep > 0 ? '+' : '';
-            addCard('Mean Departure', sign+meanDep+'°', meanDep >= 0 ? 'warm':'cold');
+            addCard('Mean Departure', sign+meanDep+'°', +meanDep >= 0 ? 'warm':'cold');
         }
         if (sumPrecip > 0) addCard('Total Precip', sumPrecip.toFixed(2)+'"');
         if (doSnow && sumSnow > 0) addCard('Total Snow', sumSnow.toFixed(1)+'"','snow');
+        if (doRecords && recHighCount > 0) addCard('Rec Highs Tied/Set', recHighCount,'warm');
+        if (doRecords && recLowCount  > 0) addCard('Rec Lows Tied/Set',  recLowCount,'cold');
         strip.style.display = 'grid';
 
-        // Destroy old charts
+        // ── Destroy old charts ────────────────────────────────────────────────
         if (tempChartInst)   { tempChartInst.destroy();   tempChartInst   = null; }
         if (depChartInst)    { depChartInst.destroy();    depChartInst    = null; }
         if (precipChartInst) { precipChartInst.destroy(); precipChartInst = null; }
@@ -845,19 +1000,82 @@ async function fetchData() {
         // ── Temperature range chart ───────────────────────────────────────────
         document.getElementById('tempPanel').style.display = 'block';
         document.getElementById('tempLegend').innerHTML = `
+            ${doRecords && recRange.length ? `<div class="legend-item"><span class="legend-swatch" style="background:rgba(200,150,200,0.12);border:1px solid rgba(180,100,180,0.25)"></span>Record Range (POR)</div>` : ''}
+            <div class="legend-item"><span class="legend-swatch" style="background:rgba(168,216,240,0.25);border:1px dashed #4fc3f7"></span>Normal Range (91–20)</div>
             <div class="legend-item"><span class="legend-swatch" style="background:rgba(255,138,101,0.25);border:1px solid rgba(255,138,101,0.5)"></span>Observed Range</div>
-            <div class="legend-item"><span class="legend-swatch" style="background:rgba(168,216,240,0.25);border:1px dashed #4fc3f7"></span>Normal Range</div>
             <div class="legend-item"><span class="legend-swatch" style="background:#ff8a65;height:2px;margin:3px 0"></span>Obs High</div>
             <div class="legend-item"><span class="legend-swatch" style="background:#4fc3f7;height:2px;margin:3px 0"></span>Obs Low</div>`;
+
+        // Build series — record band goes in first (lowest z-index)
+        const tempSeries = [];
+
+        if (doRecords && recRange.length) {
+            tempSeries.push({
+                name: 'Record Range',
+                type: 'arearange',
+                data: recRange,
+                // Very light purple/neutral — clearly behind everything else
+                fillColor: 'rgba(180, 100, 180, 0.07)',
+                lineColor: 'rgba(180, 100, 180, 0.18)',
+                lineWidth: 1,
+                dashStyle: 'Dot',
+                marker: { enabled: false },
+                zIndex: 0,
+                states: { hover: { enabled: false } },
+                tooltip: {
+                    pointFormatter: function() {
+                        return `<span style="color:#b464b4">●</span> <b>Record:</b> ${this.low}°F – ${this.high}°F<br>`;
+                    }
+                }
+            });
+        }
+
+        tempSeries.push(
+            {
+                name: 'Normal Range',
+                type: 'arearange',
+                data: normRange,
+                fillColor: 'rgba(168,216,240,0.12)',
+                lineColor: 'rgba(79,195,247,0.3)',
+                lineWidth: 0,
+                dashStyle: 'Dash',
+                marker: { enabled: false },
+                zIndex: 1,
+                states: { hover: { enabled: false } },
+                tooltip: {
+                    pointFormatter: function() {
+                        return `<span style="color:#aaa">●</span> <b>Normal:</b> ${this.low}°F – ${this.high}°F<br>`;
+                    }
+                }
+            },
+            {
+                name: 'Obs Range',
+                type: 'arearange',
+                data: obsRange,
+                fillColor: 'rgba(255,138,101,0.18)',
+                lineColor: 'transparent',
+                lineWidth: 0,
+                marker: { enabled: false },
+                zIndex: 2,
+                states: { hover: { enabled: false } },
+                tooltip: {
+                    pointFormatter: function() {
+                        return `<span style="color:#ff8a65">●</span> <b>Observed:</b> ${this.low}°F – ${this.high}°F<br>`;
+                    }
+                }
+            },
+            { name:'Normal High', type:'line', data:normMaxLine, color:'rgba(79,195,247,0.4)', lineWidth:1, dashStyle:'ShortDash', marker:{enabled:false}, zIndex:3, enableMouseTracking:false },
+            { name:'Normal Low',  type:'line', data:normMinLine, color:'rgba(79,195,247,0.4)', lineWidth:1, dashStyle:'ShortDash', marker:{enabled:false}, zIndex:3, enableMouseTracking:false },
+            { name:'High', type:'line', data:maxtLine, color:'#ff8a65', lineWidth:1.5, marker:{enabled:false,states:{hover:{enabled:true,radius:4}}}, zIndex:4, tooltip:{valueSuffix:'°F'} },
+            { name:'Low',  type:'line', data:mintLine, color:'#4fc3f7', lineWidth:1.5, marker:{enabled:false,states:{hover:{enabled:true,radius:4}}}, zIndex:4, tooltip:{valueSuffix:'°F'} }
+        );
 
         tempChartInst = Highcharts.chart('tempChart', {
             chart: { type: 'arearange' },
             xAxis: {
                 type: 'datetime',
                 dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
-                events: {
-                    setExtremes: function(e) { syncZoom(this.chart, e.min, e.max); }
-                },
+                events: { setExtremes: function(e) { syncZoom(this.chart, e.min, e.max); } },
             },
             yAxis: {
                 title: { text: 'Temperature (°F)', style: { color: '#333', fontSize: '11px' } },
@@ -867,31 +1085,21 @@ async function fetchData() {
                 }],
             },
             tooltip: {
-                pointFormatter: function() {
-                    if (this.series.name === 'Obs Range')
-                        return `<span style="color:#ff8a65">●</span> <b>Observed:</b> ${this.low}°F – ${this.high}°F<br>`;
-                    if (this.series.name === 'Normal Range')
-                        return `<span style="color:#aaa">●</span> <b>Normal:</b> ${this.low}°F – ${this.high}°F<br>`;
-                    return '';
-                },
                 headerFormat: '<span style="font-size:11px;opacity:.7">{point.key}</span><br>',
                 xDateFormat: '%B %e, %Y',
             },
-            series: [
-                { name:'Normal Range', type:'arearange', data:normRange, fillColor:'rgba(168,216,240,0.12)', lineColor:'rgba(79,195,247,0.3)', lineWidth:0, dashStyle:'Dash', marker:{enabled:false}, zIndex:1, states:{hover:{enabled:false}} },
-                { name:'Obs Range',    type:'arearange', data:obsRange,  fillColor:'rgba(255,138,101,0.18)', lineColor:'transparent', lineWidth:0, marker:{enabled:false}, zIndex:2, states:{hover:{enabled:false}} },
-                { name:'Normal High',  type:'line', data:normMaxLine, color:'rgba(79,195,247,0.4)', lineWidth:1, dashStyle:'ShortDash', marker:{enabled:false}, zIndex:3, enableMouseTracking:false },
-                { name:'Normal Low',   type:'line', data:normMinLine, color:'rgba(79,195,247,0.4)', lineWidth:1, dashStyle:'ShortDash', marker:{enabled:false}, zIndex:3, enableMouseTracking:false },
-                { name:'High', type:'line', data:maxtLine, color:'#ff8a65', lineWidth:1.5, marker:{enabled:false,states:{hover:{enabled:true,radius:4}}}, zIndex:4, tooltip:{valueSuffix:'°F'} },
-                { name:'Low',  type:'line', data:mintLine, color:'#4fc3f7', lineWidth:1.5, marker:{enabled:false,states:{hover:{enabled:true,radius:4}}}, zIndex:4, tooltip:{valueSuffix:'°F'} },
-            ],
+            series: tempSeries,
         });
 
         // ── Departure chart ───────────────────────────────────────────────────
         document.getElementById('depPanel').style.display = 'block';
         depChartInst = Highcharts.chart('depChart', {
             chart: { type: 'column' },
-            xAxis: { type:'datetime', dateTimeLabelFormats:{month:'%b %Y',day:'%b %e'}, events:{ setExtremes: function(e){ syncZoom(this.chart, e.min, e.max); } } },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
+                events: { setExtremes: function(e) { syncZoom(this.chart, e.min, e.max); } }
+            },
             yAxis: {
                 title: { text: 'Departure (°F)', style: { color: '#333', fontSize:'11px' } },
                 plotLines: [{ value:0, color:'rgba(0,0,0,0.2)', width:1 }],
@@ -905,45 +1113,34 @@ async function fetchData() {
                 },
             },
             series: [{
-                name:'Departure', data:departure,
-                pointPadding:0, groupPadding:0, borderWidth:0, maxPointWidth:8,
+                name: 'Departure', data: departure,
+                pointPadding: 0, groupPadding: 0, borderWidth: 0, maxPointWidth: 8,
             }],
         });
 
         // ── Precipitation chart ───────────────────────────────────────────────
         document.getElementById('precipPanel').style.display = 'block';
-
         const precipSeries = [
             {
-                name: 'Liquid Precip',
-                type: 'column',
-                data: precipBars,
-                color: '#4fc3f7',
-                pointPadding: 0,
-                groupPadding: 0.05,
-                borderWidth: 0,
-                maxPointWidth: 10,
-                tooltip: { valueSuffix: '"' },
+                name: 'Liquid Precip', type: 'column', data: precipBars,
+                color: '#4fc3f7', pointPadding: 0, groupPadding: 0.05,
+                borderWidth: 0, maxPointWidth: 10, tooltip: { valueSuffix: '"' },
             }
         ];
-
         if (doSnow && snowBars.length) {
             precipSeries.push({
-                name: 'Snowfall',
-                type: 'column',
-                data: snowBars,
-                color: '#b0bec5',
-                pointPadding: 0,
-                groupPadding: 0.05,
-                borderWidth: 0,
-                maxPointWidth: 10,
-                tooltip: { valueSuffix: '"' },
+                name: 'Snowfall', type: 'column', data: snowBars,
+                color: '#b0bec5', pointPadding: 0, groupPadding: 0.05,
+                borderWidth: 0, maxPointWidth: 10, tooltip: { valueSuffix: '"' },
             });
         }
-
         precipChartInst = Highcharts.chart('precipChart', {
             chart: { type: 'column' },
-            xAxis: { type:'datetime', dateTimeLabelFormats:{month:'%b %Y',day:'%b %e'}, events:{ setExtremes: function(e){ syncZoom(this.chart, e.min, e.max); } } },
+            xAxis: {
+                type: 'datetime',
+                dateTimeLabelFormats: { month: '%b %Y', day: '%b %e' },
+                events: { setExtremes: function(e) { syncZoom(this.chart, e.min, e.max); } }
+            },
             yAxis: {
                 title: { text: 'Inches', style: { color: '#333', fontSize:'11px' } },
                 min: 0,
@@ -956,14 +1153,15 @@ async function fetchData() {
                     return `<span style="color:${this.series.color}">●</span> <b>${this.series.name}:</b> ${v}<br>`;
                 },
             },
-            plotOptions: {
-                column: { grouping: true }
-            },
+            plotOptions: { column: { grouping: true } },
             legend: { enabled: precipSeries.length > 1 },
             series: precipSeries,
         });
 
-        setStatus('ok', `${rows.length} days loaded for ${station.name}, ${station.state} · drag to pan, scroll to zoom · data: ACIS/RCC`);
+        const recMsg = doRecords && recRange.length
+            ? ` · ${recHighCount} rec high days, ${recLowCount} rec low days`
+            : '';
+        setStatus('ok', `${rows.length} days loaded for ${station.name}, ${station.state}${recMsg} · drag to pan, scroll to zoom · data: ACIS/RCC`);
 
     } catch(err) {
         setStatus('err', err.message);
